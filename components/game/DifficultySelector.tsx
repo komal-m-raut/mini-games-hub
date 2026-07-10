@@ -75,18 +75,18 @@ export function DifficultySelector({ onSelect }: DifficultySelectorProps) {
                   {cfg.description}
                 </p>
 
-                <div className="grid grid-cols-2 gap-2 text-xs font-mono">
+                <div className="grid grid-cols-2 gap-2 font-mono">
                   <div className="stat-pill">
-                    <span className="text-white/40">Speed</span>
-                    <span style={{ color: cfg.color }}>
+                    <span className="text-white/35 text-[0.6rem] uppercase tracking-wider">Speed</span>
+                    <span className="text-xs font-bold" style={{ color: cfg.color }}>
                       {diff === 'easy' ? 'Slow' : diff === 'medium' ? 'Medium' : 'Fast'}
                     </span>
                   </div>
                   <div className="stat-pill">
-                    <span className="text-white/40">Tolerance</span>
-                    <span style={{ color: cfg.color }}>±{cfg.tolerancePercent}%</span>
+                    <span className="text-white/35 text-[0.6rem] uppercase tracking-wider">Tolerance</span>
+                    <span className="text-xs font-bold" style={{ color: cfg.color }}>±{cfg.tolerancePercent}%</span>
                   </div>
-                  <div className="stat-pill col-span-2">
+                  <div className="stat-pill stat-pill-row col-span-2 text-xs">
                     <span className="text-white/40">Score multiplier</span>
                     <span style={{ color: cfg.color }}>
                       {diff === 'easy' ? '×1' : diff === 'medium' ? '×1.5' : '×2.5'}

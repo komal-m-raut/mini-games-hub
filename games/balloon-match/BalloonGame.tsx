@@ -89,7 +89,6 @@ export function BalloonGame() {
               units={state.targetUnits}
               color={state.targetColor}
               id="target"
-              isTarget
               visible
               pulse
             />

@@ -139,7 +139,7 @@ export function ResultScreen({
 
       {/* Actions */}
       <motion.div
-        className="flex gap-3 w-full max-w-xs"
+        className="flex gap-3 w-full max-w-sm"
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.45 }}
@@ -148,19 +148,19 @@ export function ResultScreen({
           variant="ghost"
           size="md"
           onClick={onMenu}
-          className="flex-1 flex items-center justify-center gap-2"
+          className="flex-1 flex items-center justify-center gap-2 whitespace-nowrap"
         >
-          <Home className="w-4 h-4" strokeWidth={1.5} />
+          <Home className="w-4 h-4 shrink-0" strokeWidth={1.5} />
           Menu
         </NeonButton>
         <NeonButton
           variant="primary"
           size="md"
           onClick={onPlayAgain}
-          className="flex-1 flex items-center justify-center gap-2"
+          className="flex-1 flex items-center justify-center gap-2 whitespace-nowrap"
           glow="rgba(124, 58, 237, 0.5)"
         >
-          <RotateCcw className="w-4 h-4" strokeWidth={1.5} />
+          <RotateCcw className="w-4 h-4 shrink-0" strokeWidth={1.5} />
           Next Round
         </NeonButton>
       </motion.div>
