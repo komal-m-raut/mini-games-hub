@@ -7,10 +7,15 @@ type Props = { params: Promise<{ code: string }> };
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { code } = await params;
+  const description =
+    'You’ve been challenged! Play the same balloons as your friends and climb the shared leaderboard.';
   return {
     title: `${challengeLabel(code)} · Balloon Match`,
-    description:
-      'You’ve been challenged! Play the same 3 balloons as your friends and climb the shared leaderboard.',
+    description,
+    // Unbounded unique URLs — keep out of search indexes, but OG stays
+    // so shared invite links unfurl nicely in chats.
+    robots: { index: false, follow: false },
+    openGraph: { title: `${challengeLabel(code)} · Balloon Match`, description },
   };
 }
 

@@ -4,9 +4,16 @@ import { AdBanner } from '@/components/ads/AdBanner';
 import { Leaderboard } from '@/components/leaderboard/Leaderboard';
 
 export const metadata: Metadata = {
-  title: 'Balloon Match · Mini Games Hub',
+  title: 'Balloon Match',
   description:
     'Watch a balloon, then recreate it from memory by pressing and holding. How accurate can you be?',
+  alternates: { canonical: '/games/balloon-match' },
+  openGraph: {
+    title: 'Balloon Match',
+    description:
+      'Watch a balloon, then recreate it from memory by pressing and holding. How accurate can you be?',
+    url: '/games/balloon-match',
+  },
 };
 
 export default function BalloonMatchPage() {

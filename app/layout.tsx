@@ -5,6 +5,7 @@ import { Navigation } from '@/components/layout/Navigation';
 import { Footer } from '@/components/layout/Footer';
 import { ParticleBackground } from '@/components/ui/ParticleBackground';
 import { ServiceWorkerRegister } from '@/components/pwa/ServiceWorkerRegister';
+import { SITE_URL } from '@/lib/constants';
 import './globals.css';
 
 const orbitron = Orbitron({
@@ -29,14 +30,28 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'Mini Games Hub — Stress-Buster Games',
+  metadataBase: new URL(SITE_URL),
+  title: {
+    default: 'Mini Games Hub — Stress-Buster Games',
+    template: '%s · Mini Games Hub',
+  },
   description:
     'A collection of quick, relaxing mini-games to relieve stress and sharpen your mind. Play Balloon Match and more!',
   keywords: ['mini games', 'stress relief', 'balloon match', 'casual games', 'browser games'],
+  alternates: { canonical: '/' },
   openGraph: {
+    siteName: 'Mini Games Hub',
     title: 'Mini Games Hub',
     description: 'Stress-buster mini games — instantly playable in your browser.',
     type: 'website',
+    url: '/',
+    images: [{ url: '/og.png', width: 1200, height: 630, alt: 'Mini Games Hub' }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Mini Games Hub',
+    description: 'Stress-buster mini games — instantly playable in your browser.',
+    images: ['/og.png'],
   },
   appleWebApp: {
     capable: true,

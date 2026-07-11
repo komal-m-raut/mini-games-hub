@@ -3,6 +3,13 @@ import { Difficulty } from '@/types/game';
 export const SITE_NAME = 'Mini Games Hub';
 export const SITE_DESCRIPTION = 'Stress-buster mini games to relax and sharpen your mind.';
 
+// Canonical origin for SEO (sitemap, canonical URLs, OG). Set
+// NEXT_PUBLIC_SITE_URL to the real domain in production; falls back to the
+// Vercel deployment URL, then localhost for dev.
+export const SITE_URL =
+  process.env.NEXT_PUBLIC_SITE_URL ??
+  (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
+
 // Neon palette used throughout the UI
 export const NEON = {
   purple: '#7C3AED',
