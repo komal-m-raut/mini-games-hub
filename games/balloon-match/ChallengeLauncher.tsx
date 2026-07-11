@@ -38,12 +38,7 @@ export function ChallengeLauncher() {
           className="flex-1 flex items-center gap-3 px-5 py-4 rounded-2xl border border-brand-cyan/25 bg-brand-cyan/5 hover:border-brand-cyan/60 hover:bg-brand-cyan/10 transition-all cursor-pointer group"
         >
           <CalendarDays className="w-6 h-6 text-brand-cyan shrink-0 group-hover:scale-110 transition-transform" strokeWidth={1.5} />
-          <span className="text-left">
-            <span className="block font-display font-bold text-white text-sm">Daily Challenge</span>
-            <span className="block text-white/40 text-xs font-mono">
-              Same for everyone today
-            </span>
-          </span>
+          <span className="font-display font-bold text-white text-sm">Daily Challenge</span>
         </button>
 
         <button
@@ -51,12 +46,7 @@ export function ChallengeLauncher() {
           className="flex-1 flex items-center gap-3 px-5 py-4 rounded-2xl border border-brand-purple/25 bg-brand-purple/5 hover:border-brand-purple/60 hover:bg-brand-purple/10 transition-all cursor-pointer group"
         >
           <Swords className="w-6 h-6 text-brand-violet shrink-0 group-hover:scale-110 transition-transform" strokeWidth={1.5} />
-          <span className="text-left">
-            <span className="block font-display font-bold text-white text-sm">Challenge a Friend</span>
-            <span className="block text-white/40 text-xs font-mono">
-              Share a link · one leaderboard
-            </span>
-          </span>
+          <span className="font-display font-bold text-white text-sm">Challenge a Friend</span>
         </button>
       </div>
     </motion.div>
