@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Trophy, Users, RefreshCw, Lock } from 'lucide-react';
 import { useLeaderboard, LeaderboardTab } from '@/hooks/useLeaderboard';
+import { useSiteStats } from '@/hooks/useSiteStats';
 import { LeaderboardEntry } from '@/types/game';
 
 const TABS: { id: LeaderboardTab; label: string }[] = [
@@ -65,8 +66,8 @@ function LeaderboardRow({ entry, index }: { entry: LeaderboardEntry; index: numb
 }
 
 export function Leaderboard({ gameId }: LeaderboardProps) {
-  const { entries, activeTab, setActiveTab, isLoading, refresh, totalPlayers } =
-    useLeaderboard(gameId);
+  const { entries, activeTab, setActiveTab, isLoading, refresh } = useLeaderboard(gameId);
+  const stats = useSiteStats();
 
   useEffect(() => {
     refresh();
@@ -84,7 +85,7 @@ export function Leaderboard({ gameId }: LeaderboardProps) {
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-1.5 text-xs text-white/40 font-mono">
               <Users className="w-3.5 h-3.5" />
-              {totalPlayers.toLocaleString()} players
+              {(stats?.totalPlayers ?? 0).toLocaleString()} player{stats?.totalPlayers === 1 ? '' : 's'}
             </div>
             <button
               onClick={refresh}

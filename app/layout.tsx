@@ -1,8 +1,10 @@
 import type { Metadata, Viewport } from 'next';
+import { Analytics } from '@vercel/analytics/next';
 import { Orbitron, Space_Grotesk, JetBrains_Mono } from 'next/font/google';
 import { Navigation } from '@/components/layout/Navigation';
 import { Footer } from '@/components/layout/Footer';
 import { ParticleBackground } from '@/components/ui/ParticleBackground';
+import { ServiceWorkerRegister } from '@/components/pwa/ServiceWorkerRegister';
 import './globals.css';
 
 const orbitron = Orbitron({
@@ -36,6 +38,18 @@ export const metadata: Metadata = {
     description: 'Stress-buster mini games — instantly playable in your browser.',
     type: 'website',
   },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'MiniGames',
+  },
+  icons: {
+    icon: [
+      { url: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' },
+      { url: '/icons/icon-512.png', sizes: '512x512', type: 'image/png' },
+    ],
+    apple: '/icons/apple-icon.png',
+  },
 };
 
 export const viewport: Viewport = {
@@ -48,15 +62,18 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html
       lang="en"
+      data-scroll-behavior="smooth"
       className={`${orbitron.variable} ${spaceGrotesk.variable} ${jetbrainsMono.variable}`}
     >
       <body className="scanlines">
+        <ServiceWorkerRegister />
         <ParticleBackground count={18} />
         <Navigation />
         <main className="relative z-10 pt-16 flex-1 flex flex-col">
           {children}
         </main>
         <Footer />
+        <Analytics />
       </body>
     </html>
   );

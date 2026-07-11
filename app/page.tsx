@@ -6,6 +6,7 @@ import { Zap, Star, Users } from 'lucide-react';
 import { GAME_REGISTRY } from '@/lib/gameRegistry';
 import { AdBanner } from '@/components/ads/AdBanner';
 import { Leaderboard } from '@/components/leaderboard/Leaderboard';
+import { useSiteStats } from '@/hooks/useSiteStats';
 import { GameMeta } from '@/types/game';
 
 // ── Animation variants ──────────────────────
@@ -90,6 +91,8 @@ function GameCard({ game }: { game: GameMeta }) {
 
 // ── Hero Section ────────────────────────────
 function HeroSection() {
+  const stats = useSiteStats();
+
   return (
     <div className="text-center py-16 sm:py-24">
       <motion.div
@@ -130,7 +133,11 @@ function HeroSection() {
       >
         {[
           { Icon: Star,  label: '1 Game Live',       color: '#EAB308' },
-          { Icon: Users, label: '14,823 Players',     color: '#06B6D4' },
+          {
+            Icon: Users,
+            label: `${(stats?.totalPlayers ?? 0).toLocaleString()} Player${stats?.totalPlayers === 1 ? '' : 's'}`,
+            color: '#06B6D4',
+          },
           { Icon: Zap,   label: 'More Coming Soon',   color: '#A78BFA' },
         ].map(({ Icon, label, color }) => (
           <div key={label} className="flex items-center gap-1.5 font-mono" style={{ color }}>

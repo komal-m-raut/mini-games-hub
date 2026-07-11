@@ -55,5 +55,5 @@ export function useLeaderboard(gameId: string) {
 
   const entries: LeaderboardEntry[] = data[activeTab] ?? [];
 
-  return { entries, activeTab, setActiveTab, isLoading, refresh, submitScore, totalPlayers: data.totalPlayers };
+  return { entries, activeTab, setActiveTab, isLoading, refresh, submitScore };
 }
