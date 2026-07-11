@@ -1,37 +1,18 @@
-import { Difficulty, GameResult, Rating } from '@/types/game';
-import { SCORE_VALUES } from '@/lib/constants';
+import { clamp } from '@/lib/utils';
 
-/** Base score before multipliers. */
-function baseScore(rating: Rating): number {
-  return SCORE_VALUES[rating] ?? 100;
+/** Every round is scored out of 10. */
+export const MAX_ROUND_SCORE = 10;
+
+/**
+ * Maps accuracy (0–100) to a round score out of 10.
+ * 100% → 10, then one point lost per 5% of accuracy; 50% or worse → 0.
+ */
+export function calculateScore(accuracy: number): number {
+  return clamp(Math.round((accuracy - 50) / 5), 0, MAX_ROUND_SCORE);
 }
 
-/** Bonus for accuracy above the base value for the rating. */
-function accuracyBonus(accuracy: number): number {
-  return Math.round(accuracy * 2);
-}
-
-const DIFFICULTY_MULTIPLIER: Record<Difficulty, number> = {
-  easy: 1,
-  medium: 1.5,
-  hard: 2.5,
-};
-
-export function calculateScore(
-  rating: Rating,
-  accuracy: number,
-  difficulty: Difficulty
-): number {
-  const raw = (baseScore(rating) + accuracyBonus(accuracy)) * DIFFICULTY_MULTIPLIER[difficulty];
-  return Math.round(raw);
-}
-
-export function formatScore(score: number): string {
-  return score.toLocaleString();
-}
-
-/** Simple session high-score stored in localStorage. */
-const LS_KEY = 'mgh_balloon_highscore';
+/** Best single-round score (out of 10) stored in localStorage. */
+const LS_KEY = 'mgh_balloon_best10';
 
 export function getLocalHighScore(): number {
   if (typeof window === 'undefined') return 0;
