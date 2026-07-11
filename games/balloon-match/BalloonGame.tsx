@@ -9,17 +9,36 @@ import { usePressAndHold } from '@/hooks/usePressAndHold';
 import { DIFFICULTY_CONFIG, UNIT_TO_PX } from '@/lib/constants';
 import { Balloon } from './BalloonCanvas';
 import { ResultScreen } from './ResultScreen';
+import { ChallengeComplete, ChallengeIntro } from './ChallengeScreens';
+import { ChallengeLauncher } from './ChallengeLauncher';
 import { useBalloonGame } from './useBalloonGame';
 
-export function BalloonGame() {
-  const { state, selectDifficulty, startInflating, stopInflating, playAgain, resetToMenu } =
-    useBalloonGame();
+interface BalloonGameProps {
+  /** When set, runs as a seeded 3-round challenge with a shared leaderboard. */
+  challengeCode?: string;
+}
+
+export function BalloonGame({ challengeCode }: BalloonGameProps) {
+  const {
+    state,
+    challengeRounds,
+    selectDifficulty,
+    startChallenge,
+    startInflating,
+    stopInflating,
+    playAgain,
+    resetToMenu,
+  } = useBalloonGame({ challengeCode });
 
   const holdHandlers = usePressAndHold({
     onStart: startInflating,
     onEnd: stopInflating,
     disabled: state.phase !== 'inflating',
   });
+
+  const isChallenge = state.mode === 'challenge';
+  const isMenuPhase = state.phase === 'selecting-difficulty' || state.phase === 'challenge-intro';
+  const isFinalRound = state.totalRounds !== null && state.round >= state.totalRounds;
 
   const cfg = state.difficulty ? DIFFICULTY_CONFIG[state.difficulty] : null;
   const currentDiameterPx = state.currentUnits * UNIT_TO_PX;
@@ -28,7 +47,7 @@ export function BalloonGame() {
   return (
     <div className="flex flex-col gap-6 w-full max-w-2xl mx-auto">
       {/* Top bar: back + score */}
-      {state.phase !== 'selecting-difficulty' && (
+      {!isMenuPhase && state.phase !== 'challenge-complete' && (
         <motion.div
           className="flex items-center justify-between"
           initial={{ opacity: 0, y: -10 }}
@@ -39,13 +58,14 @@ export function BalloonGame() {
             className="flex items-center gap-1.5 text-white/40 hover:text-white/70 transition-colors text-sm font-mono cursor-pointer"
           >
             <ArrowLeft className="w-4 h-4" strokeWidth={1.5} />
-            Menu
+            {isChallenge ? 'Restart' : 'Menu'}
           </button>
           <ScoreCard
             score={state.score}
             highScore={state.highScore}
             round={state.round}
-            accuracy={state.result?.accuracy}
+            totalRounds={state.totalRounds}
+            totalScore={state.totalScore}
             isNewHighScore={state.isNewHighScore}
           />
         </motion.div>
@@ -53,22 +73,36 @@ export function BalloonGame() {
 
       {/* Main game area */}
       <AnimatePresence mode="wait">
-        {/* ── Difficulty selection ── */}
+        {/* ── Difficulty selection (Normal mode) ── */}
         {state.phase === 'selecting-difficulty' && (
           <motion.div
             key="difficulty"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0, y: -20 }}
+            className="flex flex-col gap-8"
           >
             <DifficultySelector onSelect={selectDifficulty} />
+            <ChallengeLauncher />
+          </motion.div>
+        )}
+
+        {/* ── Challenge intro ── */}
+        {state.phase === 'challenge-intro' && challengeCode && challengeRounds && (
+          <motion.div
+            key="challenge-intro"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0, y: -20 }}
+          >
+            <ChallengeIntro code={challengeCode} rounds={challengeRounds} onStart={startChallenge} />
           </motion.div>
         )}
 
         {/* ── Observing: show target balloon + countdown ── */}
         {state.phase === 'observing' && cfg && (
           <motion.div
-            key="observing"
+            key={`observing-${state.round}`}
             className="glass-card flex flex-col items-center gap-6 py-10"
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -80,9 +114,6 @@ export function BalloonGame() {
               className="text-center"
             >
               <p className="font-display text-xl font-bold text-white mb-1">Memorize This Balloon</p>
-              <p className="text-white/40 text-sm font-mono">
-                Study its size carefully — it disappears soon!
-              </p>
             </motion.div>
 
             <Balloon
@@ -102,11 +133,11 @@ export function BalloonGame() {
           </motion.div>
         )}
 
-        {/* ── Inflating: hold to grow ── */}
-        {state.phase === 'inflating' && (
+        {/* ── Inflating: hold to grow, beat the clock ── */}
+        {state.phase === 'inflating' && cfg && (
           <motion.div
             key={`inflating-${state.round}`}
-            className="glass-card flex flex-col items-center gap-6 py-10"
+            className="glass-card flex flex-col items-center gap-5 py-8"
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
@@ -117,12 +148,18 @@ export function BalloonGame() {
               className="text-center"
             >
               <p className="font-display text-xl font-bold text-white mb-1">
-                {state.isHolding ? 'Inflating… Release when ready!' : 'Hold to Inflate'}
-              </p>
-              <p className="text-white/40 text-sm font-mono">
-                Press & hold anywhere below — release to lock in your size
+                {state.isHolding ? 'Release when ready!' : 'Hold to Inflate'}
               </p>
             </motion.div>
+
+            {/* Time pressure: locks in automatically at zero (Easy has no limit) */}
+            {cfg.inflateSeconds !== null && (
+              <GameTimer
+                timeLeft={state.inflateTimeLeft}
+                totalSeconds={cfg.inflateSeconds}
+                size="sm"
+              />
+            )}
 
             {/* Inflate zone — balloon is pointer-events:none so it never triggers pointerleave */}
             <div
@@ -184,15 +221,34 @@ export function BalloonGame() {
               result={state.result}
               targetColor={state.targetColor}
               isNewHighScore={state.isNewHighScore}
+              nextLabel={
+                !isChallenge ? 'Next Round' : isFinalRound ? 'Final Results' : 'Next Challenge'
+              }
               onPlayAgain={playAgain}
               onMenu={resetToMenu}
+            />
+          </motion.div>
+        )}
+
+        {/* ── Challenge complete: total, share, shared leaderboard ── */}
+        {state.phase === 'challenge-complete' && challengeCode && (
+          <motion.div
+            key="challenge-complete"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <ChallengeComplete
+              code={challengeCode}
+              roundScores={state.roundScores}
+              onReplay={resetToMenu}
             />
           </motion.div>
         )}
       </AnimatePresence>
 
       {/* Difficulty badge (during play) */}
-      {cfg && state.phase !== 'selecting-difficulty' && (
+      {cfg && !isMenuPhase && state.phase !== 'challenge-complete' && (
         <motion.div
           className="flex justify-center"
           initial={{ opacity: 0 }}
@@ -207,7 +263,7 @@ export function BalloonGame() {
               background: `${cfg.color}10`,
             }}
           >
-            {cfg.label} · ±{cfg.tolerancePercent}% tolerance
+            {cfg.label}
           </span>
         </motion.div>
       )}

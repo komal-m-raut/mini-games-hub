@@ -34,9 +34,6 @@ export function DifficultySelector({ onSelect }: DifficultySelectorProps) {
         <h2 className="font-display text-3xl sm:text-4xl font-bold text-white mb-2">
           Choose Difficulty
         </h2>
-        <p className="text-white/50 text-sm font-mono">
-          Select how challenging you want the balloon match to be
-        </p>
       </motion.div>
 
       <motion.div
@@ -83,13 +80,9 @@ export function DifficultySelector({ onSelect }: DifficultySelectorProps) {
                     </span>
                   </div>
                   <div className="stat-pill">
-                    <span className="text-white/35 text-[0.6rem] uppercase tracking-wider">Tolerance</span>
-                    <span className="text-xs font-bold" style={{ color: cfg.color }}>±{cfg.tolerancePercent}%</span>
-                  </div>
-                  <div className="stat-pill stat-pill-row col-span-2 text-xs">
-                    <span className="text-white/40">Score multiplier</span>
-                    <span style={{ color: cfg.color }}>
-                      {diff === 'easy' ? '×1' : diff === 'medium' ? '×1.5' : '×2.5'}
+                    <span className="text-white/35 text-[0.6rem] uppercase tracking-wider">Time</span>
+                    <span className="text-xs font-bold" style={{ color: cfg.color }}>
+                      {cfg.inflateSeconds === null ? '∞' : `${cfg.inflateSeconds}s`}
                     </span>
                   </div>
                 </div>

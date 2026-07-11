@@ -23,7 +23,13 @@ export function usePressAndHold({ onStart, onEnd, disabled }: UsePressAndHoldOpt
       if (isHoldingRef.current) return;
       // Capture the pointer so we keep receiving events even when the
       // cursor moves off the element (balloon growing under the finger).
-      (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+      // Guarded: throws NotFoundError for inactive/synthetic pointers.
+      try {
+        (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+      } catch {
+        // Hold still works without capture; release just requires
+        // the pointer to stay over the element.
+      }
       isHoldingRef.current = true;
       onStart?.();
     },

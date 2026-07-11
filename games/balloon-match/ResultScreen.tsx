@@ -7,7 +7,7 @@ import { NeonButton } from '@/components/ui/NeonButton';
 import { ConfettiEffect } from '@/components/ui/ConfettiEffect';
 import { BalloonComparison } from './BalloonCanvas';
 import { getSizeDiffLabel } from '@/utils/accuracy';
-import { formatScore } from '@/utils/scoring';
+import { MAX_ROUND_SCORE } from '@/utils/scoring';
 
 const RATING_META: Record<
   Rating,
@@ -47,6 +47,8 @@ interface ResultScreenProps {
   result: GameResult;
   targetColor: string;
   isNewHighScore: boolean;
+  /** Label for the primary action, e.g. "Next Round" or "Final Results". */
+  nextLabel?: string;
   onPlayAgain: () => void;
   onMenu: () => void;
 }
@@ -55,6 +57,7 @@ export function ResultScreen({
   result,
   targetColor,
   isNewHighScore,
+  nextLabel = 'Next Round',
   onPlayAgain,
   onMenu,
 }: ResultScreenProps) {
@@ -119,7 +122,10 @@ export function ResultScreen({
         </div>
         <div className="stat-card">
           <p className="stat-label">Round Score</p>
-          <p className="stat-value text-brand-purple">+{formatScore(result.score)}</p>
+          <p className="stat-value text-brand-purple">
+            {result.score}
+            <span className="text-white/30 text-sm">/{MAX_ROUND_SCORE}</span>
+          </p>
         </div>
       </motion.div>
 
@@ -161,7 +167,7 @@ export function ResultScreen({
           glow="rgba(124, 58, 237, 0.5)"
         >
           <RotateCcw className="w-4 h-4 shrink-0" strokeWidth={1.5} />
-          Next Round
+          {nextLabel}
         </NeonButton>
       </motion.div>
     </motion.div>

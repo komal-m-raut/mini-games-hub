@@ -40,52 +40,50 @@ export interface DifficultyConfig {
   inflationSpeed: number; // units per second while holding
   tolerancePercent: number;
   observeSeconds: number;
+  inflateSeconds: number | null; // time limit to lock in a size; null = no limit
   color: string;
   glow: string;
 }
 
 export const DIFFICULTY_CONFIG: Record<Difficulty, DifficultyConfig> = {
+  // inflationSpeed must let maxUnits be reached well inside inflateSeconds
+  // (worst case ~70% of the window) or some targets become unwinnable.
   easy: {
     label: 'Easy',
-    description: 'Slow inflation · Generous tolerance',
+    description: 'No timer · Forgiving',
     minUnits: 30,
     maxUnits: 65,
-    inflationSpeed: 10,
+    inflationSpeed: 12,
     tolerancePercent: 15,
     observeSeconds: 5,
+    inflateSeconds: null,
     color: '#22C55E',
     glow: 'rgba(34, 197, 94, 0.4)',
   },
   medium: {
     label: 'Medium',
-    description: 'Moderate speed · Tighter tolerance',
+    description: '5 seconds · Tighter',
     minUnits: 20,
     maxUnits: 78,
-    inflationSpeed: 16,
+    inflationSpeed: 25,
     tolerancePercent: 10,
     observeSeconds: 5,
+    inflateSeconds: 5,
     color: '#F97316',
     glow: 'rgba(249, 115, 22, 0.4)',
   },
   hard: {
     label: 'Hard',
-    description: 'Fast inflation · Pixel-perfect tolerance',
+    description: '3 seconds · No mercy',
     minUnits: 15,
     maxUnits: 88,
-    inflationSpeed: 24,
+    inflationSpeed: 45,
     tolerancePercent: 5,
     observeSeconds: 5,
+    inflateSeconds: 3,
     color: '#EF4444',
     glow: 'rgba(239, 68, 68, 0.4)',
   },
-};
-
-// Score multipliers per rating
-export const SCORE_VALUES: Record<string, number> = {
-  Perfect: 1000,
-  Great: 700,
-  Good: 400,
-  'Try Again': 100,
 };
 
 // Placeholder Google AdSense Publisher ID — replace before going live
