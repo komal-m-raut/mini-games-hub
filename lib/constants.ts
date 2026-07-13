@@ -23,8 +23,10 @@ export const NEON = {
 } as const;
 
 // Balloon game: all size values are "units" (0-100).
-// Display diameter = units * UNIT_TO_PX
-export const UNIT_TO_PX = 2.8;
+// Display diameter = units * UNIT_TO_PX.
+// Constraint: the .inflate-zone is 320px tall and the balloon renders at
+// diameter × 1.4 (body + string), so UNIT_TO_PX must stay ≤ 320 / (100 × 1.4).
+export const UNIT_TO_PX = 2.2;
 
 export const BALLOON_COLORS: string[] = [
   '#A855F7', // violet
