@@ -21,23 +21,6 @@ export interface GameResult {
   score: number;
 }
 
-export interface LeaderboardEntry {
-  rank: number;
-  playerName: string;
-  score: number;
-  accuracy: number;
-  gamesPlayed: number;
-  createdAt: string;
-}
-
-export interface LeaderboardData {
-  daily: LeaderboardEntry[];
-  weekly: LeaderboardEntry[];
-  global: LeaderboardEntry[];
-  friends: LeaderboardEntry[];
-  totalPlayers: number;
-}
-
 /**
  * A player's entry on any leaderboard. Shared schema for every game:
  * entries live on a board (challenge code, daily-YYYYMMDD, global, …)
