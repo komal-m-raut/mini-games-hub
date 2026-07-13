@@ -7,7 +7,7 @@ import { Gamepad2, Home, Trophy } from 'lucide-react';
 
 const NAV_LINKS = [
   { href: '/', label: 'Hub', Icon: Home },
-  { href: '#leaderboard', label: 'Leaderboard', Icon: Trophy },
+  { href: '/#leaderboard', label: 'Leaderboard', Icon: Trophy },
 ];
 
 export function Navigation() {

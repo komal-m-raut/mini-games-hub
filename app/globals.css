@@ -139,6 +139,11 @@ body {
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
+/* Anchor targets land below the fixed 64px nav */
+#leaderboard {
+  scroll-margin-top: 88px;
+}
+
 .nav-link {
   display: flex;
   align-items: center;
