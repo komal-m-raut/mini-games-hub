@@ -6,6 +6,7 @@ export type GamePhase =
   | 'observing'
   | 'inflating'
   | 'results'
+  | 'session-complete'
   | 'challenge-complete';
 
 export type GameMode = 'normal' | 'challenge';

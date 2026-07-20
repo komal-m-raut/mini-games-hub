@@ -63,6 +63,11 @@ const redisStore: ScoreStore = {
 
 export const scoreStore: ScoreStore = hasRedis ? redisStore : fileStore;
 
+// Boards are stored and shipped whole, so cap them at the top N entries.
+// Keeps Redis payloads and API responses bounded no matter how many players
+// submit; anyone knocked off re-enters by beating the cut.
+const MAX_BOARD_SIZE = 100;
+
 /** Insert or improve a player's entry; each player keeps their best run. */
 export async function upsertScore(
   gameId: string,
@@ -87,6 +92,7 @@ export async function upsertScore(
   next.sort(
     (a, b) => b.score - a.score || a.createdAt.localeCompare(b.createdAt)
   );
+  next = next.slice(0, MAX_BOARD_SIZE);
   await scoreStore.saveBoard(gameId, board, next);
   return next;
 }

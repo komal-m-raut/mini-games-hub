@@ -19,23 +19,34 @@ interface ChallengeLeaderboardProps {
 export function ChallengeLeaderboard({ code, playerId, refreshKey = 0 }: ChallengeLeaderboardProps) {
   const [entries, setEntries] = useState<ScoreEntry[] | null>(null);
   const [error, setError] = useState(false);
-
-  const load = useCallback(async () => {
-    try {
-      const res = await fetch(`/api/scores/balloon-match/${code}`, { cache: 'no-store' });
-      if (!res.ok) throw new Error(String(res.status));
-      const data = await res.json();
-      setError(false);
-      setEntries(data.entries ?? []);
-    } catch {
-      setError(true);
-      setEntries([]);
-    }
-  }, [code]);
+  const [tick, setTick] = useState(0);
 
   useEffect(() => {
-    load();
-  }, [load, refreshKey]);
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await fetch(`/api/scores/balloon-match/${code}`, { cache: 'no-store' });
+        if (!res.ok) throw new Error(String(res.status));
+        const data = await res.json();
+        if (cancelled) return;
+        setError(false);
+        setEntries(data.entries ?? []);
+      } catch {
+        if (cancelled) return;
+        setError(true);
+        setEntries([]);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [code, refreshKey, tick]);
+
+  // Manual refresh: back to the skeleton, then refetch
+  const load = useCallback(() => {
+    setEntries(null);
+    setTick((t) => t + 1);
+  }, []);
 
   return (
     <div className="w-full">

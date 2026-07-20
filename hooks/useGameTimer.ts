@@ -13,7 +13,10 @@ export function useGameTimer({ initialSeconds, onComplete, autoStart = false }: 
   const [isRunning, setIsRunning] = useState(autoStart);
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const onCompleteRef = useRef(onComplete);
-  onCompleteRef.current = onComplete;
+
+  useEffect(() => {
+    onCompleteRef.current = onComplete;
+  }, [onComplete]);
 
   const clearTimer = useCallback(() => {
     if (intervalRef.current) {

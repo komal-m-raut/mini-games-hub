@@ -1,12 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Trophy, Users, RefreshCw } from 'lucide-react';
 import { useLeaderboard, LeaderboardTab } from '@/hooks/useLeaderboard';
 import { useSiteStats } from '@/hooks/useSiteStats';
 import { MAX_CHALLENGE_SCORE } from '@/lib/challenge';
-import { getPlayerId } from '@/lib/player';
+import { usePlayerId } from '@/lib/player';
 import { ScoreEntry } from '@/types/game';
 
 const TABS: { id: LeaderboardTab; label: string }[] = [
@@ -82,11 +81,7 @@ function LeaderboardRow({
 export function Leaderboard({ gameId }: LeaderboardProps) {
   const { entries, activeTab, setActiveTab, isLoading, refresh } = useLeaderboard(gameId);
   const stats = useSiteStats();
-  const [playerId, setPlayerId] = useState('');
-
-  useEffect(() => {
-    setPlayerId(getPlayerId());
-  }, []);
+  const playerId = usePlayerId();
 
   return (
     <section id="leaderboard" className="glass-card p-0 overflow-hidden">
