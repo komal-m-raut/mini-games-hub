@@ -86,15 +86,15 @@ export function Leaderboard({ gameId }: LeaderboardProps) {
   return (
     <section id="leaderboard" className="glass-card p-0 overflow-hidden">
       {/* Header */}
-      <div className="px-6 pt-6 pb-4 border-b border-white/5">
-        <div className="flex items-center justify-between mb-4">
+      <div className="px-4 sm:px-6 pt-6 pb-4 border-b border-white/5">
+        <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 mb-4">
           <div className="flex items-center gap-2">
             <Trophy className="w-5 h-5 text-brand-yellow" strokeWidth={1.5} />
-            <h3 className="font-display font-bold text-white text-xl">Leaderboard</h3>
+            <h3 className="font-display font-bold text-white text-lg sm:text-xl">Leaderboard</h3>
           </div>
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-1.5 text-xs text-white/40 font-mono">
-              <Users className="w-3.5 h-3.5" />
+          <div className="flex items-center gap-3 shrink-0">
+            <div className="flex items-center gap-1.5 text-xs text-white/40 font-mono whitespace-nowrap">
+              <Users className="w-3.5 h-3.5 shrink-0" />
               {(stats?.totalPlayers ?? 0).toLocaleString()} player{stats?.totalPlayers === 1 ? '' : 's'}
             </div>
             <button
