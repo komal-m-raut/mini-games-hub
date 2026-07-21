@@ -11,6 +11,7 @@ import { Balloon } from './BalloonCanvas';
 import { ResultScreen } from './ResultScreen';
 import { ChallengeComplete, ChallengeIntro } from './ChallengeScreens';
 import { ChallengeLauncher } from './ChallengeLauncher';
+import { SessionComplete } from './SessionComplete';
 import { useBalloonGame } from './useBalloonGame';
 
 interface BalloonGameProps {
@@ -21,6 +22,7 @@ interface BalloonGameProps {
 export function BalloonGame({ challengeCode }: BalloonGameProps) {
   const {
     state,
+    bestSession,
     challengeRounds,
     selectDifficulty,
     startChallenge,
@@ -38,6 +40,8 @@ export function BalloonGame({ challengeCode }: BalloonGameProps) {
 
   const isChallenge = state.mode === 'challenge';
   const isMenuPhase = state.phase === 'selecting-difficulty' || state.phase === 'challenge-intro';
+  const isEndScreen =
+    state.phase === 'challenge-complete' || state.phase === 'session-complete';
   const isFinalRound = state.totalRounds !== null && state.round >= state.totalRounds;
 
   const cfg = state.difficulty ? DIFFICULTY_CONFIG[state.difficulty] : null;
@@ -47,7 +51,7 @@ export function BalloonGame({ challengeCode }: BalloonGameProps) {
   return (
     <div className="flex flex-col gap-6 w-full max-w-2xl mx-auto">
       {/* Top bar: back + score */}
-      {!isMenuPhase && state.phase !== 'challenge-complete' && (
+      {!isMenuPhase && !isEndScreen && (
         <motion.div
           className="flex items-center justify-between"
           initial={{ opacity: 0, y: -10 }}
@@ -62,11 +66,9 @@ export function BalloonGame({ challengeCode }: BalloonGameProps) {
           </button>
           <ScoreCard
             score={state.score}
-            highScore={state.highScore}
             round={state.round}
             totalRounds={state.totalRounds}
             totalScore={state.totalScore}
-            isNewHighScore={state.isNewHighScore}
           />
         </motion.div>
       )}
@@ -222,9 +224,28 @@ export function BalloonGame({ challengeCode }: BalloonGameProps) {
               targetColor={state.targetColor}
               isNewHighScore={state.isNewHighScore}
               nextLabel={
-                !isChallenge ? 'Next Round' : isFinalRound ? 'Final Results' : 'Next Challenge'
+                isFinalRound ? 'Final Results' : isChallenge ? 'Next Challenge' : 'Next Round'
               }
               onPlayAgain={playAgain}
+              onMenu={resetToMenu}
+            />
+          </motion.div>
+        )}
+
+        {/* ── Session complete (normal mode): total, share, replay ── */}
+        {state.phase === 'session-complete' && state.difficulty && (
+          <motion.div
+            key="session-complete"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <SessionComplete
+              difficulty={state.difficulty}
+              roundScores={state.roundScores}
+              isNewBestSession={state.isNewBestSession}
+              bestSession={bestSession}
+              onReplay={() => selectDifficulty(state.difficulty!)}
               onMenu={resetToMenu}
             />
           </motion.div>
@@ -248,7 +269,7 @@ export function BalloonGame({ challengeCode }: BalloonGameProps) {
       </AnimatePresence>
 
       {/* Difficulty badge (during play) */}
-      {cfg && !isMenuPhase && state.phase !== 'challenge-complete' && (
+      {cfg && !isMenuPhase && !isEndScreen && (
         <motion.div
           className="flex justify-center"
           initial={{ opacity: 0 }}

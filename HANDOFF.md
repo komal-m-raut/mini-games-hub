@@ -21,16 +21,25 @@
 
 ## Game: Balloon Match (`/games/balloon-match`)
 
-**Flow:** Select difficulty → Observe target balloon (countdown) → Hold to inflate → Results
+**Flow:** Select difficulty → 5-round session (observe → hold to inflate → results) → Session Complete
 
 **Mechanics:**
+- **Normal mode is a fixed 5-round session, /50 total** (`NORMAL_ROUND_COUNT` in
+  `utils/scoring.ts`) — ends on a SessionComplete screen (total, per-round chips,
+  best-session from localStorage `mgh_balloon_best_session`, share text, replay)
 - Press-and-hold inflate zone grows balloon at difficulty-based speed (wall-clock based, throttle-proof)
 - `setPointerCapture` prevents premature release when balloon grows over touch area
 - Inflate timer per difficulty (Easy none / Medium 5s / Hard 3s) — auto-locks the size at zero, both modes
 - Accuracy % calculated vs target size → Rating: Perfect / Great / Good / Try Again
 - **Scoring: every round is out of 10** (`calculateScore`: accuracy 100%→10, ≤50%→0), resets per game; no multipliers
-- LocalStorage best single-round score (`mgh_balloon_best10`)
+- LocalStorage best single-round score (`mgh_balloon_best10`) — powers the "New High Score" badge on results
+- Top bar shows Score /10 · Total /max · Round x/y in both modes (no Best chip)
 - Tolerance still drives ratings internally but is never displayed
+
+**Tests** (`npm test`, vitest, `tests/`): golden-value determinism for
+`getChallengeRounds` (seeded RNG — never change outputs without invalidating
+shared links knowingly), scoring/accuracy/rating boundaries, share text.
+Score boards are capped at top 100 entries (`MAX_BOARD_SIZE` in scoreStore).
 
 **Difficulty config** (`lib/constants.ts`):
 - Easy: 12 u/s, ±15% tolerance (hidden), no inflate limit
@@ -154,13 +163,19 @@ Add entry to `lib/gameRegistry.ts` + create `games/<slug>/` folder. Hub auto-ren
 
 ## Pending / Next Session
 
-1. **Upstash Redis** — create free db (Vercel → Storage → Upstash for Redis injects
-   the env vars), then deploy; file store doesn't persist on serverless
-2. **Deploy on Vercel** + enable Analytics in the dashboard
-3. **Hub leaderboard tabs still mock data** (`useLeaderboard.ts`) — real boards
-   (`daily-…`/`global`) already supported server-side, just needs wiring
+1. ~~Upstash Redis~~ — DONE
+2. ~~Deploy on Vercel~~ — DONE
+3. ~~Hub leaderboard tabs~~ — DONE: `useLeaderboard.ts` fetches real boards
+   (Today = `daily-YYYYMMDD`, All Time = `global`) from `/api/scores`
 4. **Ads** — still placeholder IDs (see Ad Setup above)
-5. **Streaks** — localStorage daily-challenge streak counter would pair well with the
-   Daily Challenge (dialed.gg-style); not built yet
-6. **Lint** — 5 pre-existing `react-hooks` errors remain (localStorage-hydration and
-   stateRef mirror patterns); build/typecheck are clean
+5. ~~Streaks~~ — dropped, not required
+6. ~~Lint~~ — DONE: eslint, tsc, and build all clean. Fixes applied:
+   - localStorage reads (player id/name, high score) now use
+     `useSyncExternalStore` (`usePlayerId`/`usePlayerName` in `lib/player.ts`)
+     instead of setState-in-effect
+   - fetch-in-effect hooks (`useLeaderboard`, `ChallengeLeaderboard`) restructured
+     with cancellation flags; manual refresh via a tick counter
+   - `stateRef` mirror updated in an effect; `startInflating`/`stopInflating` no
+     longer read it (usePressAndHold's `disabled` + functional setState gate them),
+     so a not-yet-flushed mirror can't eat a press/release
+7. **Custom domain** — user is picking one; wire it up in Vercel when shared

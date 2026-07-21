@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Check, Copy, Home, RotateCcw, Send, Share2, Swords } from 'lucide-react';
 import Link from 'next/link';
@@ -17,7 +17,7 @@ import {
 } from '@/lib/challenge';
 import { DIFFICULTY_CONFIG } from '@/lib/constants';
 import { MAX_ROUND_SCORE } from '@/utils/scoring';
-import { getPlayerId, getPlayerName, setPlayerName } from '@/lib/player';
+import { setPlayerName, usePlayerId, usePlayerName } from '@/lib/player';
 
 /** Absolute invite URL — only called from click handlers, so window is safe. */
 function challengeUrl(code: string): string {
@@ -109,15 +109,13 @@ interface ChallengeCompleteProps {
 
 export function ChallengeComplete({ code, roundScores, onReplay }: ChallengeCompleteProps) {
   const total = roundScores.reduce((a, b) => a + b, 0);
-  const [name, setName] = useState('');
-  const [playerId, setPlayerId] = useState('');
+  const playerId = usePlayerId();
+  const storedName = usePlayerName();
+  // null = untouched → show the stored nickname; edits take over from there
+  const [editedName, setEditedName] = useState<string | null>(null);
+  const name = editedName ?? storedName;
   const [submitState, setSubmitState] = useState<'idle' | 'sending' | 'done' | 'error'>('idle');
   const [refreshKey, setRefreshKey] = useState(0);
-
-  useEffect(() => {
-    setPlayerId(getPlayerId());
-    setName(getPlayerName());
-  }, []);
 
   const submit = async () => {
     if (!name.trim() || submitState === 'sending') return;
@@ -195,7 +193,7 @@ export function ChallengeComplete({ code, roundScores, onReplay }: ChallengeComp
           <input
             type="text"
             value={name}
-            onChange={(e) => setName(e.target.value)}
+            onChange={(e) => setEditedName(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && submit()}
             placeholder="Your nickname"
             maxLength={20}

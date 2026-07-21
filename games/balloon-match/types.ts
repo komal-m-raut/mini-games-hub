@@ -10,17 +10,18 @@ export interface BalloonGameState {
   observeTimeLeft: number;
   inflateTimeLeft: number;
   round: number;
-  /** Challenge mode: fixed number of rounds. Normal mode: null (endless). */
+  /** Fixed rounds per session: 5 in normal mode, 3 in challenge mode. */
   totalRounds: number | null;
   /** Latest round score, out of 10. Resets every round/new game. */
   score: number;
-  /** Challenge mode: running total across rounds (max 30). */
+  /** Running total across the session's rounds (max 50 normal / 30 challenge). */
   totalScore: number;
-  /** Challenge mode: per-round scores. */
+  /** Per-round scores for the current session. */
   roundScores: number[];
-  /** Best single-round score (out of 10), from localStorage. */
-  highScore: number;
+  /** Latest round beat the stored best single-round score. */
   isNewHighScore: boolean;
+  /** Normal mode: this session's total beat the stored best session. */
+  isNewBestSession: boolean;
   result: GameResult | null;
   isHolding: boolean;
 }

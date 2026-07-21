@@ -6,6 +6,7 @@ export type GamePhase =
   | 'observing'
   | 'inflating'
   | 'results'
+  | 'session-complete'
   | 'challenge-complete';
 
 export type GameMode = 'normal' | 'challenge';
@@ -19,23 +20,6 @@ export interface GameResult {
   sizeDiffPercent: number;
   rating: Rating;
   score: number;
-}
-
-export interface LeaderboardEntry {
-  rank: number;
-  playerName: string;
-  score: number;
-  accuracy: number;
-  gamesPlayed: number;
-  createdAt: string;
-}
-
-export interface LeaderboardData {
-  daily: LeaderboardEntry[];
-  weekly: LeaderboardEntry[];
-  global: LeaderboardEntry[];
-  friends: LeaderboardEntry[];
-  totalPlayers: number;
 }
 
 /**

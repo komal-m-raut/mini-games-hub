@@ -96,5 +96,9 @@ export async function POST(req: NextRequest, { params }: Params) {
   };
 
   const entries = await upsertScore(gameId, board, entry);
+  // Every challenge result also feeds the all-time board (best run per player)
+  if (board !== 'global') {
+    await upsertScore(gameId, 'global', entry);
+  }
   return Response.json({ entries });
 }

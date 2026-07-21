@@ -1,10 +1,16 @@
 'use client';
 
-import { useState, useRef, useCallback, useEffect, useMemo } from 'react';
+import { useState, useRef, useCallback, useEffect, useMemo, useSyncExternalStore } from 'react';
 import { Difficulty } from '@/types/game';
 import { BALLOON_COLORS, DIFFICULTY_CONFIG } from '@/lib/constants';
 import { calculateAccuracy, getRating } from '@/utils/accuracy';
-import { calculateScore, getLocalHighScore, saveHighScore } from '@/utils/scoring';
+import {
+  NORMAL_ROUND_COUNT,
+  calculateScore,
+  getLocalBestSession,
+  saveBestSession,
+  saveHighScore,
+} from '@/utils/scoring';
 import { randomPick, randomInt, clamp } from '@/lib/utils';
 import {
   CHALLENGE_ROUND_COUNT,
@@ -17,6 +23,11 @@ import { BalloonGameState } from './types';
 const GAME_ID = 'balloon-match';
 
 const TICK_MS = 16; // ~60fps update interval
+
+// useSyncExternalStore plumbing for the localStorage high score:
+// server snapshot is 0, the real value arrives right after hydration.
+const noopSubscribe = () => () => {};
+const zeroSnapshot = () => 0;
 
 const INITIAL_STATE: BalloonGameState = {
   phase: 'selecting-difficulty',
@@ -32,8 +43,8 @@ const INITIAL_STATE: BalloonGameState = {
   score: 0,
   totalScore: 0,
   roundScores: [],
-  highScore: 0,
   isNewHighScore: false,
+  isNewBestSession: false,
   result: null,
   isHolding: false,
 };
@@ -55,18 +66,22 @@ export function useBalloonGame({ challengeCode }: UseBalloonGameOptions = {}) {
     ...INITIAL_STATE,
     mode: isChallenge ? 'challenge' : 'normal',
     phase: isChallenge ? 'challenge-intro' : 'selecting-difficulty',
-    totalRounds: isChallenge ? CHALLENGE_ROUND_COUNT : null,
+    totalRounds: isChallenge ? CHALLENGE_ROUND_COUNT : NORMAL_ROUND_COUNT,
   }));
   const holdIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const observeTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
-  // Mirrors latest state so callbacks can read it without stale closures
+  // Mirrors latest state so callbacks can read it without stale closures.
+  // Updated in an effect (not during render) per the react-hooks/refs rule;
+  // effects run before any user event or interval tick can read it.
   const stateRef = useRef(state);
-  stateRef.current = state;
-
-  // Hydrate high score from localStorage after mount
   useEffect(() => {
-    setState((s) => ({ ...s, highScore: getLocalHighScore() }));
-  }, []);
+    stateRef.current = state;
+  });
+
+  // Best session total from localStorage, hydration-safe: server snapshot is
+  // 0, the real value arrives right after hydration. Re-read after saves via
+  // the render that the phase change triggers.
+  const bestSession = useSyncExternalStore(noopSubscribe, getLocalBestSession, zeroSnapshot);
 
   const clearTimers = useCallback(() => {
     if (holdIntervalRef.current) {
@@ -124,7 +139,7 @@ export function useBalloonGame({ challengeCode }: UseBalloonGameOptions = {}) {
 
   const selectDifficulty = useCallback(
     (difficulty: Difficulty) => {
-      // New game: everything resets
+      // New session: everything resets
       setState((s) => ({
         ...s,
         difficulty,
@@ -133,6 +148,7 @@ export function useBalloonGame({ challengeCode }: UseBalloonGameOptions = {}) {
         totalScore: 0,
         roundScores: [],
         isNewHighScore: false,
+        isNewBestSession: false,
       }));
       startObserving(difficulty, 1);
     },
@@ -155,7 +171,6 @@ export function useBalloonGame({ challengeCode }: UseBalloonGameOptions = {}) {
     clearTimers();
     setState((s) => ({
       ...INITIAL_STATE,
-      highScore: s.highScore,
       mode: s.mode,
       phase: s.mode === 'challenge' ? 'challenge-intro' : 'selecting-difficulty',
       totalRounds: s.totalRounds,
@@ -189,7 +204,6 @@ export function useBalloonGame({ challengeCode }: UseBalloonGameOptions = {}) {
         score: roundScore,
         totalScore: prev.totalScore + roundScore,
         roundScores,
-        highScore: Math.max(prev.highScore, prev.mode === 'normal' ? roundScore : 0),
         isNewHighScore,
         result: {
           accuracy,
@@ -234,13 +248,14 @@ export function useBalloonGame({ challengeCode }: UseBalloonGameOptions = {}) {
     }, 1000);
 
     return () => clearInterval(id);
-  }, [state.phase, lockIn]);
+  }, [state.phase, state.difficulty, lockIn]);
 
   // ---------- Inflation hold mechanics ----------
 
   const startInflating = useCallback(() => {
-    // Bail if already holding or not in the right phase
-    if (stateRef.current.phase !== 'inflating' || stateRef.current.isHolding) return;
+    // usePressAndHold's `disabled` flag already gates this to the inflating
+    // phase, and the functional setState re-checks the live state — no
+    // stateRef read here, so a not-yet-flushed mirror can't reject the press.
     if (holdIntervalRef.current) return;
 
     setState((s) => {
@@ -265,22 +280,29 @@ export function useBalloonGame({ challengeCode }: UseBalloonGameOptions = {}) {
   }, []);
 
   const stopInflating = useCallback(() => {
-    if (!stateRef.current.isHolding) return;
+    // usePressAndHold only fires onEnd after a successful onStart, and
+    // lockIn's setState no-ops unless the round is still inflating.
     lockIn();
   }, [lockIn]);
 
   // Guards against double-calls during animation transitions
   const transitioningRef = useRef(false);
 
-  /** Results screen action: next round, or finish the challenge series. */
+  /** Results screen action: next round, or finish the session/series. */
   const playAgain = useCallback(() => {
     if (transitioningRef.current) return;
-    const { difficulty, round, phase, mode, totalRounds } = stateRef.current;
+    const { difficulty, round, phase, mode, totalRounds, totalScore } = stateRef.current;
     if (!difficulty || phase !== 'results') return;
     transitioningRef.current = true;
 
-    if (mode === 'challenge' && totalRounds !== null && round >= totalRounds) {
-      setState((s) => ({ ...s, phase: 'challenge-complete' }));
+    if (totalRounds !== null && round >= totalRounds) {
+      if (mode === 'challenge') {
+        setState((s) => ({ ...s, phase: 'challenge-complete' }));
+      } else {
+        // Normal session finished: persist the best total, then show results
+        const isNewBestSession = saveBestSession(totalScore);
+        setState((s) => ({ ...s, phase: 'session-complete', isNewBestSession }));
+      }
     } else {
       const nextRound = round + 1;
       const nextDifficulty =
@@ -297,6 +319,7 @@ export function useBalloonGame({ challengeCode }: UseBalloonGameOptions = {}) {
 
   return {
     state,
+    bestSession,
     challengeRounds,
     selectDifficulty,
     startChallenge,

@@ -113,3 +113,19 @@ export function buildShareText(code: string, roundScores: number[], origin: stri
     `Beat my score: ${origin}${challengePath(code)}`,
   ].join('\n');
 }
+
+/** Share text for a completed free-play session (5 rounds, /50). */
+export function buildSessionShareText(
+  difficultyLabel: string,
+  roundScores: number[],
+  origin: string
+): string {
+  const total = roundScores.reduce((a, b) => a + b, 0);
+  const max = roundScores.length * MAX_ROUND_SCORE;
+  const grid = roundScores.map(scoreEmoji).join(' ');
+  return [
+    `🎈 Balloon Match — ${difficultyLabel}`,
+    `${grid}  ${total}/${max}`,
+    `Play: ${origin}/games/balloon-match`,
+  ].join('\n');
+}
