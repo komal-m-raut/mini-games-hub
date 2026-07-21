@@ -512,11 +512,14 @@ body {
   width: 100%;
   max-width: 1280px;
   margin: 0 auto;
-  padding: 0 16px;
+  /* Horizontal gutters only — vertical spacing comes from each page's
+     py-* utilities, which the `padding` shorthand would otherwise reset
+     (this class wins over Tailwind utilities in the cascade). */
+  padding-inline: 16px;
 }
 
-@media (min-width: 640px)  { .page-container { padding: 0 24px; } }
-@media (min-width: 1024px) { .page-container { padding: 0 40px; } }
+@media (min-width: 640px)  { .page-container { padding-inline: 24px; } }
+@media (min-width: 1024px) { .page-container { padding-inline: 40px; } }
 
 /* ─────────────────────────────────────────────
    Reduced motion
