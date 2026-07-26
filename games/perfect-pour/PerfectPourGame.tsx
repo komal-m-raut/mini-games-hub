@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ArrowLeft } from 'lucide-react';
 import { DifficultyOption, DifficultySelector } from '@/components/game/DifficultySelector';
@@ -10,7 +11,7 @@ import { ScoreCard } from '@/components/game/ScoreCard';
 import { SessionSummary } from '@/components/game/SessionSummary';
 import { ChallengeComplete } from '@/components/challenge/ChallengeComplete';
 import { ChallengeIntro } from '@/components/challenge/ChallengeIntro';
-import { ChallengeLauncher } from '@/components/challenge/ChallengeLauncher';
+import { challengePath, generateChallengeCode, getDailyChallengeCode } from '@/lib/challenge';
 import { SoundToggle } from '@/components/ui/SoundToggle';
 import { usePressAndHold } from '@/hooks/usePressAndHold';
 import { Difficulty } from '@/types/game';
@@ -57,8 +58,8 @@ export function PerfectPourGame({ challengeCode }: PerfectPourGameProps = {}) {
     resetToMenu,
   } = usePourGame({ challengeCode });
 
-  // Free-play menu view (skipped on the challenge route).
-  const [menuView, setMenuView] = useState<'mode' | 'solo' | 'multi'>('mode');
+  const router = useRouter();
+  const [menuView, setMenuView] = useState<'mode' | 'solo'>('mode');
 
   const holdHandlers = usePressAndHold({
     onStart: startPouring,
@@ -116,7 +117,12 @@ export function PerfectPourGame({ challengeCode }: PerfectPourGameProps = {}) {
               <ModeSelector
                 accent="#06B6D4"
                 onSolo={() => setMenuView('solo')}
-                onMultiplayer={() => setMenuView('multi')}
+                onDailyChallenge={() =>
+                  router.push(challengePath(GAME_ID, getDailyChallengeCode()))
+                }
+                onFriendChallenge={() =>
+                  router.push(challengePath(GAME_ID, generateChallengeCode()))
+                }
               />
             )}
             {menuView === 'solo' && (
@@ -130,9 +136,6 @@ export function PerfectPourGame({ challengeCode }: PerfectPourGameProps = {}) {
                   Back
                 </button>
               </div>
-            )}
-            {menuView === 'multi' && (
-              <ChallengeLauncher gameId={GAME_ID} onBack={() => setMenuView('mode')} />
             )}
           </motion.div>
         )}
