@@ -230,43 +230,99 @@ export function playSound(name: SoundName): void {
 
 // ── Loops ───────────────────────────────────────────────────────────
 
-/** Continuous water flow: low-passed noise with a slow wobble. */
+/**
+ * Continuous water pour — layered for an ASMR feel rather than a flat hiss:
+ *  1. Flow body: low-passed brown noise with a slow wobble (the stream).
+ *  2. Spray: a quiet high-passed shimmer sitting on top (the fizz).
+ *  3. Gurgle: randomized little sine "bloops" scheduled ahead of time — the
+ *     bubbling that actually reads as *water* filling a vessel.
+ * All three sum into one gain so the loop fades in/out as a whole.
+ */
 function startWater(c: AudioContext): { stop: () => void } {
-  const src = c.createBufferSource();
-  src.buffer = getNoise(c);
-  src.loop = true;
+  const out = c.createGain();
+  out.gain.setValueAtTime(0.0001, c.currentTime);
+  out.gain.exponentialRampToValueAtTime(1, c.currentTime + 0.14);
+  out.connect(master!);
 
-  const filter = c.createBiquadFilter();
-  filter.type = 'lowpass';
-  filter.frequency.value = 1100;
-  filter.Q.value = 0.7;
-
+  // 1. Flow body ─ soft, rounded stream
+  const body = c.createBufferSource();
+  body.buffer = getNoise(c);
+  body.loop = true;
+  const bodyFilter = c.createBiquadFilter();
+  bodyFilter.type = 'lowpass';
+  bodyFilter.frequency.value = 920;
+  bodyFilter.Q.value = 0.6;
+  const bodyGain = c.createGain();
+  bodyGain.gain.value = 0.17;
   // Slow LFO on the cutoff so the stream breathes instead of sounding static
   const lfo = c.createOscillator();
   const lfoGain = c.createGain();
-  lfo.frequency.value = 5.5;
-  lfoGain.gain.value = 260;
+  lfo.frequency.value = 6;
+  lfoGain.gain.value = 230;
   lfo.connect(lfoGain);
-  lfoGain.connect(filter.frequency);
+  lfoGain.connect(bodyFilter.frequency);
+  body.connect(bodyFilter);
+  bodyFilter.connect(bodyGain);
+  bodyGain.connect(out);
 
-  const g = c.createGain();
-  g.gain.setValueAtTime(0.0001, c.currentTime);
-  g.gain.exponentialRampToValueAtTime(0.18, c.currentTime + 0.12);
+  // 2. Spray ─ airy top, kept quiet so it soothes rather than hisses
+  const spray = c.createBufferSource();
+  spray.buffer = getNoise(c);
+  spray.loop = true;
+  const sprayFilter = c.createBiquadFilter();
+  sprayFilter.type = 'highpass';
+  sprayFilter.frequency.value = 2600;
+  const sprayGain = c.createGain();
+  sprayGain.gain.value = 0.045;
+  spray.connect(sprayFilter);
+  sprayFilter.connect(sprayGain);
+  sprayGain.connect(out);
 
-  src.connect(filter);
-  filter.connect(g);
-  g.connect(master!);
-  src.start();
+  body.start();
+  spray.start();
   lfo.start();
+
+  // 3. Gurgle ─ schedule bursts of short pitched "bloops" a little ahead of
+  // the clock so the timing jitter of setTimeout never clicks the audio.
+  let stopped = false;
+  let timer: ReturnType<typeof setTimeout> | null = null;
+  const scheduleBubbles = () => {
+    if (stopped || !master) return;
+    const now = c.currentTime;
+    const count = 2 + Math.floor(Math.random() * 3);
+    for (let i = 0; i < count; i++) {
+      const t = now + Math.random() * 0.42;
+      const f0 = 360 + Math.random() * 560;
+      const osc = c.createOscillator();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(f0, t);
+      // Quick downward "bloop" — the signature of a bubble collapsing
+      osc.frequency.exponentialRampToValueAtTime(f0 * 0.55, t + 0.05 + Math.random() * 0.05);
+      const g = c.createGain();
+      const peak = 0.026 + Math.random() * 0.05;
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.exponentialRampToValueAtTime(peak, t + 0.008);
+      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.06 + Math.random() * 0.07);
+      osc.connect(g);
+      g.connect(out);
+      osc.start(t);
+      osc.stop(t + 0.22);
+    }
+    timer = setTimeout(scheduleBubbles, 280 + Math.random() * 220);
+  };
+  scheduleBubbles();
 
   return {
     stop: () => {
+      stopped = true;
+      if (timer) clearTimeout(timer);
       const t = c.currentTime;
-      g.gain.cancelScheduledValues(t);
-      g.gain.setValueAtTime(Math.max(g.gain.value, 0.0001), t);
-      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.12);
-      src.stop(t + 0.2);
-      lfo.stop(t + 0.2);
+      out.gain.cancelScheduledValues(t);
+      out.gain.setValueAtTime(Math.max(out.gain.value, 0.0001), t);
+      out.gain.exponentialRampToValueAtTime(0.0001, t + 0.16);
+      body.stop(t + 0.24);
+      spray.stop(t + 0.24);
+      lfo.stop(t + 0.24);
     },
   };
 }

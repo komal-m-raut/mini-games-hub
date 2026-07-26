@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { Zap, Star, Users } from 'lucide-react';
 import { GAME_REGISTRY } from '@/lib/gameRegistry';
 import { AdBanner } from '@/components/ads/AdBanner';
+import { ChallengeCTA } from '@/components/challenge/ChallengeCTA';
 import { Leaderboard } from '@/components/leaderboard/Leaderboard';
 import { useSiteStats } from '@/hooks/useSiteStats';
 import { GameMeta } from '@/types/game';
@@ -92,6 +93,7 @@ function GameCard({ game }: { game: GameMeta }) {
 // ── Hero Section ────────────────────────────
 function HeroSection() {
   const stats = useSiteStats();
+  const liveCount = GAME_REGISTRY.filter((g) => g.isAvailable).length;
 
   return (
     <div className="text-center py-16 sm:py-24">
@@ -132,7 +134,7 @@ function HeroSection() {
         transition={{ delay: 0.45 }}
       >
         {[
-          { Icon: Star,  label: '1 Game Live',       color: '#EAB308' },
+          { Icon: Star,  label: `${liveCount} Game${liveCount === 1 ? '' : 's'} Live`, color: '#EAB308' },
           {
             Icon: Users,
             label: `${(stats?.totalPlayers ?? 0).toLocaleString()} Player${stats?.totalPlayers === 1 ? '' : 's'}`,
@@ -182,6 +184,9 @@ export default function HubPage() {
           ))}
         </motion.div>
       </section>
+
+      {/* Challenge Mode */}
+      <ChallengeCTA />
 
       {/* Ad: below game grid */}
       <motion.div
