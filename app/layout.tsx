@@ -81,6 +81,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       data-scroll-behavior="smooth"
       className={`${orbitron.variable} ${spaceGrotesk.variable} ${jetbrainsMono.variable}`}
     >
+      <head>
+        {process.env.NEXT_PUBLIC_ADSENSE_PUBLISHER_ID && (
+          <Script
+            async
+            src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${process.env.NEXT_PUBLIC_ADSENSE_PUBLISHER_ID}`}
+            crossOrigin="anonymous"
+            strategy="beforeInteractive"
+          />
+        )}
+      </head>
       <body className="scanlines">
         <ServiceWorkerRegister />
         <ParticleBackground count={18} />
@@ -90,14 +100,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </main>
         <Footer />
         <Analytics />
-        {process.env.NEXT_PUBLIC_ADSENSE_PUBLISHER_ID && (
-          <Script
-            async
-            src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${process.env.NEXT_PUBLIC_ADSENSE_PUBLISHER_ID}`}
-            crossOrigin="anonymous"
-            strategy="afterInteractive"
-          />
-        )}
       </body>
     </html>
   );
