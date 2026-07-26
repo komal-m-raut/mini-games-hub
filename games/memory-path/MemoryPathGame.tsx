@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ArrowLeft, Eraser } from 'lucide-react';
 import { DifficultyOption, DifficultySelector } from '@/components/game/DifficultySelector';
@@ -9,7 +10,7 @@ import { ScoreCard } from '@/components/game/ScoreCard';
 import { SessionSummary } from '@/components/game/SessionSummary';
 import { ChallengeComplete } from '@/components/challenge/ChallengeComplete';
 import { ChallengeIntro } from '@/components/challenge/ChallengeIntro';
-import { ChallengeLauncher } from '@/components/challenge/ChallengeLauncher';
+import { challengePath, generateChallengeCode, getDailyChallengeCode } from '@/lib/challenge';
 import { NeonButton } from '@/components/ui/NeonButton';
 import { SoundToggle } from '@/components/ui/SoundToggle';
 import { Difficulty } from '@/types/game';
@@ -64,8 +65,8 @@ export function MemoryPathGame({ challengeCode }: MemoryPathGameProps = {}) {
     resetToMenu,
   } = useMemoryPathGame({ challengeCode });
 
-  // Free-play menu view (skipped on the challenge route).
-  const [menuView, setMenuView] = useState<'mode' | 'solo' | 'multi'>('mode');
+  const router = useRouter();
+  const [menuView, setMenuView] = useState<'mode' | 'solo'>('mode');
   const backToMenu = () => {
     setMenuView('mode');
     resetToMenu();
@@ -119,7 +120,12 @@ export function MemoryPathGame({ challengeCode }: MemoryPathGameProps = {}) {
               <ModeSelector
                 accent="#A855F7"
                 onSolo={() => setMenuView('solo')}
-                onMultiplayer={() => setMenuView('multi')}
+                onDailyChallenge={() =>
+                  router.push(challengePath(GAME_ID, getDailyChallengeCode()))
+                }
+                onFriendChallenge={() =>
+                  router.push(challengePath(GAME_ID, generateChallengeCode()))
+                }
               />
             )}
             {menuView === 'solo' && (
@@ -133,9 +139,6 @@ export function MemoryPathGame({ challengeCode }: MemoryPathGameProps = {}) {
                   Back
                 </button>
               </div>
-            )}
-            {menuView === 'multi' && (
-              <ChallengeLauncher gameId={GAME_ID} onBack={() => setMenuView('mode')} />
             )}
           </motion.div>
         )}
