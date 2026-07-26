@@ -34,7 +34,7 @@ export function SessionComplete({
   const [copied, setCopied] = useState(false);
 
   const shareText = () =>
-    buildSessionShareText(cfg.label, roundScores, window.location.origin);
+    buildSessionShareText('balloon-match', cfg.label, roundScores, window.location.origin);
 
   const share = async () => {
     const text = shareText();

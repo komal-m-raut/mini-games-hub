@@ -3,12 +3,16 @@ import { Cell } from './pathGen';
 
 export type PathPhase =
   | 'selecting-difficulty'
+  | 'challenge-intro'
   | 'revealing'
   | 'memorize'
   | 'fading'
   | 'tracing'
   | 'results'
-  | 'session-complete';
+  | 'session-complete'
+  | 'challenge-complete';
+
+export type GameMode = 'normal' | 'challenge';
 
 export interface PathResult {
   accuracy: number;
@@ -26,6 +30,7 @@ export interface PathResult {
 
 export interface PathGameState {
   phase: PathPhase;
+  mode: GameMode;
   difficulty: Difficulty | null;
   path: Cell[];
   /** How many path cells are lit so far during the reveal. */

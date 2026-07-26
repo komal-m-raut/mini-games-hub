@@ -1,14 +1,23 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from 'react';
 import { Difficulty } from '@/types/game';
 import { useSound } from '@/hooks/useSound';
+import { CHALLENGE_ROUND_COUNT } from '@/lib/challenge';
 import {
   NORMAL_ROUND_COUNT,
   calculateScore,
   getLocalBestSession,
   saveBestSession,
 } from '@/utils/scoring';
+import { PathChallengeRound, getPathChallengeRounds } from './challenge';
 import { PATH_DIFFICULTY, PATH_FADE_MS, getPathRating } from './constants';
 import { Cell, cellsEqual, comparePaths, generatePath, straightRun } from './pathGen';
 import { PathGameState } from './types';
@@ -21,6 +30,7 @@ const FINALIZE_DELAY_MS = 380;
 
 const INITIAL_STATE: PathGameState = {
   phase: 'selecting-difficulty',
+  mode: 'normal',
   difficulty: null,
   path: [],
   revealCount: 0,
@@ -40,8 +50,25 @@ const noopSubscribe = () => () => {};
 const zeroSnapshot = () => 0;
 const readBest = () => getLocalBestSession(GAME_ID);
 
-export function useMemoryPathGame() {
-  const [state, setState] = useState<PathGameState>(INITIAL_STATE);
+export interface UseMemoryPathGameOptions {
+  /** When set, the game runs as a seeded 3-round challenge. */
+  challengeCode?: string;
+}
+
+export function useMemoryPathGame({ challengeCode }: UseMemoryPathGameOptions = {}) {
+  const isChallenge = Boolean(challengeCode);
+  // Deterministic per code, so every player traces identical paths
+  const challengeRounds = useMemo<PathChallengeRound[] | null>(
+    () => (challengeCode ? getPathChallengeRounds(challengeCode) : null),
+    [challengeCode]
+  );
+
+  const [state, setState] = useState<PathGameState>(() => ({
+    ...INITIAL_STATE,
+    mode: isChallenge ? 'challenge' : 'normal',
+    phase: isChallenge ? 'challenge-intro' : 'selecting-difficulty',
+    totalRounds: isChallenge ? CHALLENGE_ROUND_COUNT : NORMAL_ROUND_COUNT,
+  }));
   const { play, loop, stop } = useSound();
 
   const revealTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -93,7 +120,8 @@ export function useMemoryPathGame() {
     (difficulty: Difficulty, round: number) => {
       clearTimers();
       const cfg = PATH_DIFFICULTY[difficulty];
-      const path = generatePath(cfg.size, cfg.pathLength);
+      // Challenge rounds are seeded so every player traces the same path
+      const path = challengeRounds?.[round - 1]?.path ?? generatePath(cfg.size, cfg.pathLength);
 
       pathRef.current = path;
       tracedRef.current = [];
@@ -145,8 +173,15 @@ export function useMemoryPathGame() {
         }, cfg.memorizeMs);
       }, cfg.revealMs);
     },
-    [clearTimers, play]
+    [clearTimers, play, challengeRounds]
   );
+
+  const startChallenge = useCallback(() => {
+    if (!challengeRounds) return;
+    loop('ambient');
+    setState((s) => ({ ...s, score: 0, totalScore: 0, roundScores: [] }));
+    startRound(challengeRounds[0].difficulty, 1);
+  }, [startRound, challengeRounds, loop]);
 
   const selectDifficulty = useCallback(
     (difficulty: Difficulty) => {
@@ -174,7 +209,12 @@ export function useMemoryPathGame() {
     pathRef.current = [];
     tracedRef.current = [];
     lockedRef.current = false;
-    setState({ ...INITIAL_STATE });
+    setState((s) => ({
+      ...INITIAL_STATE,
+      mode: s.mode,
+      phase: s.mode === 'challenge' ? 'challenge-intro' : 'selecting-difficulty',
+      totalRounds: s.totalRounds,
+    }));
   }, [clearTimers, stop, play]);
 
   // ── Tracing ───────────────────────────────────────────────────────
@@ -295,22 +335,27 @@ export function useMemoryPathGame() {
 
   const nextRound = useCallback(() => {
     if (transitioningRef.current) return;
-    const { difficulty, round, phase, totalRounds, totalScore } = stateRef.current;
+    const { difficulty, round, phase, mode, totalRounds, totalScore } = stateRef.current;
     if (!difficulty || phase !== 'results') return;
     transitioningRef.current = true;
     play('click');
 
     if (round >= totalRounds) {
-      const isNewBestSession = saveBestSession(GAME_ID, totalScore);
-      setState((s) => ({ ...s, phase: 'session-complete', isNewBestSession }));
+      if (mode === 'challenge') {
+        setState((s) => ({ ...s, phase: 'challenge-complete' }));
+      } else {
+        const isNewBestSession = saveBestSession(GAME_ID, totalScore);
+        setState((s) => ({ ...s, phase: 'session-complete', isNewBestSession }));
+      }
     } else {
-      startRound(difficulty, round + 1);
+      const nextDifficulty = challengeRounds?.[round]?.difficulty ?? difficulty;
+      startRound(nextDifficulty, round + 1);
     }
 
     setTimeout(() => {
       transitioningRef.current = false;
     }, 500);
-  }, [startRound, play]);
+  }, [startRound, play, challengeRounds]);
 
   const replay = useCallback(() => {
     const { difficulty } = stateRef.current;
@@ -329,7 +374,9 @@ export function useMemoryPathGame() {
   return {
     state,
     bestSession,
+    challengeRounds,
     selectDifficulty,
+    startChallenge,
     traceCell,
     clearTrace,
     submitTrace: finalizeTrace,

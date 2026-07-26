@@ -9,6 +9,7 @@ import { MAX_CHALLENGE_SCORE } from '@/lib/challenge';
 const RANK_COLORS = ['#EAB308', '#94A3B8', '#D97706'];
 
 interface ChallengeLeaderboardProps {
+  gameId: string;
   code: string;
   /** Current player's ID — their row gets highlighted. */
   playerId?: string;
@@ -16,7 +17,12 @@ interface ChallengeLeaderboardProps {
   refreshKey?: number;
 }
 
-export function ChallengeLeaderboard({ code, playerId, refreshKey = 0 }: ChallengeLeaderboardProps) {
+export function ChallengeLeaderboard({
+  gameId,
+  code,
+  playerId,
+  refreshKey = 0,
+}: ChallengeLeaderboardProps) {
   const [entries, setEntries] = useState<ScoreEntry[] | null>(null);
   const [error, setError] = useState(false);
   const [tick, setTick] = useState(0);
@@ -25,7 +31,7 @@ export function ChallengeLeaderboard({ code, playerId, refreshKey = 0 }: Challen
     let cancelled = false;
     (async () => {
       try {
-        const res = await fetch(`/api/scores/balloon-match/${code}`, { cache: 'no-store' });
+        const res = await fetch(`/api/scores/${gameId}/${code}`, { cache: 'no-store' });
         if (!res.ok) throw new Error(String(res.status));
         const data = await res.json();
         if (cancelled) return;
@@ -40,7 +46,7 @@ export function ChallengeLeaderboard({ code, playerId, refreshKey = 0 }: Challen
     return () => {
       cancelled = true;
     };
-  }, [code, refreshKey, tick]);
+  }, [gameId, code, refreshKey, tick]);
 
   // Manual refresh: back to the skeleton, then refetch
   const load = useCallback(() => {

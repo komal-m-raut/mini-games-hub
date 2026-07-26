@@ -1,15 +1,25 @@
 import { Difficulty } from '@/types/game';
 import { BALLOON_COLORS, DIFFICULTY_CONFIG } from '@/lib/constants';
+import { GAME_REGISTRY } from '@/lib/gameRegistry';
 import { MAX_ROUND_SCORE } from '@/utils/scoring';
 
 /**
  * Challenge Mode: a series of 3 seeded rounds (easy → medium → hard).
  * The challenge code deterministically generates the same targets for
- * everyone who opens the link, so scores are directly comparable.
+ * everyone who opens the link, so scores are directly comparable. Every game
+ * shares this scaffolding (codes, RNG, sharing) and plugs in its own seeded
+ * round content via `makeChallengeRand`.
  */
 export const CHALLENGE_DIFFICULTIES: Difficulty[] = ['easy', 'medium', 'hard'];
 export const CHALLENGE_ROUND_COUNT = CHALLENGE_DIFFICULTIES.length;
 export const MAX_CHALLENGE_SCORE = CHALLENGE_ROUND_COUNT * MAX_ROUND_SCORE;
+
+/** Shared difficulty accents for the generic challenge screens. */
+export const DIFFICULTY_ACCENT: Record<Difficulty, string> = {
+  easy: '#22C55E',
+  medium: '#F97316',
+  hard: '#EF4444',
+};
 
 export interface ChallengeRound {
   difficulty: Difficulty;
@@ -43,9 +53,20 @@ function mulberry32(seed: number): () => number {
   };
 }
 
+/**
+ * A deterministic 0–1 RNG for a challenge code. Pass a `salt` (the gameId) so
+ * two games seeded from the same daily code produce independent content.
+ * Balloon Match seeds from the bare code for backward compatibility with
+ * already-shared links (its golden values must never change).
+ */
+export function makeChallengeRand(code: string, salt = ''): () => number {
+  const seed = salt ? `${salt}:${code.toLowerCase()}` : code.toLowerCase();
+  return mulberry32(xmur3(seed)());
+}
+
 /** Derives the same 3 rounds for a given code on every device. */
 export function getChallengeRounds(code: string): ChallengeRound[] {
-  const rand = mulberry32(xmur3(code.toLowerCase())());
+  const rand = makeChallengeRand(code);
   return CHALLENGE_DIFFICULTIES.map((difficulty) => {
     const cfg = DIFFICULTY_CONFIG[difficulty];
     const targetUnits = Math.floor(rand() * (cfg.maxUnits - cfg.minUnits + 1)) + cfg.minUnits;
@@ -82,8 +103,8 @@ export function isValidChallengeCode(code: string): boolean {
   return /^[a-z2-9]{6}$/.test(code) || isDailyCode(code);
 }
 
-export function challengePath(code: string): string {
-  return `/games/balloon-match/challenge/${code}`;
+export function challengePath(gameId: string, code: string): string {
+  return `/games/${gameId}/challenge/${code}`;
 }
 
 export function challengeLabel(code: string): string {
@@ -104,18 +125,31 @@ function scoreEmoji(score: number): string {
   return '🔴';
 }
 
-export function buildShareText(code: string, roundScores: number[], origin: string): string {
+/** Emoji + display name for a game, for share text headers. */
+function gameHeader(gameId: string): string {
+  const meta = GAME_REGISTRY.find((g) => g.id === gameId);
+  return meta ? `${meta.emoji} ${meta.title}` : gameId;
+}
+
+/** Emoji summary of a completed challenge, with an invite link to beat it. */
+export function buildChallengeShareText(
+  gameId: string,
+  code: string,
+  roundScores: number[],
+  origin: string
+): string {
   const total = roundScores.reduce((a, b) => a + b, 0);
   const grid = roundScores.map(scoreEmoji).join(' ');
   return [
-    `🎈 Balloon Match — ${challengeLabel(code)}`,
+    `${gameHeader(gameId)} — ${challengeLabel(code)}`,
     `${grid}  ${total}/${MAX_CHALLENGE_SCORE}`,
-    `Beat my score: ${origin}${challengePath(code)}`,
+    `Beat my score: ${origin}${challengePath(gameId, code)}`,
   ].join('\n');
 }
 
 /** Share text for a completed free-play session (5 rounds, /50). */
 export function buildSessionShareText(
+  gameId: string,
   difficultyLabel: string,
   roundScores: number[],
   origin: string
@@ -124,8 +158,8 @@ export function buildSessionShareText(
   const max = roundScores.length * MAX_ROUND_SCORE;
   const grid = roundScores.map(scoreEmoji).join(' ');
   return [
-    `🎈 Balloon Match — ${difficultyLabel}`,
+    `${gameHeader(gameId)} — ${difficultyLabel}`,
     `${grid}  ${total}/${max}`,
-    `Play: ${origin}/games/balloon-match`,
+    `Play: ${origin}/games/${gameId}`,
   ].join('\n');
 }

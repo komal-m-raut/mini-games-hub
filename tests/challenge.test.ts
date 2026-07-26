@@ -3,8 +3,8 @@ import {
   CHALLENGE_DIFFICULTIES,
   CHALLENGE_ROUND_COUNT,
   MAX_CHALLENGE_SCORE,
+  buildChallengeShareText,
   buildSessionShareText,
-  buildShareText,
   challengeLabel,
   challengePath,
   generateChallengeCode,
@@ -109,24 +109,31 @@ describe('challenge codes', () => {
   });
 
   it('builds paths and labels', () => {
-    expect(challengePath('abc123')).toBe('/games/balloon-match/challenge/abc123');
+    expect(challengePath('balloon-match', 'abc123')).toBe('/games/balloon-match/challenge/abc123');
+    expect(challengePath('perfect-pour', 'abc123')).toBe('/games/perfect-pour/challenge/abc123');
     expect(challengeLabel('daily-20260708')).toBe('Daily · 2026-07-08');
     expect(challengeLabel('abc123')).toBe('Challenge ABC123');
   });
 });
 
-describe('buildShareText', () => {
+describe('buildChallengeShareText', () => {
   it('summarizes the run with emoji, total, and invite link', () => {
-    const text = buildShareText('abc123', [10, 7, 3], 'https://example.com');
+    const text = buildChallengeShareText('balloon-match', 'abc123', [10, 7, 3], 'https://example.com');
     expect(text).toContain('🎯 🟡 🟠');
     expect(text).toContain(`20/${MAX_CHALLENGE_SCORE}`);
     expect(text).toContain('https://example.com/games/balloon-match/challenge/abc123');
+  });
+
+  it('uses each game’s own name and path', () => {
+    const text = buildChallengeShareText('perfect-pour', 'abc123', [10, 7, 3], 'https://example.com');
+    expect(text).toContain('Perfect Pour');
+    expect(text).toContain('https://example.com/games/perfect-pour/challenge/abc123');
   });
 });
 
 describe('buildSessionShareText', () => {
   it('summarizes a 5-round free-play session out of 50', () => {
-    const text = buildSessionShareText('Easy', [10, 8, 6, 3, 1], 'https://example.com');
+    const text = buildSessionShareText('balloon-match', 'Easy', [10, 8, 6, 3, 1], 'https://example.com');
     expect(text).toContain('Easy');
     expect(text).toContain('🎯 🟢 🟡 🟠 🔴');
     expect(text).toContain('28/50');
