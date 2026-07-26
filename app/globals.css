@@ -333,6 +333,115 @@ body {
 }
 
 /* ─────────────────────────────────────────────
+   Tap lever (Perfect Pour)
+───────────────────────────────────────────── */
+.pour-lever {
+  --lever-accent: #06b6d4;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.85rem 2.4rem;
+  border-radius: 999px;
+  font-family: var(--font-mono, monospace);
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: rgba(255, 255, 255, 0.85);
+  background: color-mix(in srgb, var(--lever-accent) 12%, rgba(255, 255, 255, 0.03));
+  border: 1.5px solid color-mix(in srgb, var(--lever-accent) 45%, transparent);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35),
+    0 0 0 0 color-mix(in srgb, var(--lever-accent) 40%, transparent);
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+  transition: transform 0.12s ease, box-shadow 0.2s ease, background 0.2s ease,
+    border-color 0.2s ease;
+}
+
+.pour-lever:hover {
+  background: color-mix(in srgb, var(--lever-accent) 18%, rgba(255, 255, 255, 0.03));
+  border-color: color-mix(in srgb, var(--lever-accent) 60%, transparent);
+}
+
+.pour-lever:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--lever-accent) 70%, transparent);
+  outline-offset: 3px;
+}
+
+.pour-lever-active {
+  color: #fff;
+  transform: translateY(2px) scale(0.98);
+  background: color-mix(in srgb, var(--lever-accent) 30%, rgba(255, 255, 255, 0.04));
+  border-color: var(--lever-accent);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.4),
+    0 0 28px color-mix(in srgb, var(--lever-accent) 45%, transparent);
+}
+
+.pour-lever-dot {
+  width: 0.6rem;
+  height: 0.6rem;
+  border-radius: 999px;
+  background: var(--lever-accent);
+  box-shadow: 0 0 8px var(--lever-accent);
+  transition: box-shadow 0.2s ease;
+}
+
+.pour-lever-active .pour-lever-dot {
+  animation: lever-pulse 0.7s ease-in-out infinite;
+}
+
+@keyframes lever-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 6px var(--lever-accent);
+    opacity: 0.7;
+  }
+  50% {
+    box-shadow: 0 0 16px var(--lever-accent);
+    opacity: 1;
+  }
+}
+
+/* ─────────────────────────────────────────────
+   Memory Path grid
+───────────────────────────────────────────── */
+/* Zero gap on the grid itself: cell centers land exactly on (c+0.5)/N, so
+   the SVG path overlay lines up without gap math. The visual gutter comes
+   from insetting the tile inside each cell. */
+.path-grid {
+  display: grid;
+  gap: 0;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  width: 100%;
+  max-width: 400px;
+  margin-inline: auto;
+  position: relative;
+}
+
+.path-cell {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  touch-action: none;
+}
+
+/* Inset, border-radius and transition are driven inline per grid size
+   (see gridMetrics in PathGrid) so the 16×16 and 25×25 grids can shrink
+   the gutter without a media query per breakpoint. */
+.path-tile {
+  position: absolute;
+  inset: 4px;
+  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-style: solid;
+  border-width: 1px;
+  will-change: opacity;
+}
+
+/* ─────────────────────────────────────────────
    Result Stats
 ───────────────────────────────────────────── */
 .stat-card {

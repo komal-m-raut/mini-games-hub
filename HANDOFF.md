@@ -13,6 +13,8 @@
 - `/` — Hub landing: hero (live player count), game card grid, ad banner, leaderboard
 - `/games/balloon-match` — Balloon Match game + challenge launcher + leaderboard
 - `/games/balloon-match/challenge/[code]` — seeded challenge (shareable link)
+- `/games/perfect-pour` — Perfect Pour game (observe fill level → pour to match)
+- `/games/memory-path` — Memory Path game (watch neon path → trace it back)
 - `/api/scores/[gameId]/[board]` — GET/POST leaderboard entries, any game
 - `/api/events` (POST play events) · `/api/stats` (GET site totals)
 - `/manifest.webmanifest` — PWA manifest from `app/manifest.ts`
@@ -63,6 +65,105 @@ UI copy is deliberately minimal — titles only, no instructional subtitles.
 
 ---
 
+## Game: Perfect Pour (`/games/perfect-pour`)
+
+**Flow:** Select difficulty → 5-round session (observe fill level → pour to match → results) → Session Complete
+
+**Mechanics:**
+- Watch the glass fill to a random target (25–85%) during a brief observe window
+- Press and hold the **tap lever** to pour; release to lock in; fill drains to 0 before pouring so there's no info leak
+- Scoring identical to Balloon Match: `calculateScore(accuracy)` → 0–10 per round
+- Best session stored in localStorage key `mgh_best_session_perfect-pour`
+
+**Water/faucet (`GlassCanvas.tsx`):** `<Glass faucet pouring>` draws a chrome tap
+above the glass (viewBox gains upward headroom; glass body stays the same on-screen
+size). While pouring, a tapering water stream falls from the spout with a bright
+core, a subtle sway, falling droplets, a splash crown, a pulsing impact point and
+continuous surface ripples (plus the stop-ripple burst). The tap lever tilts open
+via the `pouring` prop. Live level tracks the readout exactly (`duration 0`) so the
+player can aim; the `water` loop sound is synced to the hold. `GlassComparison`
+(results) renders faucet-free.
+
+**Key files:**
+```
+games/perfect-pour/
+  PerfectPourGame.tsx  # Main game component
+  GlassCanvas.tsx      # SVG glass + GlassComparison (side-by-side diff view)
+  PourResultScreen.tsx # Results (accuracy, diff label, glass comparison, confetti)
+  usePourGame.ts       # Game state hook
+  constants.ts         # POUR_DIFFICULTY, getPourRating, getPourAccuracy, MIN/MAX_TARGET_FILL
+  types.ts             # PourGameState, PourResult, PourPhase
+```
+
+---
+
+## Game: Memory Path (`/games/memory-path`)
+
+**Flow:** Select difficulty → 5-round session (reveal path → memorize → fade → trace → results) → Session Complete
+
+**Mechanics:**
+- A random non-self-intersecting orthogonal path is generated on an N×N grid (DFS with backtracking; guaranteed to find a path of the requested length)
+- **Reveal phase**: cells light up one-by-one with neon glow + connecting SVG polyline; whoosh sound per cell
+- **Memorize phase**: full path glows; a draining neon bar shows how long is left to memorize
+- **Fade phase** (700ms): path dissolves before tracing opens
+- **Trace phase**: drag to paint cells; the last traced cell can be walked back to erase a wrong turn; sparkle trail follows the pointer; reaching the last cell auto-scores (after 380ms beat)
+- **Clear** button wipes the trace mid-round; **Submit** forces early scoring
+- Scoring: `calculateScore(accuracy)` → 0–10; accuracy = correct positional matches / path length
+- Rating: Perfect (100% & 0 mistakes), Great (≥80%), Good (≥60%), Try Again
+- Best session stored in localStorage key `mgh_best_session_memory-path`
+- Ambient synth pad loops (`loop('ambient')`) during play; stops on menu return
+
+**Difficulty config** (`games/memory-path/constants.ts`):
+- Easy: 9×9 grid, 6-cell path, 520ms/cell reveal, 2.4s memorize window
+- Medium: 16×16 grid, 9-cell path, 340ms/cell reveal, 2.8s memorize window
+- Hard: 25×25 grid, 12-cell path, 300ms/cell reveal, 3.4s memorize window
+
+**Big-grid performance & tracing** (`PathGrid.tsx`): tiles are plain divs in a
+`useMemo`'d layer so sparkle updates don't re-render the 256/625 cells; the few
+active overlays (traced ripple, start hint) keep framer-motion. `gridMetrics(size)`
+scales tile inset/radius, connector stroke, grid max-width, and drops sparkles on
+the 25×25 board. Fast drags fill colinear gaps via `straightRun()` (in `pathGen.ts`,
+unit-tested) so tracing tiny tiles completes runs instead of erroring on skipped cells.
+
+**Key files:**
+```
+games/memory-path/
+  MemoryPathGame.tsx      # Main game component
+  PathGrid.tsx            # Grid rendering, pointer tracing, sparkle trail, SVG path overlay
+  PathResultScreen.tsx    # Results (stats, grid replay with correct/wrong marks, confetti)
+  useMemoryPathGame.ts    # Game state hook (stateRef + tracedRef for pointer-move perf)
+  pathGen.ts              # generatePath() DFS, comparePaths(), isAdjacent(), Cell type
+  constants.ts            # PATH_DIFFICULTY, PATH_FADE_MS, getPathRating()
+  types.ts                # PathGameState, PathResult, PathPhase
+```
+
+**Tests** (`tests/memoryPath.test.ts`): path generation (length, no revisits, orthogonal steps, inside grid, difficulty presets), `comparePaths` (exact, divergence, short/long traces), `getPathRating` boundaries. Runs in the existing `npm test` suite (42 tests total across 3 files).
+
+---
+
+## Shared Infrastructure
+
+### Sounds (`lib/sounds.ts`, `hooks/useSound.ts`)
+
+Zero-asset Web Audio synthesis. All sounds generated at runtime:
+- **One-shots:** `click`, `tick`, `glow` (path reveal shimmer), `whoosh` (per-segment), `trace` (cell tap), `splash`, `success` (major arpeggio), `celebrate` (full octave arpeggio), `fail`, `error`
+- **Loops:** `water` (low-passed brown noise, LFO wobble), `ambient` (Am9-ish detuned sine pad)
+- Mute persists in localStorage (`mgh_muted`); `SoundToggle` component (`components/ui/SoundToggle.tsx`)
+
+### Session Summary (`components/game/SessionSummary.tsx`)
+
+Generic end-of-session screen used by all round-based games: total score, per-round breakdown, personal best, share text (`lib/share.ts`), replay/menu buttons, confetti for ≥70% or new best.
+
+### Difficulty Selector (`components/game/DifficultySelector.tsx`)
+
+Generic 3-card selector; each game passes its own `DifficultyOption[]` with stat pills.
+
+### Score Card (`components/game/ScoreCard.tsx`)
+
+Top-bar Score /10 · Total /max · Round x/y display, shared across all games.
+
+---
+
 ## Storage & Stats (same schema for every future game)
 
 - `lib/server/scoreStore.ts` — boards of `ScoreEntry` keyed by gameId + board
@@ -92,56 +193,57 @@ UI copy is deliberately minimal — titles only, no instructional subtitles.
 ```
 app/
   globals.css          # Full design system (tokens, components, animations)
+                       # Includes .path-grid, .path-cell, .path-tile classes
   layout.tsx           # Fonts, ParticleBackground, Navigation, Footer
   page.tsx             # Hub landing page
 
-games/balloon-match/
-  BalloonGame.tsx      # Main game component
-  BalloonCanvas.tsx    # SVG balloon + BalloonComparison
-  ResultScreen.tsx     # Results with stats, comparison, confetti
-  useBalloonGame.ts    # Game state hook (stateRef pattern, transitioningRef guard)
-  types.ts             # BalloonGameState interface
+games/balloon-match/   # See Game: Balloon Match above
+games/perfect-pour/    # See Game: Perfect Pour above
+games/memory-path/     # See Game: Memory Path above
 
 components/
   ui/NeonButton.tsx         # 4 variants, 4 sizes
   ui/GlassCard.tsx          # Glassmorphism card
   ui/ParticleBackground.tsx # 18 particles + 3 ambient blobs (seeded RNG for SSR)
   ui/ConfettiEffect.tsx     # canvas-confetti (perfect/great/good presets)
+  ui/SoundToggle.tsx        # Mute/unmute (persisted to localStorage)
   game/GameTimer.tsx        # SVG circular countdown
   game/ScoreCard.tsx        # Score/Best/Round/Accuracy display
   game/DifficultySelector.tsx # 3 animated cards with vertical stat pills
-  leaderboard/Leaderboard.tsx # 4 tabs (Today/Week/All Time/Friends), mock data
+  game/SessionSummary.tsx   # Generic end-of-session screen (all round-based games)
+  leaderboard/Leaderboard.tsx # 4 tabs (Today/Week/All Time/Friends)
+  challenge/ChallengeLeaderboard.tsx # Shared per-code board
   ads/AdBanner.tsx          # Placeholder in dev, real <ins> in production
   ads/AdConfig.ts           # Publisher ID + 3 slot IDs (all placeholder)
   layout/Navigation.tsx     # Fixed nav, mobile-responsive
   layout/Footer.tsx         # Footer ad + nav links
 
-games/balloon-match/ (challenge UI)
-  ChallengeLauncher.tsx # Daily / friend-challenge entry buttons
-  ChallengeScreens.tsx  # Intro + completion (submit, share, leaderboard)
-
-components/challenge/ChallengeLeaderboard.tsx # Shared per-code board
-
 hooks/
   usePressAndHold.ts   # Pointer capture hold mechanic
-  useLeaderboard.ts    # Mock leaderboard data + tabs (hub tabs still mock)
+  useLeaderboard.ts    # Fetches real boards from /api/scores
   useGameTimer.ts      # Countdown timer hook
   useSiteStats.ts      # GET /api/stats (players/plays totals)
-
-lib/challenge.ts       # Seeded rounds, codes, share text
-lib/player.ts          # Anonymous localStorage identity
-lib/server/            # redis.ts + scoreStore.ts + statsStore.ts
+  useSound.ts          # Sound controls hook; wraps lib/sounds.ts singleton
 
 lib/
-  constants.ts         # UNIT_TO_PX=2.8, BALLOON_COLORS, DIFFICULTY_CONFIG, ad placeholders
-  gameRegistry.ts      # 6 games (1 live, 5 coming-soon)
+  sounds.ts            # Zero-asset Web Audio synthesis engine
+  share.ts             # buildSessionShare() for share text
+  challenge.ts         # Seeded rounds, codes, share text
+  player.ts            # Anonymous localStorage identity
+  constants.ts         # Game constants (balloon)
+  gameRegistry.ts      # 8 games (3 live, 5 coming-soon)
   utils.ts             # cn(), randomPick(), randomInt(), clamp()
+  server/              # redis.ts + scoreStore.ts + statsStore.ts
 
 utils/
   accuracy.ts          # calculateAccuracy(), getRating(), getSizeDiffLabel()
-  scoring.ts           # calculateScore(), getLocalHighScore(), saveHighScore()
+  scoring.ts           # calculateScore(), NORMAL_ROUND_COUNT, getLocalBestSession/saveBestSession
 
 types/game.ts          # Shared types: Difficulty, Rating, GameResult, GameMeta, etc.
+tests/
+  scoring.test.ts      # calculateScore, calculateAccuracy, getRating boundaries
+  challenge.test.ts    # Seeded round determinism, share text
+  memoryPath.test.ts   # Path generation, comparePaths, getPathRating
 ```
 
 ---
@@ -155,9 +257,13 @@ All ad infrastructure is built. To go live:
 
 ---
 
-## Game Registry (for adding new games)
+## Adding a New Game
 
-Add entry to `lib/gameRegistry.ts` + create `games/<slug>/` folder. Hub auto-renders it.
+1. Add entry to `lib/gameRegistry.ts` (set `isAvailable: true`)
+2. Create `games/<slug>/` with: `<Name>Game.tsx`, `use<Name>Game.ts`, `types.ts`, `constants.ts`
+3. Create `app/games/<slug>/page.tsx` — import the game component + `AdBanner`
+4. Follow the session pattern: `NORMAL_ROUND_COUNT` rounds, `calculateScore`, `getLocalBestSession`/`saveBestSession`, `SessionSummary` at end
+5. Use `DifficultySelector`, `ScoreCard`, `SoundToggle`, `NeonButton` from shared components
 
 ---
 
@@ -165,17 +271,10 @@ Add entry to `lib/gameRegistry.ts` + create `games/<slug>/` folder. Hub auto-ren
 
 1. ~~Upstash Redis~~ — DONE
 2. ~~Deploy on Vercel~~ — DONE
-3. ~~Hub leaderboard tabs~~ — DONE: `useLeaderboard.ts` fetches real boards
-   (Today = `daily-YYYYMMDD`, All Time = `global`) from `/api/scores`
-4. **Ads** — still placeholder IDs (see Ad Setup above)
-5. ~~Streaks~~ — dropped, not required
-6. ~~Lint~~ — DONE: eslint, tsc, and build all clean. Fixes applied:
-   - localStorage reads (player id/name, high score) now use
-     `useSyncExternalStore` (`usePlayerId`/`usePlayerName` in `lib/player.ts`)
-     instead of setState-in-effect
-   - fetch-in-effect hooks (`useLeaderboard`, `ChallengeLeaderboard`) restructured
-     with cancellation flags; manual refresh via a tick counter
-   - `stateRef` mirror updated in an effect; `startInflating`/`stopInflating` no
-     longer read it (usePressAndHold's `disabled` + functional setState gate them),
-     so a not-yet-flushed mirror can't eat a press/release
+3. ~~Hub leaderboard tabs~~ — DONE
+4. ~~Perfect Pour game~~ — DONE
+5. ~~Memory Path game~~ — DONE (3 games live)
+6. **Ads** — still placeholder IDs (see Ad Setup above)
 7. **Custom domain** — user is picking one; wire it up in Vercel when shared
+8. **Game 4** — Color Match or Rhythm Tap are next candidates in `gameRegistry.ts`
+9. **Challenge mode for Perfect Pour / Memory Path** — infrastructure exists (`/api/scores/[gameId]/[board]`), just needs `ChallengeLauncher` + `ChallengeScreens` wired per game

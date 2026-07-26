@@ -33,19 +33,28 @@ export function saveHighScore(score: number): boolean {
   return false;
 }
 
-/** Best full-session total (out of 50) stored in localStorage. */
-const SESSION_KEY = 'mgh_balloon_best_session';
+/**
+ * Best full-session total (out of 50) per game, in localStorage.
+ * Balloon Match keeps its original key so existing bests survive.
+ */
+const LEGACY_SESSION_KEYS: Record<string, string> = {
+  'balloon-match': 'mgh_balloon_best_session',
+};
 
-export function getLocalBestSession(): number {
-  if (typeof window === 'undefined') return 0;
-  return Number(localStorage.getItem(SESSION_KEY) ?? 0);
+function sessionKey(gameId: string): string {
+  return LEGACY_SESSION_KEYS[gameId] ?? `mgh_best_session_${gameId}`;
 }
 
-export function saveBestSession(total: number): boolean {
+export function getLocalBestSession(gameId: string): number {
+  if (typeof window === 'undefined') return 0;
+  return Number(localStorage.getItem(sessionKey(gameId)) ?? 0);
+}
+
+export function saveBestSession(gameId: string, total: number): boolean {
   if (typeof window === 'undefined') return false;
-  const prev = getLocalBestSession();
+  const prev = getLocalBestSession(gameId);
   if (total > prev) {
-    localStorage.setItem(SESSION_KEY, String(total));
+    localStorage.setItem(sessionKey(gameId), String(total));
     return true;
   }
   return false;
