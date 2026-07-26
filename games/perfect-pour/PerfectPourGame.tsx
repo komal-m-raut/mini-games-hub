@@ -107,6 +107,7 @@ export function PerfectPourGame() {
               fill={state.currentFill}
               color={cfg.liquid}
               scale={cfg.glassScale}
+              faucet
               animateFill
             />
 
@@ -131,34 +132,37 @@ export function PerfectPourGame() {
             exit={{ opacity: 0, scale: 0.9 }}
           >
             <p className="font-display text-xl font-bold text-white">
-              {state.isPouring ? 'Release when ready!' : 'Hold to Pour'}
+              {state.isPouring ? 'Release when ready!' : 'Hold the Tap to Pour'}
             </p>
 
-            {/* Pour zone — the glass is pointer-events:none so growing
-                liquid never steals the press */}
-            <div
-              {...holdHandlers}
-              className={`pour-zone ${state.isPouring ? 'pour-zone-active' : ''}`}
-            >
-              <div className="pointer-events-none">
-                <Glass
-                  fill={state.currentFill}
-                  color={cfg.liquid}
-                  scale={cfg.glassScale}
-                  pouring={state.isPouring}
-                />
-              </div>
-
-              {state.currentFill < 2 && !state.isPouring && (
-                <motion.p
-                  className="absolute bottom-4 text-white/25 font-mono text-sm pointer-events-none select-none"
-                  animate={{ opacity: [0.3, 0.8, 0.3] }}
-                  transition={{ duration: 1.5, repeat: Infinity }}
-                >
-                  Press &amp; hold anywhere
-                </motion.p>
-              )}
+            {/* Glass under the faucet — pointer-events:none so the stream and
+                growing liquid never interfere with the lever hold */}
+            <div className="pointer-events-none">
+              <Glass
+                fill={state.currentFill}
+                color={cfg.liquid}
+                scale={cfg.glassScale}
+                faucet
+                pouring={state.isPouring}
+              />
             </div>
+
+            {/* Tap lever — press and hold to open the faucet */}
+            <button
+              type="button"
+              {...holdHandlers}
+              aria-label={state.isPouring ? 'Release to stop pouring' : 'Hold to pour water'}
+              aria-pressed={state.isPouring}
+              className={`pour-lever ${state.isPouring ? 'pour-lever-active' : ''}`}
+              style={
+                {
+                  '--lever-accent': cfg.liquid,
+                } as React.CSSProperties
+              }
+            >
+              <span className="pour-lever-dot" />
+              {state.isPouring ? 'Pouring…' : 'Hold to Pour'}
+            </button>
 
             {/* Fill readout */}
             <div className="w-full max-w-xs">
