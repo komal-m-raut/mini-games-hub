@@ -1,28 +1,20 @@
 'use client';
 
 import { useState } from 'react';
-import { motion } from 'framer-motion';
-import { Check, Copy, Home, RotateCcw, Send, Share2, Swords } from 'lucide-react';
 import Link from 'next/link';
+import { motion } from 'framer-motion';
+import { Check, Copy, Home, RotateCcw, Send, Share2 } from 'lucide-react';
 import { NeonButton } from '@/components/ui/NeonButton';
 import { ConfettiEffect } from '@/components/ui/ConfettiEffect';
 import { ChallengeLeaderboard } from '@/components/challenge/ChallengeLeaderboard';
 import {
-  ChallengeRound,
   MAX_CHALLENGE_SCORE,
-  buildShareText,
+  buildChallengeShareText,
   challengeLabel,
   challengePath,
-  isDailyCode,
 } from '@/lib/challenge';
-import { DIFFICULTY_CONFIG } from '@/lib/constants';
 import { MAX_ROUND_SCORE } from '@/utils/scoring';
 import { setPlayerName, usePlayerId, usePlayerName } from '@/lib/player';
-
-/** Absolute invite URL — only called from click handlers, so window is safe. */
-function challengeUrl(code: string): string {
-  return `${window.location.origin}${challengePath(code)}`;
-}
 
 function CopyButton({ getText, label }: { getText: () => string; label: string }) {
   const [copied, setCopied] = useState(false);
@@ -45,69 +37,15 @@ function CopyButton({ getText, label }: { getText: () => string; label: string }
   );
 }
 
-// ── Intro screen ────────────────────────────────────────────────────
-
-interface ChallengeIntroProps {
-  code: string;
-  rounds: ChallengeRound[];
-  onStart: () => void;
-}
-
-export function ChallengeIntro({ code, rounds, onStart }: ChallengeIntroProps) {
-  const daily = isDailyCode(code);
-
-  return (
-    <div className="glass-card flex flex-col items-center gap-6 py-10 px-6 text-center">
-      <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}>
-        <div className="flex items-center justify-center gap-2 mb-2">
-          <Swords className="w-5 h-5 text-brand-cyan" strokeWidth={1.5} />
-          <p className="font-mono text-xs text-brand-cyan uppercase tracking-widest">
-            {daily ? 'Daily Challenge' : 'Friend Challenge'}
-          </p>
-        </div>
-        <h2 className="font-display text-3xl sm:text-4xl font-bold text-white mb-2">
-          {challengeLabel(code)}
-        </h2>
-      </motion.div>
-
-      {/* Round preview: difficulty sequence only, targets stay secret */}
-      <div className="flex gap-3">
-        {rounds.map((round, i) => {
-          const cfg = DIFFICULTY_CONFIG[round.difficulty];
-          return (
-            <div
-              key={i}
-              className="px-4 py-2 rounded-xl border text-xs font-mono"
-              style={{ color: cfg.color, borderColor: `${cfg.color}40`, background: `${cfg.color}10` }}
-            >
-              <span className="block text-white/40 text-[0.6rem] uppercase tracking-wider mb-0.5">
-                Round {i + 1}
-              </span>
-              {cfg.label}
-            </div>
-          );
-        })}
-      </div>
-
-      <div className="flex flex-col sm:flex-row items-center gap-3">
-        <NeonButton variant="primary" size="lg" onClick={onStart} glow="rgba(124, 58, 237, 0.5)">
-          Start Challenge
-        </NeonButton>
-        <CopyButton getText={() => challengeUrl(code)} label="Copy invite link" />
-      </div>
-    </div>
-  );
-}
-
-// ── Completion screen ───────────────────────────────────────────────
-
 interface ChallengeCompleteProps {
+  gameId: string;
   code: string;
   roundScores: number[];
+  /** Retry the same challenge. */
   onReplay: () => void;
 }
 
-export function ChallengeComplete({ code, roundScores, onReplay }: ChallengeCompleteProps) {
+export function ChallengeComplete({ gameId, code, roundScores, onReplay }: ChallengeCompleteProps) {
   const total = roundScores.reduce((a, b) => a + b, 0);
   const playerId = usePlayerId();
   const storedName = usePlayerName();
@@ -122,7 +60,7 @@ export function ChallengeComplete({ code, roundScores, onReplay }: ChallengeComp
     setSubmitState('sending');
     setPlayerName(name);
     try {
-      const res = await fetch(`/api/scores/balloon-match/${code}`, {
+      const res = await fetch(`/api/scores/${gameId}/${code}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ playerId, name: name.trim(), roundScores }),
@@ -136,7 +74,7 @@ export function ChallengeComplete({ code, roundScores, onReplay }: ChallengeComp
   };
 
   const share = async () => {
-    const text = buildShareText(code, roundScores, window.location.origin);
+    const text = buildChallengeShareText(gameId, code, roundScores, window.location.origin);
     if (navigator.share) {
       try {
         await navigator.share({ text });
@@ -147,6 +85,8 @@ export function ChallengeComplete({ code, roundScores, onReplay }: ChallengeComp
     }
     await navigator.clipboard.writeText(text);
   };
+
+  const inviteUrl = () => `${window.location.origin}${challengePath(gameId, code)}`;
 
   return (
     <div className="glass-card flex flex-col items-center gap-6 py-10 px-6">
@@ -229,20 +169,20 @@ export function ChallengeComplete({ code, roundScores, onReplay }: ChallengeComp
           Share result
         </button>
         <CopyButton
-          getText={() => buildShareText(code, roundScores, window.location.origin)}
+          getText={() => buildChallengeShareText(gameId, code, roundScores, window.location.origin)}
           label="Copy result"
         />
-        <CopyButton getText={() => challengeUrl(code)} label="Copy invite link" />
+        <CopyButton getText={inviteUrl} label="Copy invite link" />
       </div>
 
       {/* Shared leaderboard for this challenge */}
       <div className="w-full border-t border-white/5 pt-5">
-        <ChallengeLeaderboard code={code} playerId={playerId} refreshKey={refreshKey} />
+        <ChallengeLeaderboard gameId={gameId} code={code} playerId={playerId} refreshKey={refreshKey} />
       </div>
 
       {/* Actions */}
       <div className="flex gap-3 w-full max-w-sm">
-        <Link href="/games/balloon-match" className="flex-1">
+        <Link href={`/games/${gameId}`} className="flex-1">
           <NeonButton
             variant="ghost"
             size="md"
@@ -262,7 +202,6 @@ export function ChallengeComplete({ code, roundScores, onReplay }: ChallengeComp
           Retry
         </NeonButton>
       </div>
-
     </div>
   );
 }

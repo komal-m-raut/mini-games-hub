@@ -5,7 +5,6 @@ import { motion } from 'framer-motion';
 import { Zap, Star, Users } from 'lucide-react';
 import { GAME_REGISTRY } from '@/lib/gameRegistry';
 import { AdBanner } from '@/components/ads/AdBanner';
-import { ChallengeCTA } from '@/components/challenge/ChallengeCTA';
 import { Leaderboard } from '@/components/leaderboard/Leaderboard';
 import { useSiteStats } from '@/hooks/useSiteStats';
 import { GameMeta } from '@/types/game';
@@ -184,9 +183,6 @@ export default function HubPage() {
           ))}
         </motion.div>
       </section>
-
-      {/* Challenge Mode */}
-      <ChallengeCTA />
 
       {/* Ad: below game grid */}
       <motion.div

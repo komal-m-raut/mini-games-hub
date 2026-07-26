@@ -15,11 +15,16 @@ interface GameRules {
   rounds?: { count: number; maxPerRound: number };
 }
 
+// Every round-based challenge game shares the same 3-round shape.
+const CHALLENGE_RULES: GameRules = {
+  maxScore: MAX_CHALLENGE_SCORE,
+  rounds: { count: CHALLENGE_ROUND_COUNT, maxPerRound: MAX_ROUND_SCORE },
+};
+
 const GAME_RULES: Record<string, GameRules> = {
-  'balloon-match': {
-    maxScore: MAX_CHALLENGE_SCORE,
-    rounds: { count: CHALLENGE_ROUND_COUNT, maxPerRound: MAX_ROUND_SCORE },
-  },
+  'balloon-match': CHALLENGE_RULES,
+  'perfect-pour': CHALLENGE_RULES,
+  'memory-path': CHALLENGE_RULES,
 };
 
 const BOARD_PATTERN = /^[a-z0-9-]{1,40}$/;

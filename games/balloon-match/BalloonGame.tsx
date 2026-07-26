@@ -1,19 +1,24 @@
 'use client';
 
+import { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ArrowLeft } from 'lucide-react';
 import { DifficultyOption, DifficultySelector } from '@/components/game/DifficultySelector';
 import { GameTimer } from '@/components/game/GameTimer';
+import { ModeSelector } from '@/components/game/ModeSelector';
 import { ScoreCard } from '@/components/game/ScoreCard';
+import { ChallengeComplete } from '@/components/challenge/ChallengeComplete';
+import { ChallengeIntro } from '@/components/challenge/ChallengeIntro';
+import { ChallengeLauncher } from '@/components/challenge/ChallengeLauncher';
 import { usePressAndHold } from '@/hooks/usePressAndHold';
 import { DIFFICULTY_CONFIG, UNIT_TO_PX } from '@/lib/constants';
 import { Difficulty } from '@/types/game';
 import { Balloon } from './BalloonCanvas';
 import { ResultScreen } from './ResultScreen';
-import { ChallengeComplete, ChallengeIntro } from './ChallengeScreens';
-import { ChallengeLauncher } from './ChallengeLauncher';
 import { SessionComplete } from './SessionComplete';
 import { useBalloonGame } from './useBalloonGame';
+
+const GAME_ID = 'balloon-match';
 
 interface BalloonGameProps {
   /** When set, runs as a seeded 3-round challenge with a shared leaderboard. */
@@ -56,11 +61,20 @@ export function BalloonGame({ challengeCode }: BalloonGameProps) {
     resetToMenu,
   } = useBalloonGame({ challengeCode });
 
+  // Free-play menu view: mode picker → solo difficulty or multiplayer launcher.
+  // Only used when there's no challengeCode (the challenge route skips it).
+  const [menuView, setMenuView] = useState<'mode' | 'solo' | 'multi'>('mode');
+
   const holdHandlers = usePressAndHold({
     onStart: startInflating,
     onEnd: stopInflating,
     disabled: state.phase !== 'inflating',
   });
+
+  const backToMenu = () => {
+    setMenuView('mode');
+    resetToMenu();
+  };
 
   const isChallenge = state.mode === 'challenge';
   const isMenuPhase = state.phase === 'selecting-difficulty' || state.phase === 'challenge-intro';
@@ -82,7 +96,7 @@ export function BalloonGame({ challengeCode }: BalloonGameProps) {
           animate={{ opacity: 1, y: 0 }}
         >
           <button
-            onClick={resetToMenu}
+            onClick={isChallenge ? resetToMenu : backToMenu}
             className="flex items-center gap-1.5 text-white/40 hover:text-white/70 transition-colors text-sm font-mono cursor-pointer"
           >
             <ArrowLeft className="w-4 h-4" strokeWidth={1.5} />
@@ -99,17 +113,37 @@ export function BalloonGame({ challengeCode }: BalloonGameProps) {
 
       {/* Main game area */}
       <AnimatePresence mode="wait">
-        {/* ── Difficulty selection (Normal mode) ── */}
+        {/* ── Free-play menu: mode picker → solo or multiplayer ── */}
         {state.phase === 'selecting-difficulty' && (
           <motion.div
-            key="difficulty"
+            key={`menu-${menuView}`}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0, y: -20 }}
-            className="flex flex-col gap-8"
+            className="flex flex-col gap-6"
           >
-            <DifficultySelector options={DIFFICULTY_OPTIONS} onSelect={selectDifficulty} />
-            <ChallengeLauncher />
+            {menuView === 'mode' && (
+              <ModeSelector
+                accent="#EC4899"
+                onSolo={() => setMenuView('solo')}
+                onMultiplayer={() => setMenuView('multi')}
+              />
+            )}
+            {menuView === 'solo' && (
+              <div className="flex flex-col gap-5">
+                <DifficultySelector options={DIFFICULTY_OPTIONS} onSelect={selectDifficulty} />
+                <button
+                  onClick={() => setMenuView('mode')}
+                  className="mx-auto flex items-center gap-1.5 text-white/40 hover:text-white/70 transition-colors text-sm font-mono cursor-pointer"
+                >
+                  <ArrowLeft className="w-4 h-4" strokeWidth={1.5} />
+                  Back
+                </button>
+              </div>
+            )}
+            {menuView === 'multi' && (
+              <ChallengeLauncher gameId={GAME_ID} onBack={() => setMenuView('mode')} />
+            )}
           </motion.div>
         )}
 
@@ -121,7 +155,12 @@ export function BalloonGame({ challengeCode }: BalloonGameProps) {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0, y: -20 }}
           >
-            <ChallengeIntro code={challengeCode} rounds={challengeRounds} onStart={startChallenge} />
+            <ChallengeIntro
+              gameId={GAME_ID}
+              code={challengeCode}
+              difficulties={challengeRounds.map((r) => r.difficulty)}
+              onStart={startChallenge}
+            />
           </motion.div>
         )}
 
@@ -284,6 +323,7 @@ export function BalloonGame({ challengeCode }: BalloonGameProps) {
             exit={{ opacity: 0 }}
           >
             <ChallengeComplete
+              gameId={GAME_ID}
               code={challengeCode}
               roundScores={state.roundScores}
               onReplay={resetToMenu}
