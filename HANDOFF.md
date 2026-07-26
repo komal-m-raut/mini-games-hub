@@ -71,9 +71,18 @@ UI copy is deliberately minimal — titles only, no instructional subtitles.
 
 **Mechanics:**
 - Watch the glass fill to a random target (25–85%) during a brief observe window
-- Hold anywhere in the pour zone to pour; release to lock in; fill drains to 0 before pouring so there's no info leak
+- Press and hold the **tap lever** to pour; release to lock in; fill drains to 0 before pouring so there's no info leak
 - Scoring identical to Balloon Match: `calculateScore(accuracy)` → 0–10 per round
 - Best session stored in localStorage key `mgh_best_session_perfect-pour`
+
+**Water/faucet (`GlassCanvas.tsx`):** `<Glass faucet pouring>` draws a chrome tap
+above the glass (viewBox gains upward headroom; glass body stays the same on-screen
+size). While pouring, a tapering water stream falls from the spout with a bright
+core, a subtle sway, falling droplets, a splash crown, a pulsing impact point and
+continuous surface ripples (plus the stop-ripple burst). The tap lever tilts open
+via the `pouring` prop. Live level tracks the readout exactly (`duration 0`) so the
+player can aim; the `water` loop sound is synced to the hold. `GlassComparison`
+(results) renders faucet-free.
 
 **Key files:**
 ```
@@ -106,8 +115,15 @@ games/perfect-pour/
 
 **Difficulty config** (`games/memory-path/constants.ts`):
 - Easy: 4×4 grid, 5-cell path, 560ms/cell reveal, 2.2s memorize window
-- Medium: 5×5 grid, 7-cell path, 400ms/cell reveal, 1.6s memorize window
-- Hard: 6×6 grid, 9-cell path, 270ms/cell reveal, 1.1s memorize window
+- Medium: 16×16 grid, 9-cell path, 340ms/cell reveal, 2.8s memorize window
+- Hard: 25×25 grid, 12-cell path, 300ms/cell reveal, 3.4s memorize window
+
+**Big-grid performance & tracing** (`PathGrid.tsx`): tiles are plain divs in a
+`useMemo`'d layer so sparkle updates don't re-render the 256/625 cells; the few
+active overlays (traced ripple, start hint) keep framer-motion. `gridMetrics(size)`
+scales tile inset/radius, connector stroke, grid max-width, and drops sparkles on
+the 25×25 board. Fast drags fill colinear gaps via `straightRun()` (in `pathGen.ts`,
+unit-tested) so tracing tiny tiles completes runs instead of erroring on skipped cells.
 
 **Key files:**
 ```
