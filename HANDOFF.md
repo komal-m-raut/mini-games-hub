@@ -114,7 +114,7 @@ games/perfect-pour/
 - Ambient synth pad loops (`loop('ambient')`) during play; stops on menu return
 
 **Difficulty config** (`games/memory-path/constants.ts`):
-- Easy: 4×4 grid, 5-cell path, 560ms/cell reveal, 2.2s memorize window
+- Easy: 9×9 grid, 6-cell path, 520ms/cell reveal, 2.4s memorize window
 - Medium: 16×16 grid, 9-cell path, 340ms/cell reveal, 2.8s memorize window
 - Hard: 25×25 grid, 12-cell path, 300ms/cell reveal, 3.4s memorize window
 

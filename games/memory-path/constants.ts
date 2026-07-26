@@ -27,11 +27,11 @@ export interface PathDifficultyConfig {
 export const PATH_DIFFICULTY: Record<Difficulty, PathDifficultyConfig> = {
   easy: {
     label: 'Easy',
-    description: '4×4 grid · Short path',
-    size: 4,
-    pathLength: 5,
-    revealMs: 560,
-    memorizeMs: 2200,
+    description: '9×9 grid · Short path',
+    size: 9,
+    pathLength: 6,
+    revealMs: 520,
+    memorizeMs: 2400,
     color: '#22C55E',
     glow: 'rgba(34, 197, 94, 0.4)',
     neon: '#22D3EE',

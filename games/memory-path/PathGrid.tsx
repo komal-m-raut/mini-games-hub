@@ -36,8 +36,8 @@ interface Sparkle {
  * tiles still read as a clean grid instead of a smear.
  */
 function gridMetrics(size: number) {
-  if (size <= 6) {
-    return { inset: 4, radius: 8, stroke: 6, maxWidth: 400, sparkles: true };
+  if (size <= 9) {
+    return { inset: 3, radius: 6, stroke: 5, maxWidth: 420, sparkles: true };
   }
   if (size <= 16) {
     return { inset: 1.6, radius: 3, stroke: 3, maxWidth: 480, sparkles: true };
