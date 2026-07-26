@@ -4,9 +4,9 @@ export const ADSENSE_CONFIG = {
   publisherId,
 
   slots: {
-    'below-hub-banner': 'XXXXXXXXXX',
-    'between-games-banner': 'XXXXXXXXXX',
-    'footer-banner': 'XXXXXXXXXX',
+    'below-hub-banner': '3890552192',
+    'between-games-banner': '1381873156',
+    'footer-banner': '5129546472',
   } as Record<string, string>,
 
   /** Ads only run in production when the publisher ID is set. */
