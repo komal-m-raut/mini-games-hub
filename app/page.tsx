@@ -5,7 +5,6 @@ import { motion } from 'framer-motion';
 import { Zap, Star, Users } from 'lucide-react';
 import { GAME_REGISTRY } from '@/lib/gameRegistry';
 import { AdBanner } from '@/components/ads/AdBanner';
-import { Leaderboard } from '@/components/leaderboard/Leaderboard';
 import { useSiteStats } from '@/hooks/useSiteStats';
 import { GameMeta } from '@/types/game';
 
@@ -194,16 +193,6 @@ export default function HubPage() {
         <AdBanner placement="below-hub-banner" format="leaderboard" />
       </motion.div>
 
-      {/* Leaderboard */}
-      <motion.section
-        variants={fadeUp}
-        initial="hidden"
-        whileInView="show"
-        viewport={{ once: true }}
-      >
-        <h2 className="font-display font-bold text-2xl text-white mb-6">Leaderboard</h2>
-        <Leaderboard gameId="balloon-match" />
-      </motion.section>
     </div>
   );
 }
