@@ -387,17 +387,18 @@ body {
   touch-action: none;
 }
 
+/* Inset, border-radius and transition are driven inline per grid size
+   (see gridMetrics in PathGrid) so the 16×16 and 25×25 grids can shrink
+   the gutter without a media query per breakpoint. */
 .path-tile {
   position: absolute;
   inset: 4px;
   border-radius: var(--radius-md);
   background: rgba(255, 255, 255, 0.035);
   border: 1px solid rgba(255, 255, 255, 0.07);
-  transition: background 0.18s, border-color 0.18s, box-shadow 0.18s;
-}
-
-@media (max-width: 380px) {
-  .path-tile { inset: 3px; }
+  border-style: solid;
+  border-width: 1px;
+  will-change: opacity;
 }
 
 /* ─────────────────────────────────────────────

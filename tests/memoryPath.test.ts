@@ -5,6 +5,7 @@ import {
   comparePaths,
   generatePath,
   isAdjacent,
+  straightRun,
 } from '@/games/memory-path/pathGen';
 import { PATH_DIFFICULTY, getPathRating } from '@/games/memory-path/constants';
 
@@ -56,6 +57,42 @@ describe('generatePath', () => {
   it('produces a valid path for every difficulty preset', () => {
     for (const cfg of Object.values(PATH_DIFFICULTY)) {
       expect(generatePath(cfg.size, cfg.pathLength)).toHaveLength(cfg.pathLength);
+    }
+  });
+});
+
+describe('straightRun', () => {
+  it('returns a single cell for an adjacent step', () => {
+    expect(straightRun({ r: 2, c: 2 }, { r: 2, c: 3 })).toEqual([{ r: 2, c: 3 }]);
+  });
+
+  it('fills every cell across a horizontal sweep, in order, end inclusive', () => {
+    expect(straightRun({ r: 0, c: 0 }, { r: 0, c: 3 })).toEqual([
+      { r: 0, c: 1 },
+      { r: 0, c: 2 },
+      { r: 0, c: 3 },
+    ]);
+  });
+
+  it('fills a vertical sweep in the travel direction', () => {
+    expect(straightRun({ r: 5, c: 4 }, { r: 2, c: 4 })).toEqual([
+      { r: 4, c: 4 },
+      { r: 3, c: 4 },
+      { r: 2, c: 4 },
+    ]);
+  });
+
+  it('rejects diagonal and zero-length moves', () => {
+    expect(straightRun({ r: 0, c: 0 }, { r: 1, c: 1 })).toEqual([]);
+    expect(straightRun({ r: 3, c: 3 }, { r: 3, c: 3 })).toEqual([]);
+  });
+
+  it('only produces orthogonally adjacent steps', () => {
+    const run = straightRun({ r: 1, c: 1 }, { r: 1, c: 9 });
+    let prev = { r: 1, c: 1 };
+    for (const cell of run) {
+      expect(isAdjacent(prev, cell)).toBe(true);
+      prev = cell;
     }
   });
 });

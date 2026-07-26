@@ -28,6 +28,30 @@ export function isAdjacent(a: Cell, b: Cell): boolean {
   return dr + dc === 1;
 }
 
+/**
+ * Cells strictly between `from` (exclusive) and `to` (inclusive) when the two
+ * share a row or column — the straight run a finger sweeps across on the big
+ * grids. Returns `[]` for a diagonal or zero-length move so callers can treat
+ * that as an illegal jump.
+ */
+export function straightRun(from: Cell, to: Cell): Cell[] {
+  const out: Cell[] = [];
+  if (from.r === to.r && from.c !== to.c) {
+    const step = to.c > from.c ? 1 : -1;
+    for (let c = from.c + step; ; c += step) {
+      out.push({ r: from.r, c });
+      if (c === to.c) break;
+    }
+  } else if (from.c === to.c && from.r !== to.r) {
+    const step = to.r > from.r ? 1 : -1;
+    for (let r = from.r + step; ; r += step) {
+      out.push({ r, c: from.c });
+      if (r === to.r) break;
+    }
+  }
+  return out;
+}
+
 const DIRECTIONS: Cell[] = [
   { r: -1, c: 0 },
   { r: 1, c: 0 },

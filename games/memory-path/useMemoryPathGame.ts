@@ -10,7 +10,7 @@ import {
   saveBestSession,
 } from '@/utils/scoring';
 import { PATH_DIFFICULTY, PATH_FADE_MS, getPathRating } from './constants';
-import { Cell, cellsEqual, comparePaths, generatePath, isAdjacent } from './pathGen';
+import { Cell, cellsEqual, comparePaths, generatePath, straightRun } from './pathGen';
 import { PathGameState } from './types';
 
 const GAME_ID = 'memory-path';
@@ -212,9 +212,12 @@ export function useMemoryPathGame() {
   }, [clearTimers]);
 
   /**
-   * Adds a cell to the trace if the move is legal: orthogonally adjacent to
-   * the last cell and not already used. Stepping back onto the previous cell
-   * rubs the last one out, so a wrong turn is fixable mid-drag.
+   * Extends the trace toward `cell`. A single adjacent step is the common
+   * case; on the big grids a fast drag can skip several cells, so any straight
+   * run between the last cell and this one is filled in. Stepping back onto
+   * the previous cell rubs the last one out, so a wrong turn is fixable
+   * mid-drag. Anything else (a diagonal, a jump, or a cell already used) is
+   * rejected — the path never crosses itself.
    */
   const traceCell = useCallback(
     (cell: Cell) => {
@@ -229,19 +232,32 @@ export function useMemoryPathGame() {
       } else if (cellsEqual(last, cell)) {
         return;
       } else if (traced.length > 1 && cellsEqual(traced[traced.length - 2], cell)) {
+        // Backtrack one cell to erase a wrong turn
         tracedRef.current = traced.slice(0, -1);
         play('trace');
         setState((s) => ({ ...s, traced: [...tracedRef.current] }));
-        return;
-      } else if (traced.some((c) => cellsEqual(c, cell)) || !isAdjacent(last, cell)) {
-        // Illegal move: the path never crosses itself and never jumps
-        play('error');
         return;
       } else if (traced.length >= path.length) {
         // Trace is already as long as the path — nothing more to add
         return;
       } else {
-        tracedRef.current = [...traced, cell];
+        // Fill the straight run from the last cell to this one, stopping at
+        // the path length or the first cell that's off-line or already used.
+        const run = straightRun(last, cell);
+        const used = new Set(traced.map((c) => `${c.r},${c.c}`));
+        let added = 0;
+        for (const step of run) {
+          if (traced.length + added >= path.length) break;
+          if (used.has(`${step.r},${step.c}`)) break;
+          used.add(`${step.r},${step.c}`);
+          tracedRef.current = [...tracedRef.current, step];
+          added += 1;
+        }
+        if (added === 0) {
+          // Diagonal or a jump onto used cells: not a legal move
+          play('error');
+          return;
+        }
       }
 
       play('trace');
