@@ -243,6 +243,7 @@ export function PathGrid({
             strokeLinejoin="round"
             vectorEffect="non-scaling-stroke"
             style={{ filter: `drop-shadow(0 0 4px ${neon})`, strokeWidth: metrics.stroke }}
+            initial={false}
             animate={{ opacity: fading ? 0 : 0.85 }}
             transition={{ duration: fading ? 0.6 : 0.2 }}
           />
