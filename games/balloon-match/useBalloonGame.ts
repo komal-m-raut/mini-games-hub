@@ -28,6 +28,7 @@ const TICK_MS = 16; // ~60fps update interval
 // server snapshot is 0, the real value arrives right after hydration.
 const noopSubscribe = () => () => {};
 const zeroSnapshot = () => 0;
+const readBestSession = () => getLocalBestSession(GAME_ID);
 
 const INITIAL_STATE: BalloonGameState = {
   phase: 'selecting-difficulty',
@@ -81,7 +82,7 @@ export function useBalloonGame({ challengeCode }: UseBalloonGameOptions = {}) {
   // Best session total from localStorage, hydration-safe: server snapshot is
   // 0, the real value arrives right after hydration. Re-read after saves via
   // the render that the phase change triggers.
-  const bestSession = useSyncExternalStore(noopSubscribe, getLocalBestSession, zeroSnapshot);
+  const bestSession = useSyncExternalStore(noopSubscribe, readBestSession, zeroSnapshot);
 
   const clearTimers = useCallback(() => {
     if (holdIntervalRef.current) {
@@ -300,7 +301,7 @@ export function useBalloonGame({ challengeCode }: UseBalloonGameOptions = {}) {
         setState((s) => ({ ...s, phase: 'challenge-complete' }));
       } else {
         // Normal session finished: persist the best total, then show results
-        const isNewBestSession = saveBestSession(totalScore);
+        const isNewBestSession = saveBestSession(GAME_ID, totalScore);
         setState((s) => ({ ...s, phase: 'session-complete', isNewBestSession }));
       }
     } else {

@@ -1,0 +1,209 @@
+'use client';
+
+import { motion } from 'framer-motion';
+import { Home, RotateCcw } from 'lucide-react';
+import { NeonButton } from '@/components/ui/NeonButton';
+import { ConfettiEffect } from '@/components/ui/ConfettiEffect';
+import { Rating } from '@/types/game';
+import { MAX_ROUND_SCORE } from '@/utils/scoring';
+import { PathGrid } from './PathGrid';
+import { Cell } from './pathGen';
+import { PathResult } from './types';
+
+const RATING_META: Record<
+  Rating,
+  {
+    emoji: string;
+    color: string;
+    glow: string;
+    message: string;
+    confetti: 'perfect' | 'great' | 'good' | null;
+  }
+> = {
+  Perfect: {
+    emoji: '🏆',
+    color: '#EAB308',
+    glow: 'rgba(234, 179, 8, 0.5)',
+    message: 'Every step, exactly right.',
+    confetti: 'perfect',
+  },
+  Great: {
+    emoji: '✨',
+    color: '#06B6D4',
+    glow: 'rgba(6, 182, 212, 0.5)',
+    message: 'Almost the whole path.',
+    confetti: 'great',
+  },
+  Good: {
+    emoji: '👍',
+    color: '#A78BFA',
+    glow: 'rgba(167, 139, 250, 0.4)',
+    message: 'Solid recall.',
+    confetti: 'good',
+  },
+  'Try Again': {
+    emoji: '🧭',
+    color: '#94A3B8',
+    glow: 'rgba(148, 163, 184, 0.3)',
+    message: 'Follow the glow a little longer.',
+    confetti: null,
+  },
+};
+
+interface PathResultScreenProps {
+  result: PathResult;
+  /** The path the player was asked to reproduce. */
+  path: Cell[];
+  traced: Cell[];
+  size: number;
+  neon: string;
+  nextLabel: string;
+  onNext: () => void;
+  onMenu: () => void;
+}
+
+export function PathResultScreen({
+  result,
+  path,
+  traced,
+  size,
+  neon,
+  nextLabel,
+  onNext,
+  onMenu,
+}: PathResultScreenProps) {
+  const meta = RATING_META[result.rating];
+
+  return (
+    <motion.div
+      className="flex flex-col items-center gap-6 w-full"
+      initial={{ opacity: 0, y: 30 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ type: 'spring', stiffness: 150, damping: 20 }}
+    >
+      {meta.confetti && <ConfettiEffect trigger preset={meta.confetti} />}
+
+      {/* Rating */}
+      <motion.div
+        className="flex flex-col items-center gap-1"
+        initial={{ scale: 0.5 }}
+        animate={{ scale: 1 }}
+        transition={{ type: 'spring', stiffness: 250, damping: 18, delay: 0.1 }}
+      >
+        <span className="text-5xl">{meta.emoji}</span>
+        <h2
+          className="font-display text-4xl sm:text-5xl font-bold"
+          style={{ color: meta.color, textShadow: `0 0 32px ${meta.glow}` }}
+        >
+          {result.rating}
+        </h2>
+        <p className="text-white/50 font-mono text-sm mt-1">{meta.message}</p>
+      </motion.div>
+
+      {/* Stats */}
+      <motion.div
+        className="grid grid-cols-2 sm:grid-cols-4 gap-3 w-full max-w-lg"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.25 }}
+      >
+        <div className="stat-card">
+          <p className="stat-label">Accuracy</p>
+          <motion.p
+            className="stat-value"
+            style={{ color: meta.color }}
+            initial={{ scale: 0.6, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ type: 'spring', stiffness: 260, damping: 16, delay: 0.35 }}
+          >
+            {result.accuracy.toFixed(1)}%
+          </motion.p>
+        </div>
+        <div className="stat-card">
+          <p className="stat-label">Correct</p>
+          <p className="stat-value text-green-400">
+            {result.correct}
+            <span className="text-white/30 text-sm">/{result.pathLength}</span>
+          </p>
+        </div>
+        <div className="stat-card">
+          <p className="stat-label">Mistakes</p>
+          <p className={result.mistakes === 0 ? 'stat-value text-white/80' : 'stat-value text-red-400'}>
+            {result.mistakes}
+          </p>
+        </div>
+        <div className="stat-card">
+          <p className="stat-label">Time</p>
+          <p className="stat-value text-white/80">{result.seconds.toFixed(1)}s</p>
+        </div>
+      </motion.div>
+
+      {/* The original path, with the player's trace marked right/wrong */}
+      <motion.div
+        className="w-full"
+        initial={{ opacity: 0, scale: 0.94 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ delay: 0.35 }}
+      >
+        <PathGrid
+          size={size}
+          neon={neon}
+          revealed={path}
+          traced={traced}
+          marks={result.marks}
+          interactive={false}
+        />
+        <div className="flex justify-center gap-4 mt-3 font-mono text-[0.65rem] text-white/40">
+          <span className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded-sm bg-green-500/60" /> Correct
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded-sm bg-red-500/60" /> Wrong
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="w-2.5 h-2.5 rounded-sm" style={{ background: `${neon}80` }} /> Missed
+          </span>
+        </div>
+      </motion.div>
+
+      <motion.p
+        className="font-mono text-sm text-white/50"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.4 }}
+      >
+        Round score:{' '}
+        <span className="text-brand-purple font-bold">{result.score}</span>
+        <span className="text-white/30">/{MAX_ROUND_SCORE}</span>
+      </motion.p>
+
+      {/* Actions */}
+      <motion.div
+        className="flex gap-3 w-full max-w-sm"
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.45 }}
+      >
+        <NeonButton
+          variant="ghost"
+          size="md"
+          onClick={onMenu}
+          className="flex-1 flex items-center justify-center gap-2 whitespace-nowrap"
+        >
+          <Home className="w-4 h-4 shrink-0" strokeWidth={1.5} />
+          Menu
+        </NeonButton>
+        <NeonButton
+          variant="primary"
+          size="md"
+          onClick={onNext}
+          className="flex-1 flex items-center justify-center gap-2 whitespace-nowrap"
+          glow="rgba(124, 58, 237, 0.5)"
+        >
+          <RotateCcw className="w-4 h-4 shrink-0" strokeWidth={1.5} />
+          {nextLabel}
+        </NeonButton>
+      </motion.div>
+    </motion.div>
+  );
+}

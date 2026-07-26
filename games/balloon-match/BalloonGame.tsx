@@ -2,11 +2,12 @@
 
 import { AnimatePresence, motion } from 'framer-motion';
 import { ArrowLeft } from 'lucide-react';
-import { DifficultySelector } from '@/components/game/DifficultySelector';
+import { DifficultyOption, DifficultySelector } from '@/components/game/DifficultySelector';
 import { GameTimer } from '@/components/game/GameTimer';
 import { ScoreCard } from '@/components/game/ScoreCard';
 import { usePressAndHold } from '@/hooks/usePressAndHold';
 import { DIFFICULTY_CONFIG, UNIT_TO_PX } from '@/lib/constants';
+import { Difficulty } from '@/types/game';
 import { Balloon } from './BalloonCanvas';
 import { ResultScreen } from './ResultScreen';
 import { ChallengeComplete, ChallengeIntro } from './ChallengeScreens';
@@ -18,6 +19,29 @@ interface BalloonGameProps {
   /** When set, runs as a seeded 3-round challenge with a shared leaderboard. */
   challengeCode?: string;
 }
+
+const SPEED_LABEL: Record<Difficulty, string> = {
+  easy: 'Slow',
+  medium: 'Medium',
+  hard: 'Fast',
+};
+
+const DIFFICULTY_OPTIONS: DifficultyOption[] = (
+  ['easy', 'medium', 'hard'] as Difficulty[]
+).map((id) => {
+  const cfg = DIFFICULTY_CONFIG[id];
+  return {
+    id,
+    label: cfg.label,
+    description: cfg.description,
+    color: cfg.color,
+    glow: cfg.glow,
+    stats: [
+      { label: 'Speed', value: SPEED_LABEL[id] },
+      { label: 'Time', value: cfg.inflateSeconds === null ? '∞' : `${cfg.inflateSeconds}s` },
+    ],
+  };
+});
 
 export function BalloonGame({ challengeCode }: BalloonGameProps) {
   const {
@@ -84,7 +108,7 @@ export function BalloonGame({ challengeCode }: BalloonGameProps) {
             exit={{ opacity: 0, y: -20 }}
             className="flex flex-col gap-8"
           >
-            <DifficultySelector onSelect={selectDifficulty} />
+            <DifficultySelector options={DIFFICULTY_OPTIONS} onSelect={selectDifficulty} />
             <ChallengeLauncher />
           </motion.div>
         )}
