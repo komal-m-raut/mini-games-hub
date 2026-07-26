@@ -1,10 +1,15 @@
 'use client';
 
+import { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ArrowLeft, Eraser } from 'lucide-react';
 import { DifficultyOption, DifficultySelector } from '@/components/game/DifficultySelector';
+import { ModeSelector } from '@/components/game/ModeSelector';
 import { ScoreCard } from '@/components/game/ScoreCard';
 import { SessionSummary } from '@/components/game/SessionSummary';
+import { ChallengeComplete } from '@/components/challenge/ChallengeComplete';
+import { ChallengeIntro } from '@/components/challenge/ChallengeIntro';
+import { ChallengeLauncher } from '@/components/challenge/ChallengeLauncher';
 import { NeonButton } from '@/components/ui/NeonButton';
 import { SoundToggle } from '@/components/ui/SoundToggle';
 import { Difficulty } from '@/types/game';
@@ -12,6 +17,13 @@ import { PathGrid } from './PathGrid';
 import { PathResultScreen } from './PathResultScreen';
 import { PATH_DIFFICULTY } from './constants';
 import { useMemoryPathGame } from './useMemoryPathGame';
+
+const GAME_ID = 'memory-path';
+
+interface MemoryPathGameProps {
+  /** When set, runs as a seeded 3-round challenge with a shared leaderboard. */
+  challengeCode?: string;
+}
 
 const DIFFICULTY_OPTIONS: DifficultyOption[] = (
   ['easy', 'medium', 'hard'] as Difficulty[]
@@ -37,22 +49,32 @@ const PHASE_TITLE: Record<string, string> = {
   tracing: 'Trace the Path',
 };
 
-export function MemoryPathGame() {
+export function MemoryPathGame({ challengeCode }: MemoryPathGameProps = {}) {
   const {
     state,
     bestSession,
+    challengeRounds,
     selectDifficulty,
+    startChallenge,
     traceCell,
     clearTrace,
     submitTrace,
     nextRound,
     replay,
     resetToMenu,
-  } = useMemoryPathGame();
+  } = useMemoryPathGame({ challengeCode });
+
+  // Free-play menu view (skipped on the challenge route).
+  const [menuView, setMenuView] = useState<'mode' | 'solo' | 'multi'>('mode');
+  const backToMenu = () => {
+    setMenuView('mode');
+    resetToMenu();
+  };
 
   const cfg = state.difficulty ? PATH_DIFFICULTY[state.difficulty] : null;
-  const isMenu = state.phase === 'selecting-difficulty';
-  const isEnd = state.phase === 'session-complete';
+  const isChallenge = state.mode === 'challenge';
+  const isMenu = state.phase === 'selecting-difficulty' || state.phase === 'challenge-intro';
+  const isEnd = state.phase === 'session-complete' || state.phase === 'challenge-complete';
   const isFinalRound = state.round >= state.totalRounds;
   const isWatching =
     state.phase === 'revealing' || state.phase === 'memorize' || state.phase === 'fading';
@@ -68,11 +90,11 @@ export function MemoryPathGame() {
           animate={{ opacity: 1, y: 0 }}
         >
           <button
-            onClick={resetToMenu}
+            onClick={isChallenge ? resetToMenu : backToMenu}
             className="flex items-center gap-1.5 text-white/40 hover:text-white/70 transition-colors text-sm font-mono cursor-pointer"
           >
             <ArrowLeft className="w-4 h-4" strokeWidth={1.5} />
-            Menu
+            {isChallenge ? 'Restart' : 'Menu'}
           </button>
           <ScoreCard
             score={state.score}
@@ -84,15 +106,54 @@ export function MemoryPathGame() {
       )}
 
       <AnimatePresence mode="wait">
-        {/* ── Difficulty select ── */}
-        {isMenu && (
+        {/* ── Free-play menu: mode picker → solo or multiplayer ── */}
+        {state.phase === 'selecting-difficulty' && (
           <motion.div
-            key="difficulty"
+            key={`menu-${menuView}`}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="flex flex-col gap-6"
+          >
+            {menuView === 'mode' && (
+              <ModeSelector
+                accent="#A855F7"
+                onSolo={() => setMenuView('solo')}
+                onMultiplayer={() => setMenuView('multi')}
+              />
+            )}
+            {menuView === 'solo' && (
+              <div className="flex flex-col gap-5">
+                <DifficultySelector options={DIFFICULTY_OPTIONS} onSelect={selectDifficulty} />
+                <button
+                  onClick={() => setMenuView('mode')}
+                  className="mx-auto flex items-center gap-1.5 text-white/40 hover:text-white/70 transition-colors text-sm font-mono cursor-pointer"
+                >
+                  <ArrowLeft className="w-4 h-4" strokeWidth={1.5} />
+                  Back
+                </button>
+              </div>
+            )}
+            {menuView === 'multi' && (
+              <ChallengeLauncher gameId={GAME_ID} onBack={() => setMenuView('mode')} />
+            )}
+          </motion.div>
+        )}
+
+        {/* ── Challenge intro ── */}
+        {state.phase === 'challenge-intro' && challengeCode && challengeRounds && (
+          <motion.div
+            key="challenge-intro"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0, y: -20 }}
           >
-            <DifficultySelector options={DIFFICULTY_OPTIONS} onSelect={selectDifficulty} />
+            <ChallengeIntro
+              gameId={GAME_ID}
+              code={challengeCode}
+              difficulties={challengeRounds.map((r) => r.difficulty)}
+              onStart={startChallenge}
+            />
           </motion.div>
         )}
 
@@ -201,8 +262,8 @@ export function MemoryPathGame() {
           </motion.div>
         )}
 
-        {/* ── Session complete ── */}
-        {isEnd && cfg && (
+        {/* ── Session complete (solo) ── */}
+        {state.phase === 'session-complete' && cfg && (
           <motion.div
             key="session-complete"
             initial={{ opacity: 0, scale: 0.95 }}
@@ -219,7 +280,24 @@ export function MemoryPathGame() {
               isNewBest={state.isNewBestSession}
               bestSession={bestSession}
               onReplay={replay}
-              onMenu={resetToMenu}
+              onMenu={backToMenu}
+            />
+          </motion.div>
+        )}
+
+        {/* ── Challenge complete (multiplayer) ── */}
+        {state.phase === 'challenge-complete' && challengeCode && (
+          <motion.div
+            key="challenge-complete"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <ChallengeComplete
+              gameId={GAME_ID}
+              code={challengeCode}
+              roundScores={state.roundScores}
+              onReplay={resetToMenu}
             />
           </motion.div>
         )}

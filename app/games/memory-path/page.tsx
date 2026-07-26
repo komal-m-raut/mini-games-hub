@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { MemoryPathGame } from '@/games/memory-path/MemoryPathGame';
 import { AdBanner } from '@/components/ads/AdBanner';
+import { Leaderboard } from '@/components/leaderboard/Leaderboard';
 
 const description =
   'A neon path lights up across the grid. Memorize it, then trace it back from memory.';
@@ -21,6 +22,14 @@ export default function MemoryPathPage() {
       <div className="flex justify-center">
         <AdBanner placement="between-games-banner" format="leaderboard" />
       </div>
+
+      {/* Leaderboard */}
+      <section>
+        <h2 className="font-display font-bold text-xl text-white mb-4">
+          Memory Path — Leaderboard
+        </h2>
+        <Leaderboard gameId="memory-path" />
+      </section>
     </div>
   );
 }

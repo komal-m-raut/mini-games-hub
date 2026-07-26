@@ -2,11 +2,15 @@ import { Difficulty, Rating } from '@/types/game';
 
 export type PourPhase =
   | 'selecting-difficulty'
+  | 'challenge-intro'
   | 'filling'
   | 'observing'
   | 'pouring'
   | 'results'
-  | 'session-complete';
+  | 'session-complete'
+  | 'challenge-complete';
+
+export type GameMode = 'normal' | 'challenge';
 
 export interface PourResult {
   /** Fill the player had to match, 0–100. */
@@ -23,6 +27,7 @@ export interface PourResult {
 
 export interface PourGameState {
   phase: PourPhase;
+  mode: GameMode;
   difficulty: Difficulty | null;
   targetFill: number;
   currentFill: number;

@@ -1,11 +1,16 @@
 'use client';
 
+import { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ArrowLeft } from 'lucide-react';
 import { DifficultyOption, DifficultySelector } from '@/components/game/DifficultySelector';
 import { GameTimer } from '@/components/game/GameTimer';
+import { ModeSelector } from '@/components/game/ModeSelector';
 import { ScoreCard } from '@/components/game/ScoreCard';
 import { SessionSummary } from '@/components/game/SessionSummary';
+import { ChallengeComplete } from '@/components/challenge/ChallengeComplete';
+import { ChallengeIntro } from '@/components/challenge/ChallengeIntro';
+import { ChallengeLauncher } from '@/components/challenge/ChallengeLauncher';
 import { SoundToggle } from '@/components/ui/SoundToggle';
 import { usePressAndHold } from '@/hooks/usePressAndHold';
 import { Difficulty } from '@/types/game';
@@ -13,6 +18,13 @@ import { Glass } from './GlassCanvas';
 import { PourResultScreen } from './PourResultScreen';
 import { POUR_DIFFICULTY } from './constants';
 import { usePourGame } from './usePourGame';
+
+const GAME_ID = 'perfect-pour';
+
+interface PerfectPourGameProps {
+  /** When set, runs as a seeded 3-round challenge with a shared leaderboard. */
+  challengeCode?: string;
+}
 
 const DIFFICULTY_OPTIONS: DifficultyOption[] = (
   ['easy', 'medium', 'hard'] as Difficulty[]
@@ -31,17 +43,22 @@ const DIFFICULTY_OPTIONS: DifficultyOption[] = (
   };
 });
 
-export function PerfectPourGame() {
+export function PerfectPourGame({ challengeCode }: PerfectPourGameProps = {}) {
   const {
     state,
     bestSession,
+    challengeRounds,
     selectDifficulty,
+    startChallenge,
     startPouring,
     stopPouring,
     nextRound,
     replay,
     resetToMenu,
-  } = usePourGame();
+  } = usePourGame({ challengeCode });
+
+  // Free-play menu view (skipped on the challenge route).
+  const [menuView, setMenuView] = useState<'mode' | 'solo' | 'multi'>('mode');
 
   const holdHandlers = usePressAndHold({
     onStart: startPouring,
@@ -49,9 +66,15 @@ export function PerfectPourGame() {
     disabled: state.phase !== 'pouring',
   });
 
+  const backToMenu = () => {
+    setMenuView('mode');
+    resetToMenu();
+  };
+
   const cfg = state.difficulty ? POUR_DIFFICULTY[state.difficulty] : null;
-  const isMenu = state.phase === 'selecting-difficulty';
-  const isEnd = state.phase === 'session-complete';
+  const isChallenge = state.mode === 'challenge';
+  const isMenu = state.phase === 'selecting-difficulty' || state.phase === 'challenge-intro';
+  const isEnd = state.phase === 'session-complete' || state.phase === 'challenge-complete';
   const isFinalRound = state.round >= state.totalRounds;
 
   return (
@@ -64,11 +87,11 @@ export function PerfectPourGame() {
           animate={{ opacity: 1, y: 0 }}
         >
           <button
-            onClick={resetToMenu}
+            onClick={isChallenge ? resetToMenu : backToMenu}
             className="flex items-center gap-1.5 text-white/40 hover:text-white/70 transition-colors text-sm font-mono cursor-pointer"
           >
             <ArrowLeft className="w-4 h-4" strokeWidth={1.5} />
-            Menu
+            {isChallenge ? 'Restart' : 'Menu'}
           </button>
           <ScoreCard
             score={state.score}
@@ -80,15 +103,54 @@ export function PerfectPourGame() {
       )}
 
       <AnimatePresence mode="wait">
-        {/* ── Difficulty select ── */}
-        {isMenu && (
+        {/* ── Free-play menu: mode picker → solo or multiplayer ── */}
+        {state.phase === 'selecting-difficulty' && (
           <motion.div
-            key="difficulty"
+            key={`menu-${menuView}`}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="flex flex-col gap-6"
+          >
+            {menuView === 'mode' && (
+              <ModeSelector
+                accent="#06B6D4"
+                onSolo={() => setMenuView('solo')}
+                onMultiplayer={() => setMenuView('multi')}
+              />
+            )}
+            {menuView === 'solo' && (
+              <div className="flex flex-col gap-5">
+                <DifficultySelector options={DIFFICULTY_OPTIONS} onSelect={selectDifficulty} />
+                <button
+                  onClick={() => setMenuView('mode')}
+                  className="mx-auto flex items-center gap-1.5 text-white/40 hover:text-white/70 transition-colors text-sm font-mono cursor-pointer"
+                >
+                  <ArrowLeft className="w-4 h-4" strokeWidth={1.5} />
+                  Back
+                </button>
+              </div>
+            )}
+            {menuView === 'multi' && (
+              <ChallengeLauncher gameId={GAME_ID} onBack={() => setMenuView('mode')} />
+            )}
+          </motion.div>
+        )}
+
+        {/* ── Challenge intro ── */}
+        {state.phase === 'challenge-intro' && challengeCode && challengeRounds && (
+          <motion.div
+            key="challenge-intro"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0, y: -20 }}
           >
-            <DifficultySelector options={DIFFICULTY_OPTIONS} onSelect={selectDifficulty} />
+            <ChallengeIntro
+              gameId={GAME_ID}
+              code={challengeCode}
+              difficulties={challengeRounds.map((r) => r.difficulty)}
+              onStart={startChallenge}
+            />
           </motion.div>
         )}
 
@@ -205,8 +267,8 @@ export function PerfectPourGame() {
           </motion.div>
         )}
 
-        {/* ── Session complete ── */}
-        {isEnd && cfg && (
+        {/* ── Session complete (solo) ── */}
+        {state.phase === 'session-complete' && cfg && (
           <motion.div
             key="session-complete"
             initial={{ opacity: 0, scale: 0.95 }}
@@ -223,7 +285,24 @@ export function PerfectPourGame() {
               isNewBest={state.isNewBestSession}
               bestSession={bestSession}
               onReplay={replay}
-              onMenu={resetToMenu}
+              onMenu={backToMenu}
+            />
+          </motion.div>
+        )}
+
+        {/* ── Challenge complete (multiplayer) ── */}
+        {state.phase === 'challenge-complete' && challengeCode && (
+          <motion.div
+            key="challenge-complete"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0 }}
+          >
+            <ChallengeComplete
+              gameId={GAME_ID}
+              code={challengeCode}
+              roundScores={state.roundScores}
+              onReplay={resetToMenu}
             />
           </motion.div>
         )}

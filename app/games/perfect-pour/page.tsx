@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { PerfectPourGame } from '@/games/perfect-pour/PerfectPourGame';
 import { AdBanner } from '@/components/ads/AdBanner';
+import { Leaderboard } from '@/components/leaderboard/Leaderboard';
 
 const description =
   'Watch a glass fill, then pour it back from memory. A calm test of timing and touch.';
@@ -21,6 +22,14 @@ export default function PerfectPourPage() {
       <div className="flex justify-center">
         <AdBanner placement="between-games-banner" format="leaderboard" />
       </div>
+
+      {/* Leaderboard */}
+      <section>
+        <h2 className="font-display font-bold text-xl text-white mb-4">
+          Perfect Pour — Leaderboard
+        </h2>
+        <Leaderboard gameId="perfect-pour" />
+      </section>
     </div>
   );
 }

@@ -1,15 +1,24 @@
 'use client';
 
-import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from 'react';
 import { Difficulty } from '@/types/game';
 import { randomInt } from '@/lib/utils';
 import { useSound } from '@/hooks/useSound';
+import { CHALLENGE_ROUND_COUNT } from '@/lib/challenge';
 import {
   NORMAL_ROUND_COUNT,
   calculateScore,
   getLocalBestSession,
   saveBestSession,
 } from '@/utils/scoring';
+import { PourChallengeRound, getPourChallengeRounds } from './challenge';
 import {
   MAX_TARGET_FILL,
   MIN_TARGET_FILL,
@@ -26,6 +35,7 @@ const FILL_ANIMATION_MS = 900;
 
 const INITIAL_STATE: PourGameState = {
   phase: 'selecting-difficulty',
+  mode: 'normal',
   difficulty: null,
   targetFill: 0,
   currentFill: 0,
@@ -45,8 +55,25 @@ const noopSubscribe = () => () => {};
 const zeroSnapshot = () => 0;
 const readBest = () => getLocalBestSession(GAME_ID);
 
-export function usePourGame() {
-  const [state, setState] = useState<PourGameState>(INITIAL_STATE);
+export interface UsePourGameOptions {
+  /** When set, the game runs as a seeded 3-round challenge. */
+  challengeCode?: string;
+}
+
+export function usePourGame({ challengeCode }: UsePourGameOptions = {}) {
+  const isChallenge = Boolean(challengeCode);
+  // Deterministic per code, so every player pours to identical targets
+  const challengeRounds = useMemo<PourChallengeRound[] | null>(
+    () => (challengeCode ? getPourChallengeRounds(challengeCode) : null),
+    [challengeCode]
+  );
+
+  const [state, setState] = useState<PourGameState>(() => ({
+    ...INITIAL_STATE,
+    mode: isChallenge ? 'challenge' : 'normal',
+    phase: isChallenge ? 'challenge-intro' : 'selecting-difficulty',
+    totalRounds: isChallenge ? CHALLENGE_ROUND_COUNT : NORMAL_ROUND_COUNT,
+  }));
   const { play, loop, stop } = useSound();
 
   const pourIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -85,7 +112,9 @@ export function usePourGame() {
     (difficulty: Difficulty, round: number) => {
       clearTimers();
       const cfg = POUR_DIFFICULTY[difficulty];
-      const targetFill = randomInt(MIN_TARGET_FILL, MAX_TARGET_FILL);
+      // Challenge rounds are seeded so every player pours to identical targets
+      const targetFill =
+        challengeRounds?.[round - 1]?.targetFill ?? randomInt(MIN_TARGET_FILL, MAX_TARGET_FILL);
 
       setState((s) => ({
         ...s,
@@ -121,7 +150,7 @@ export function usePourGame() {
         }, 1000);
       }, FILL_ANIMATION_MS);
     },
-    [clearTimers, play]
+    [clearTimers, play, challengeRounds]
   );
 
   const selectDifficulty = useCallback(
@@ -142,11 +171,22 @@ export function usePourGame() {
     [startRound, play]
   );
 
+  const startChallenge = useCallback(() => {
+    if (!challengeRounds) return;
+    setState((s) => ({ ...s, score: 0, totalScore: 0, roundScores: [] }));
+    startRound(challengeRounds[0].difficulty, 1);
+  }, [startRound, challengeRounds]);
+
   const resetToMenu = useCallback(() => {
     clearTimers();
     stop('water');
     play('click');
-    setState({ ...INITIAL_STATE });
+    setState((s) => ({
+      ...INITIAL_STATE,
+      mode: s.mode,
+      phase: s.mode === 'challenge' ? 'challenge-intro' : 'selecting-difficulty',
+      totalRounds: s.totalRounds,
+    }));
   }, [clearTimers, stop, play]);
 
   // ── Pour mechanics ────────────────────────────────────────────────
@@ -234,22 +274,27 @@ export function usePourGame() {
 
   const nextRound = useCallback(() => {
     if (transitioningRef.current) return;
-    const { difficulty, round, phase, totalRounds, totalScore } = stateRef.current;
+    const { difficulty, round, phase, mode, totalRounds, totalScore } = stateRef.current;
     if (!difficulty || phase !== 'results') return;
     transitioningRef.current = true;
     play('click');
 
     if (round >= totalRounds) {
-      const isNewBestSession = saveBestSession(GAME_ID, totalScore);
-      setState((s) => ({ ...s, phase: 'session-complete', isNewBestSession }));
+      if (mode === 'challenge') {
+        setState((s) => ({ ...s, phase: 'challenge-complete' }));
+      } else {
+        const isNewBestSession = saveBestSession(GAME_ID, totalScore);
+        setState((s) => ({ ...s, phase: 'session-complete', isNewBestSession }));
+      }
     } else {
-      startRound(difficulty, round + 1);
+      const nextDifficulty = challengeRounds?.[round]?.difficulty ?? difficulty;
+      startRound(nextDifficulty, round + 1);
     }
 
     setTimeout(() => {
       transitioningRef.current = false;
     }, 500);
-  }, [startRound, play]);
+  }, [startRound, play, challengeRounds]);
 
   const replay = useCallback(() => {
     const { difficulty } = stateRef.current;
@@ -268,7 +313,9 @@ export function usePourGame() {
   return {
     state,
     bestSession,
+    challengeRounds,
     selectDifficulty,
+    startChallenge,
     startPouring,
     stopPouring,
     nextRound,
