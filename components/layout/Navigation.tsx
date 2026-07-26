@@ -3,10 +3,11 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { motion } from 'framer-motion';
-import { Gamepad2, Home, Trophy } from 'lucide-react';
+import { Gamepad2, Home, Swords, Trophy } from 'lucide-react';
 
 const NAV_LINKS = [
   { href: '/', label: 'Hub', Icon: Home },
+  { href: '/#challenge', label: 'Challenge', Icon: Swords },
   { href: '/#leaderboard', label: 'Leaderboard', Icon: Trophy },
 ];
 
