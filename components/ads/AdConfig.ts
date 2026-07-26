@@ -1,22 +1,16 @@
-/**
- * Google AdSense Configuration
- *
- * Replace ADSENSE_PUBLISHER_ID with your actual publisher ID before going live.
- * Replace each slot value with the Ad Unit ID from your AdSense dashboard.
- *
- * Format: ca-pub-XXXXXXXXXXXXXXXXX
- */
+const publisherId = process.env.NEXT_PUBLIC_ADSENSE_PUBLISHER_ID ?? '';
+
 export const ADSENSE_CONFIG = {
-  publisherId: 'ca-pub-XXXXXXXXXXXXXXXXX',
+  publisherId,
 
   slots: {
-    'below-hub-banner': 'XXXXXXXXXX',
-    'between-games-banner': 'XXXXXXXXXX',
-    'footer-banner': 'XXXXXXXXXX',
+    'below-hub-banner': '3890552192',
+    'between-games-banner': '1381873156',
+    'footer-banner': '5129546472',
   } as Record<string, string>,
 
-  /** Set to false to hide all ads during development or testing. */
-  enabled: process.env.NODE_ENV === 'production',
+  /** Ads only run in production when the publisher ID is set. */
+  enabled: process.env.NODE_ENV === 'production' && !!publisherId,
 } as const;
 
 export type AdPlacementId = keyof typeof ADSENSE_CONFIG.slots;
