@@ -7,6 +7,10 @@ import { GAME_REGISTRY } from '@/lib/gameRegistry';
 import { AdBanner } from '@/components/ads/AdBanner';
 import { useSiteStats } from '@/hooks/useSiteStats';
 import { GameMeta } from '@/types/game';
+import { useState, useMemo } from 'react';
+import { FeaturedGame } from '@/components/home/FeaturedGame';
+import { CategoryTabs } from '@/components/home/CategoryTabs';
+import { RecentlyPlayed } from '@/components/home/RecentlyPlayed';
 
 // ── Animation variants ──────────────────────
 const fadeUp = {
@@ -27,34 +31,44 @@ function GameCard({ game }: { game: GameMeta }) {
     <Wrapper
       // @ts-expect-error — href is only used when isAvailable is true
       href={game.isAvailable ? game.href : undefined}
-      className={`game-card group ${!game.isAvailable ? 'game-card-unavailable' : ''}`}
+      className={`group rounded-xl border transition-all duration-300 overflow-hidden ${
+        game.isAvailable
+          ? 'border-white/10 bg-white/5 hover:border-brand-purple/50 hover:bg-white/10 cursor-pointer'
+          : 'border-white/5 bg-white/[0.02] opacity-60'
+      }`}
       aria-disabled={!game.isAvailable}
     >
       {/* Gradient banner */}
       <div
-        className="h-28 flex items-center justify-center relative overflow-hidden"
+        className="h-32 flex items-center justify-center relative overflow-hidden"
         style={{ background: `linear-gradient(135deg, ${game.gradientFrom}22, ${game.gradientTo}44)` }}
       >
-        {/* Hover glow blob */}
-        <div
-          className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-          style={{ background: `radial-gradient(circle at 50% 50%, ${game.glowColor}, transparent 70%)` }}
-        />
+        {/* Hover effect */}
+        {game.isAvailable && (
+          <div
+            className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
+            style={{ background: `radial-gradient(circle at 50% 50%, ${game.glowColor}, transparent 70%)` }}
+          />
+        )}
         <motion.span
           className="text-5xl relative z-10"
-          whileHover={{ scale: 1.15, rotate: [-3, 3, -3, 0] }}
+          whileHover={game.isAvailable ? { scale: 1.15, rotate: [-3, 3, -3, 0] } : {}}
           transition={{ duration: 0.4 }}
         >
           {game.emoji}
         </motion.span>
 
         {game.isAvailable ? (
-          <span className="absolute top-3 right-3 flex items-center gap-1 text-[10px] font-mono px-2 py-0.5 rounded-full bg-green-500/15 text-green-400 border border-green-500/25">
-            <span className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse inline-block" />
-            Play Now
-          </span>
+          <motion.span
+            className="absolute top-3 right-3 flex items-center gap-1 text-[10px] font-mono px-2 py-1 rounded-full bg-brand-success/20 text-brand-success border border-brand-success/40"
+            initial={{ opacity: 0.7 }}
+            whileHover={{ opacity: 1 }}
+          >
+            <span className="w-1.5 h-1.5 bg-brand-success rounded-full animate-pulse" />
+            Play
+          </motion.span>
         ) : (
-          <span className="absolute top-3 right-3 text-[10px] font-mono px-2 py-0.5 rounded-full bg-white/5 text-white/30 border border-white/10">
+          <span className="absolute top-3 right-3 text-[10px] font-mono px-2 py-1 rounded-full bg-white/5 text-text-dim border border-white/10">
             Coming Soon
           </span>
         )}
@@ -62,22 +76,15 @@ function GameCard({ game }: { game: GameMeta }) {
 
       {/* Content */}
       <div className="p-4">
-        <h3
-          className="font-display font-bold text-lg mb-1 transition-all duration-300"
-          style={{
-            backgroundImage: `linear-gradient(90deg, ${game.gradientFrom}, ${game.gradientTo})`,
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: game.isAvailable ? 'transparent' : 'rgba(255,255,255,0.6)',
-          }}
-        >
+        <h3 className="font-display font-bold text-base mb-1 text-white group-hover:text-brand-cyan transition-colors">
           {game.title}
         </h3>
-        <p className="text-white/45 text-sm leading-relaxed mb-3">{game.description}</p>
+        <p className="text-text-muted text-sm leading-relaxed mb-3">{game.description}</p>
         <div className="flex flex-wrap gap-1.5">
-          {game.tags.map((tag) => (
+          {game.tags.slice(0, 2).map((tag) => (
             <span
               key={tag}
-              className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-white/5 text-white/30 border border-white/[0.08] capitalize"
+              className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-white/5 text-text-dim border border-white/10 capitalize"
             >
               {tag}
             </span>
@@ -152,21 +159,56 @@ function HeroSection() {
 
 // ── Page ─────────────────────────────────────
 export default function HubPage() {
+  const [activeCategory, setActiveCategory] = useState('all');
+  const availableGames = useMemo(() => GAME_REGISTRY.filter((g) => g.isAvailable), []);
+  
+  const recentlyPlayed = useMemo(() => availableGames.slice(0, 4), [availableGames]);
+  const featuredGame = useMemo(() => availableGames[0], [availableGames]);
+
+  const filteredGames = useMemo(() => {
+    if (activeCategory === 'all') return GAME_REGISTRY;
+    return GAME_REGISTRY.filter((game) =>
+      game.tags.some((tag) => tag.toLowerCase().includes(activeCategory))
+    );
+  }, [activeCategory]);
+
   return (
-    <div className="page-container py-6 sm:py-10 flex flex-col gap-16">
+    <div className="page-container py-6 sm:py-10 flex flex-col gap-12">
       <HeroSection />
 
-      {/* Games grid */}
-      <section>
-        <motion.h2
-          className="font-display font-bold text-2xl text-white mb-6"
-          variants={fadeUp}
-          initial="hidden"
-          whileInView="show"
+      {/* Featured Game Section */}
+      {featuredGame && (
+        <motion.section
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
         >
-          Choose a Game
-        </motion.h2>
+          <FeaturedGame game={featuredGame} />
+        </motion.section>
+      )}
+
+      {/* Recently Played */}
+      {recentlyPlayed.length > 0 && (
+        <RecentlyPlayed games={recentlyPlayed} />
+      )}
+
+      {/* Games grid with category filters */}
+      <section>
+        <div className="flex items-center justify-between mb-6">
+          <motion.h2
+            className="font-display font-bold text-2xl text-white"
+            variants={fadeUp}
+            initial="hidden"
+            whileInView="show"
+            viewport={{ once: true }}
+          >
+            All Games
+          </motion.h2>
+        </div>
+
+        <div className="mb-6">
+          <CategoryTabs activeCategory={activeCategory} onCategoryChange={setActiveCategory} />
+        </div>
 
         <motion.div
           className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
@@ -175,7 +217,7 @@ export default function HubPage() {
           whileInView="show"
           viewport={{ once: true }}
         >
-          {GAME_REGISTRY.map((game) => (
+          {filteredGames.map((game) => (
             <motion.div key={game.id} variants={fadeUp}>
               <GameCard game={game} />
             </motion.div>
@@ -192,7 +234,6 @@ export default function HubPage() {
       >
         <AdBanner placement="below-hub-banner" format="leaderboard" />
       </motion.div>
-
     </div>
   );
 }
