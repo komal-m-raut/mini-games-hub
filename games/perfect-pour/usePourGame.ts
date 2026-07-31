@@ -80,6 +80,11 @@ export function usePourGame({ challengeCode }: UsePourGameOptions = {}) {
   const observeTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const fillTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const transitioningRef = useRef(false);
+  // Deadline timestamp (performance.now()-based) the observe countdown
+  // derives its remaining time from, so a throttled/backgrounded tab (where
+  // ticks coalesce) still reports correct time left instead of nearly
+  // freezing.
+  const observeDeadlineRef = useRef(0);
 
   // Mirror of the latest state for callbacks; updated in an effect (never
   // during render) so it can't trip the refs-during-render rule.
@@ -134,18 +139,31 @@ export function usePourGame({ challengeCode }: UsePourGameOptions = {}) {
         setState((s) => (s.phase === 'filling' ? { ...s, phase: 'observing' } : s));
         play('tick');
 
+        // Countdown derives remaining time from a deadline rather than
+        // decrementing by 1 per tick, so a throttled/backgrounded tab still
+        // reports correct time left. Interval-clear and ref mutation live
+        // here in the interval callback, not inside the setState updater,
+        // which React may invoke more than once.
+        observeDeadlineRef.current = performance.now() + cfg.observeSeconds * 1000;
         observeTimerRef.current = setInterval(() => {
-          setState((prev) => {
-            if (prev.phase !== 'observing') return prev;
-            const next = prev.observeTimeLeft - 1;
-            if (next <= 0) {
-              clearInterval(observeTimerRef.current!);
-              observeTimerRef.current = null;
-              // Glass empties and the player takes over
-              return { ...prev, observeTimeLeft: 0, phase: 'pouring', currentFill: 0 };
-            }
-            return { ...prev, observeTimeLeft: next };
-          });
+          const remaining = Math.ceil((observeDeadlineRef.current - performance.now()) / 1000);
+          if (remaining <= 0) {
+            clearInterval(observeTimerRef.current!);
+            observeTimerRef.current = null;
+            // Glass empties and the player takes over
+            setState((prev) =>
+              prev.phase !== 'observing'
+                ? prev
+                : { ...prev, observeTimeLeft: 0, phase: 'pouring', currentFill: 0 }
+            );
+            play('tick');
+            return;
+          }
+          setState((prev) =>
+            prev.phase !== 'observing' || prev.observeTimeLeft === remaining
+              ? prev
+              : { ...prev, observeTimeLeft: remaining }
+          );
           play('tick');
         }, 1000);
       }, FILL_ANIMATION_MS);
@@ -251,11 +269,13 @@ export function usePourGame({ challengeCode }: UsePourGameOptions = {}) {
     });
     loop('water');
 
-    // Wall-clock based so a throttled tab doesn't slow the pour rate
+    // Wall-clock based so a throttled tab doesn't slow the pour rate. dt is
+    // clamped so a backgrounded/throttled tab (where ticks coalesce) can't
+    // let a single tick carry several seconds of pour in one jump.
     let last = performance.now();
     pourIntervalRef.current = setInterval(() => {
       const now = performance.now();
-      const dt = (now - last) / 1000;
+      const dt = Math.min((now - last) / 1000, (TICK_MS / 1000) * 4);
       last = now;
       setState((prev) => {
         if (!prev.isPouring || prev.phase !== 'pouring') return prev;
@@ -300,6 +320,20 @@ export function usePourGame({ challengeCode }: UsePourGameOptions = {}) {
     const { difficulty } = stateRef.current;
     if (difficulty) selectDifficulty(difficulty);
   }, [selectDifficulty]);
+
+  // Backgrounding the tab mid-pour must not be exploitable (the pour loop
+  // would otherwise resume from wherever it left off once refocused, after
+  // however long the player kept it hidden) — end the pour and lock in the
+  // round, the same path a pointer release takes.
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.hidden && stateRef.current.isPouring) {
+        stopPouring();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [stopPouring]);
 
   // Cleanup on unmount
   useEffect(

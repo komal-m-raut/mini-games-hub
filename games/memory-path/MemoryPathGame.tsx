@@ -218,7 +218,7 @@ export function MemoryPathGame({ challengeCode }: MemoryPathGameProps = {}) {
                   variant="ghost"
                   size="sm"
                   onClick={clearTrace}
-                  disabled={state.traced.length === 0}
+                  disabled={state.traced.length === 0 || state.locked}
                   className="flex-1 flex items-center justify-center gap-2 whitespace-nowrap"
                 >
                   <Eraser className="w-4 h-4 shrink-0" strokeWidth={1.5} />

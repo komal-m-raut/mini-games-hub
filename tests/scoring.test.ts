@@ -1,6 +1,13 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { calculateAccuracy, getRating, getSizeDiffLabel } from '@/utils/accuracy';
-import { MAX_ROUND_SCORE, calculateScore } from '@/utils/scoring';
+import {
+  MAX_ROUND_SCORE,
+  calculateScore,
+  getLocalBestSession,
+  getLocalHighScore,
+  saveBestSession,
+  saveHighScore,
+} from '@/utils/scoring';
 
 describe('calculateScore — accuracy (0–100) to round score (0–10)', () => {
   it('gives 10 for perfect accuracy', () => {
@@ -98,5 +105,96 @@ describe('getSizeDiffLabel', () => {
   it('describes direction and magnitude', () => {
     expect(getSizeDiffLabel(50, 60)).toBe('20% too big');
     expect(getSizeDiffLabel(50, 40)).toBe('20% too small');
+  });
+});
+
+/**
+ * The scoring module gates all storage access behind `typeof window ===
+ * 'undefined'`; the vitest environment here is 'node', so there is no real
+ * `window`/`localStorage` global. A minimal in-memory stub is enough to
+ * exercise the read/write paths without pulling in jsdom.
+ */
+function installLocalStorageStub() {
+  const store = new Map<string, string>();
+  const stub = {
+    getItem: (key: string) => (store.has(key) ? store.get(key)! : null),
+    setItem: (key: string, value: string) => {
+      store.set(key, value);
+    },
+    removeItem: (key: string) => {
+      store.delete(key);
+    },
+    clear: () => store.clear(),
+  };
+  (globalThis as unknown as { window: unknown }).window = globalThis;
+  (globalThis as unknown as { localStorage: unknown }).localStorage = stub;
+  return stub;
+}
+
+function uninstallLocalStorageStub() {
+  delete (globalThis as unknown as { window?: unknown }).window;
+  delete (globalThis as unknown as { localStorage?: unknown }).localStorage;
+}
+
+describe('localStorage best-score guards (M13)', () => {
+  let storage: ReturnType<typeof installLocalStorageStub>;
+
+  beforeEach(() => {
+    storage = installLocalStorageStub();
+  });
+
+  afterEach(() => {
+    uninstallLocalStorageStub();
+  });
+
+  it('getLocalHighScore falls back to 0 for a missing value', () => {
+    expect(getLocalHighScore()).toBe(0);
+  });
+
+  it('getLocalHighScore falls back to 0 for a corrupted (non-numeric) value instead of NaN', () => {
+    storage.setItem('mgh_balloon_best10', 'not-a-number');
+    expect(getLocalHighScore()).toBe(0);
+    expect(Number.isNaN(getLocalHighScore())).toBe(false);
+  });
+
+  it('saveHighScore beats a corrupted stored value since NaN can no longer freeze detection', () => {
+    storage.setItem('mgh_balloon_best10', 'garbage');
+    expect(saveHighScore(5)).toBe(true);
+    expect(getLocalHighScore()).toBe(5);
+  });
+
+  it('saveHighScore only overwrites when the new score is strictly higher', () => {
+    storage.setItem('mgh_balloon_best10', '7');
+    expect(saveHighScore(6)).toBe(false);
+    expect(getLocalHighScore()).toBe(7);
+    expect(saveHighScore(8)).toBe(true);
+    expect(getLocalHighScore()).toBe(8);
+  });
+
+  it('getLocalBestSession falls back to 0 for a corrupted (non-numeric) value instead of NaN', () => {
+    storage.setItem('mgh_balloon_best_session', 'NaN-ish garbage');
+    expect(getLocalBestSession('balloon-match')).toBe(0);
+  });
+
+  it('saveBestSession beats a corrupted stored value for a non-legacy game key too', () => {
+    storage.setItem('mgh_best_session_perfect-pour', '¯\\_(ツ)_/¯');
+    expect(saveBestSession('perfect-pour', 12)).toBe(true);
+    expect(getLocalBestSession('perfect-pour')).toBe(12);
+  });
+
+  it('saveHighScore does not throw when localStorage.setItem throws (quota/private mode)', () => {
+    storage.setItem = () => {
+      throw new Error('QuotaExceededError');
+    };
+    expect(() => saveHighScore(3)).not.toThrow();
+    // The in-memory "win" still reports true even though persistence failed.
+    expect(saveHighScore(3)).toBe(true);
+  });
+
+  it('saveBestSession does not throw when localStorage.setItem throws (quota/private mode)', () => {
+    storage.setItem = () => {
+      throw new Error('QuotaExceededError');
+    };
+    expect(() => saveBestSession('memory-path', 10)).not.toThrow();
   });
 });

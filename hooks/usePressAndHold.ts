@@ -15,6 +15,9 @@ interface UsePressAndHoldOptions {
  */
 export function usePressAndHold({ onStart, onEnd, disabled }: UsePressAndHoldOptions) {
   const isHoldingRef = useRef(false);
+  // The pointerId that started the current hold — a second finger landing
+  // mid-hold must not be able to end (or restart) it.
+  const activePointerId = useRef<number | null>(null);
 
   const handleStart = useCallback(
     (e: React.PointerEvent) => {
@@ -31,6 +34,7 @@ export function usePressAndHold({ onStart, onEnd, disabled }: UsePressAndHoldOpt
         // the pointer to stay over the element.
       }
       isHoldingRef.current = true;
+      activePointerId.current = e.pointerId;
       onStart?.();
     },
     [disabled, onStart]
@@ -39,8 +43,12 @@ export function usePressAndHold({ onStart, onEnd, disabled }: UsePressAndHoldOpt
   const handleEnd = useCallback(
     (e: React.PointerEvent) => {
       if (!isHoldingRef.current) return;
+      // Ignore a second pointer (e.g. another finger) lifting or cancelling —
+      // only the pointer that started the hold may end it.
+      if (e.pointerId !== activePointerId.current) return;
       e.preventDefault();
       isHoldingRef.current = false;
+      activePointerId.current = null;
       onEnd?.();
     },
     [onEnd]

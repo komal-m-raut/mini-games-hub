@@ -20,14 +20,20 @@ const LS_KEY = 'mgh_balloon_best10';
 
 export function getLocalHighScore(): number {
   if (typeof window === 'undefined') return 0;
-  return Number(localStorage.getItem(LS_KEY) ?? 0);
+  const raw = Number(localStorage.getItem(LS_KEY));
+  return Number.isFinite(raw) ? raw : 0;
 }
 
 export function saveHighScore(score: number): boolean {
   if (typeof window === 'undefined') return false;
   const prev = getLocalHighScore();
   if (score > prev) {
-    localStorage.setItem(LS_KEY, String(score));
+    try {
+      localStorage.setItem(LS_KEY, String(score));
+    } catch {
+      // Quota exceeded or private-mode storage denial — the score still
+      // "wins" for this session, it just won't persist.
+    }
     return true;
   }
   return false;
@@ -47,14 +53,20 @@ function sessionKey(gameId: string): string {
 
 export function getLocalBestSession(gameId: string): number {
   if (typeof window === 'undefined') return 0;
-  return Number(localStorage.getItem(sessionKey(gameId)) ?? 0);
+  const raw = Number(localStorage.getItem(sessionKey(gameId)));
+  return Number.isFinite(raw) ? raw : 0;
 }
 
 export function saveBestSession(gameId: string, total: number): boolean {
   if (typeof window === 'undefined') return false;
   const prev = getLocalBestSession(gameId);
   if (total > prev) {
-    localStorage.setItem(sessionKey(gameId), String(total));
+    try {
+      localStorage.setItem(sessionKey(gameId), String(total));
+    } catch {
+      // Quota exceeded or private-mode storage denial — the total still
+      // "wins" for this session, it just won't persist.
+    }
     return true;
   }
   return false;

@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Cell, cellKey } from './pathGen';
 
@@ -60,9 +60,23 @@ export function PathGrid({
 }: PathGridProps) {
   const gridRef = useRef<HTMLDivElement>(null);
   const drawingRef = useRef(false);
+  // The pointerId that started the current trace — a second finger landing
+  // mid-trace must not be able to interleave cells or end the trace.
+  const activePointerId = useRef<number | null>(null);
   const sparkleId = useRef(0);
   const lastSparkleAt = useRef(0);
+  const sparkleTimeouts = useRef<Set<ReturnType<typeof setTimeout>>>(new Set());
   const [sparkles, setSparkles] = useState<Sparkle[]>([]);
+
+  // Sparkles schedule their own removal via setTimeout; if the component
+  // unmounts mid-trace those timeouts must not setState afterward.
+  useEffect(() => {
+    const timeouts = sparkleTimeouts.current;
+    return () => {
+      timeouts.forEach((id) => clearTimeout(id));
+      timeouts.clear();
+    };
+  }, []);
 
   const metrics = useMemo(() => gridMetrics(size), [size]);
 
@@ -87,7 +101,11 @@ export function PathGrid({
       const id = sparkleId.current++;
       const sparkle = { id, x: clientX - rect.left, y: clientY - rect.top };
       setSparkles((prev) => [...prev.slice(-7), sparkle]);
-      setTimeout(() => setSparkles((prev) => prev.filter((s) => s.id !== id)), 600);
+      const timeoutId = setTimeout(() => {
+        sparkleTimeouts.current.delete(timeoutId);
+        setSparkles((prev) => prev.filter((s) => s.id !== id));
+      }, 600);
+      sparkleTimeouts.current.add(timeoutId);
     },
     [metrics.sparkles]
   );
@@ -95,10 +113,13 @@ export function PathGrid({
   const handleDown = useCallback(
     (e: React.PointerEvent) => {
       if (!interactive) return;
+      // A trace is already in progress from another pointer — ignore.
+      if (drawingRef.current) return;
       e.preventDefault();
       // Capture so the drag survives leaving the grid bounds
       (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
       drawingRef.current = true;
+      activePointerId.current = e.pointerId;
       onTraceStart?.();
       const cell = cellAtPoint(e.clientX, e.clientY);
       if (cell) {
@@ -112,6 +133,7 @@ export function PathGrid({
   const handleMove = useCallback(
     (e: React.PointerEvent) => {
       if (!interactive || !drawingRef.current) return;
+      if (e.pointerId !== activePointerId.current) return;
       const cell = cellAtPoint(e.clientX, e.clientY);
       if (cell) onTraceCell?.(cell);
       addSparkle(e.clientX, e.clientY);
@@ -119,11 +141,16 @@ export function PathGrid({
     [interactive, onTraceCell, cellAtPoint, addSparkle]
   );
 
-  const handleUp = useCallback(() => {
-    if (!drawingRef.current) return;
-    drawingRef.current = false;
-    onTraceEnd?.();
-  }, [onTraceEnd]);
+  const handleUp = useCallback(
+    (e: React.PointerEvent) => {
+      if (!drawingRef.current) return;
+      if (e.pointerId !== activePointerId.current) return;
+      drawingRef.current = false;
+      activePointerId.current = null;
+      onTraceEnd?.();
+    },
+    [onTraceEnd]
+  );
 
   // Path polyline in unit-cell coordinates; zero grid gap keeps centers exact
   const linePoints = revealed.map((c) => `${c.c + 0.5},${c.r + 0.5}`).join(' ');

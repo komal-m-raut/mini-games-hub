@@ -36,6 +36,7 @@ const INITIAL_STATE: PathGameState = {
   revealCount: 0,
   traced: [],
   traceMs: 0,
+  locked: false,
   round: 1,
   totalRounds: NORMAL_ROUND_COUNT,
   score: 0,
@@ -75,6 +76,7 @@ export function useMemoryPathGame({ challengeCode }: UseMemoryPathGameOptions = 
   const phaseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const traceTickRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const finalizeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const transitionTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const transitioningRef = useRef(false);
 
   // The trace is mirrored in a ref because pointermove fires faster than React
@@ -111,6 +113,10 @@ export function useMemoryPathGame({ challengeCode }: UseMemoryPathGameOptions = 
       clearTimeout(finalizeTimeoutRef.current);
       finalizeTimeoutRef.current = null;
     }
+    if (transitionTimeoutRef.current) {
+      clearTimeout(transitionTimeoutRef.current);
+      transitionTimeoutRef.current = null;
+    }
   }, []);
 
   // ── Round lifecycle ───────────────────────────────────────────────
@@ -136,6 +142,7 @@ export function useMemoryPathGame({ challengeCode }: UseMemoryPathGameOptions = 
         revealCount: 1,
         traced: [],
         traceMs: 0,
+        locked: false,
         round,
         score: 0,
         result: null,
@@ -301,11 +308,14 @@ export function useMemoryPathGame({ challengeCode }: UseMemoryPathGameOptions = 
       }
 
       play('trace');
-      setState((s) => ({ ...s, traced: [...tracedRef.current] }));
+      // Full-length trace locks immediately (state, not just the ref) so
+      // controls that read `locked` disable right away — scoring itself
+      // still lands ~380ms later, after a beat on the last cell.
+      const isComplete = tracedRef.current.length >= path.length;
+      if (isComplete) lockedRef.current = true;
+      setState((s) => ({ ...s, traced: [...tracedRef.current], locked: isComplete || s.locked }));
 
-      // Full-length trace scores itself, after a beat on the last cell
-      if (tracedRef.current.length >= path.length) {
-        lockedRef.current = true;
+      if (isComplete) {
         finalizeTimeoutRef.current = setTimeout(finalizeTrace, FINALIZE_DELAY_MS);
       }
     },
@@ -352,7 +362,8 @@ export function useMemoryPathGame({ challengeCode }: UseMemoryPathGameOptions = 
       startRound(nextDifficulty, round + 1);
     }
 
-    setTimeout(() => {
+    transitionTimeoutRef.current = setTimeout(() => {
+      transitionTimeoutRef.current = null;
       transitioningRef.current = false;
     }, 500);
   }, [startRound, play, challengeRounds]);
