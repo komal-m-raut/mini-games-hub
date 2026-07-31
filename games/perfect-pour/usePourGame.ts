@@ -74,7 +74,7 @@ export function usePourGame({ challengeCode }: UsePourGameOptions = {}) {
     phase: isChallenge ? 'challenge-intro' : 'selecting-difficulty',
     totalRounds: isChallenge ? CHALLENGE_ROUND_COUNT : NORMAL_ROUND_COUNT,
   }));
-  const { play, loop, stop } = useSound();
+  const { play, loop, stop, setFill } = useSound();
 
   const pourIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const observeTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -281,10 +281,14 @@ export function usePourGame({ challengeCode }: UsePourGameOptions = {}) {
         if (!prev.isPouring || prev.phase !== 'pouring') return prev;
         const cfg = POUR_DIFFICULTY[prev.difficulty!];
         const next = Math.min(100, prev.currentFill + cfg.pourSpeed * dt);
+        // Couple the water loop to fill level (H5/R1) — reuses this
+        // existing 16ms tick rather than adding a new timer. setWaterFill
+        // just nudges an AudioParam, so re-invocation is harmless.
+        setFill(next);
         return { ...prev, currentFill: next };
       });
     }, TICK_MS);
-  }, [loop]);
+  }, [loop, setFill]);
 
   const stopPouring = useCallback(() => {
     lockIn();

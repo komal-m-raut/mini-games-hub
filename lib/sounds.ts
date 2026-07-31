@@ -30,7 +30,17 @@ const MASTER_VOLUME = 0.45;
 let ctx: AudioContext | null = null;
 let master: GainNode | null = null;
 let noiseBuffer: AudioBuffer | null = null;
-const loops = new Map<LoopName, { stop: () => void }>();
+
+interface LoopHandle {
+  stop: () => void;
+  /** Only implemented by the water loop — see setWaterFill(). */
+  setFill?: (percent: number) => void;
+}
+
+const loops = new Map<LoopName, LoopHandle>();
+// Which loops *should* be playing right now, independent of whether they
+// currently are (muting pauses playback but must not forget intent — H6).
+const activeLoopIntents = new Set<LoopName>();
 
 /** Listeners for mute changes (drives useSyncExternalStore in the hook). */
 const muteListeners = new Set<() => void>();
@@ -52,6 +62,11 @@ export function loadMutePreference(): void {
   if (master && ctx) master.gain.setValueAtTime(muted ? 0 : MASTER_VOLUME, ctx.currentTime);
 }
 
+// NOTE (SND-05): on iOS, Web Audio output is routed through the hardware
+// silent switch — if the player has it flipped, they will hear nothing at
+// all regardless of this in-app mute toggle. There is no Web Audio/JS API to
+// detect or override that, so this is a known, unfixable-in-JS limitation.
+// Intentionally no UI for it; documenting so it isn't mistaken for a bug.
 export function setMuted(next: boolean): void {
   muted = next;
   if (typeof window !== 'undefined') localStorage.setItem(MUTE_KEY, next ? '1' : '0');
@@ -60,7 +75,11 @@ export function setMuted(next: boolean): void {
     master.gain.cancelScheduledValues(ctx.currentTime);
     master.gain.setTargetAtTime(next ? 0 : MASTER_VOLUME, ctx.currentTime, 0.02);
   }
-  if (next) stopAllLoops();
+  // Muting stops playback but must not forget which loops *should* be
+  // running (H6) — otherwise unmuting mid-pour leaves that pour silent,
+  // since startLoop() only starts a loop once, at pour start.
+  if (next) pauseAllLoops();
+  else resumeIntentLoops();
   muteListeners.forEach((fn) => fn());
 }
 
@@ -78,11 +97,39 @@ function ensureContext(): AudioContext | null {
     ctx = new AC();
     master = ctx.createGain();
     master.gain.value = muted ? 0 : MASTER_VOLUME;
-    master.connect(ctx.destination);
+    // Master bus limiter (L8): overlapping one-shots (e.g. splash + celebrate
+    // firing within ~260ms of each other) previously had no headroom and
+    // could clip. A fast, gentle limiter keeps that safe without audibly
+    // squashing single sounds.
+    const limiter = ctx.createDynamicsCompressor();
+    limiter.threshold.setValueAtTime(-6, ctx.currentTime);
+    limiter.ratio.setValueAtTime(4, ctx.currentTime);
+    limiter.attack.setValueAtTime(0.003, ctx.currentTime);
+    limiter.release.setValueAtTime(0.25, ctx.currentTime);
+    master.connect(limiter);
+    limiter.connect(ctx.destination);
   }
   // Autoplay policy: the context starts suspended until a gesture resumes it
   if (ctx.state === 'suspended') void ctx.resume();
   return ctx;
+}
+
+// M18: ctx.resume() is also attempted from non-gesture contexts (e.g. the
+// perfect-pour tick interval), which WebKit silently rejects — the context
+// can stay suspended (and the game silent) for the whole session even
+// though the mute toggle shows "unmuted". As a backstop, independent of
+// playSound()/ensureContext() being called from a real click, listen once
+// for the first pointer/touch on the page and use *that* gesture to resume.
+let gestureUnlockRegistered = false;
+
+export function initAudioUnlock(): void {
+  if (typeof document === 'undefined' || gestureUnlockRegistered) return;
+  gestureUnlockRegistered = true;
+  const unlock = () => {
+    if (!ctx || ctx.state !== 'running') ensureContext();
+  };
+  document.addEventListener('pointerdown', unlock, { passive: true });
+  document.addEventListener('touchstart', unlock, { passive: true });
 }
 
 /** Shared 2s noise buffer, used for water, splashes and whooshes. */
@@ -228,21 +275,61 @@ export function playSound(name: SoundName): void {
   }
 }
 
+// ── Water fill curves (R1 / H5) ────────────────────────────────────────
+//
+// Pure maths only — no AudioContext — so it can be unit-tested without a
+// Web Audio shim. Kept in sync with §6.1 of PRE_RELEASE_AUDIT.md.
+
+const clampPercent = (percent: number): number => Math.min(100, Math.max(0, percent));
+
+/**
+ * Resonance sweep frequency for the "glass filling" cue.
+ * Pouring into an open vessel is a quarter-wave stopped pipe: the liquid
+ * surface is the closed end, the rim the open end, f ≈ c / (4·L). As the
+ * air column shrinks the resonance rises — log curve from ~260Hz (empty)
+ * to ~1800Hz (full), matching both the physics and pitch perception.
+ */
+export function waterResonanceFreq(fillPercent: number): number {
+  const fill = clampPercent(fillPercent);
+  return 260 * Math.pow(1800 / 260, fill / 100);
+}
+
+/** Body lowpass cutoff: a fuller glass sounds duller, so it ramps down. */
+export function waterBodyCutoff(fillPercent: number): number {
+  const fill = clampPercent(fillPercent);
+  return 950 - (950 - 700) * (fill / 100);
+}
+
+/** Gurgle bubbles should rise in pitch too, not contradict the main cue. */
+export function waterGurgleScale(fillPercent: number): number {
+  const fill = clampPercent(fillPercent);
+  return 0.7 + 0.6 * (fill / 100);
+}
+
 // ── Loops ───────────────────────────────────────────────────────────
 
 /**
- * Continuous water pour — layered for an ASMR feel rather than a flat hiss:
- *  1. Flow body: low-passed brown noise with a slow wobble (the stream).
- *  2. Spray: a quiet high-passed shimmer sitting on top (the fizz).
- *  3. Gurgle: randomized little sine "bloops" scheduled ahead of time — the
- *     bubbling that actually reads as *water* filling a vessel.
- * All three sum into one gain so the loop fades in/out as a whole.
+ * Continuous water pour — layered for an ASMR feel rather than a flat hiss,
+ * and coupled to fill level (via setFill(), see setWaterFill()) so it reads
+ * as a glass filling rather than a static tap running:
+ *  1. Flow body: low-passed brown noise with a slow wobble (the stream);
+ *     the lowpass cutoff darkens as the glass fills.
+ *  2. Resonance: a bandpass "cavity" tone sweeping ~260Hz → ~1800Hz as fill
+ *     rises — the core physical cue, mixed quietly under the body.
+ *  3. Spray: a quiet high-passed shimmer sitting on top (the fizz).
+ *  4. Gurgle: randomized little sine "bloops" scheduled ahead of time,
+ *     pitched up as the glass fills.
+ * Plus a splash-onset transient at start and decaying droplet plinks at
+ * stop, so the loop has an attack and a tail instead of just fading.
+ * All four loop layers sum into one gain so the loop fades in/out as a whole.
  */
-function startWater(c: AudioContext): { stop: () => void } {
+function startWater(c: AudioContext): LoopHandle {
   const out = c.createGain();
   out.gain.setValueAtTime(0.0001, c.currentTime);
   out.gain.exponentialRampToValueAtTime(1, c.currentTime + 0.14);
   out.connect(master!);
+
+  let fillPercent = 0;
 
   // 1. Flow body ─ soft, rounded stream
   const body = c.createBufferSource();
@@ -250,7 +337,7 @@ function startWater(c: AudioContext): { stop: () => void } {
   body.loop = true;
   const bodyFilter = c.createBiquadFilter();
   bodyFilter.type = 'lowpass';
-  bodyFilter.frequency.value = 920;
+  bodyFilter.frequency.value = waterBodyCutoff(fillPercent);
   bodyFilter.Q.value = 0.6;
   const bodyGain = c.createGain();
   bodyGain.gain.value = 0.17;
@@ -265,7 +352,23 @@ function startWater(c: AudioContext): { stop: () => void } {
   bodyFilter.connect(bodyGain);
   bodyGain.connect(out);
 
-  // 2. Spray ─ airy top, kept quiet so it soothes rather than hisses
+  // 2. Resonance ─ the core R1 fix: a bandpass "cavity" tone that sweeps up
+  // as the air column above the liquid shortens. Mixed quietly (under the
+  // body) so it colours the sound rather than dominating it.
+  const resonance = c.createBufferSource();
+  resonance.buffer = getNoise(c);
+  resonance.loop = true;
+  const resonanceFilter = c.createBiquadFilter();
+  resonanceFilter.type = 'bandpass';
+  resonanceFilter.frequency.value = waterResonanceFreq(fillPercent);
+  resonanceFilter.Q.value = 8;
+  const resonanceGain = c.createGain();
+  resonanceGain.gain.value = 0.07;
+  resonance.connect(resonanceFilter);
+  resonanceFilter.connect(resonanceGain);
+  resonanceGain.connect(out);
+
+  // 3. Spray ─ airy top, kept quiet so it soothes rather than hisses
   const spray = c.createBufferSource();
   spray.buffer = getNoise(c);
   spray.loop = true;
@@ -279,10 +382,15 @@ function startWater(c: AudioContext): { stop: () => void } {
   sprayGain.connect(out);
 
   body.start();
+  resonance.start();
   spray.start();
   lfo.start();
 
-  // 3. Gurgle ─ schedule bursts of short pitched "bloops" a little ahead of
+  // Splash onset ─ first contact needs an edge, not a soft fade-in. Fires
+  // once, connects straight to master so it isn't gated by out's ramp-in.
+  noiseBurst(c, { dur: 0.09, freq: 1400, sweepTo: 500, q: 1.2, gain: 0.28 });
+
+  // 4. Gurgle ─ schedule bursts of short pitched "bloops" a little ahead of
   // the clock so the timing jitter of setTimeout never clicks the audio.
   let stopped = false;
   let timer: ReturnType<typeof setTimeout> | null = null;
@@ -290,9 +398,10 @@ function startWater(c: AudioContext): { stop: () => void } {
     if (stopped || !master) return;
     const now = c.currentTime;
     const count = 2 + Math.floor(Math.random() * 3);
+    const scale = waterGurgleScale(fillPercent);
     for (let i = 0; i < count; i++) {
       const t = now + Math.random() * 0.42;
-      const f0 = 360 + Math.random() * 560;
+      const f0 = (360 + Math.random() * 560) * scale;
       const osc = c.createOscillator();
       osc.type = 'sine';
       osc.frequency.setValueAtTime(f0, t);
@@ -313,6 +422,14 @@ function startWater(c: AudioContext): { stop: () => void } {
   scheduleBubbles();
 
   return {
+    setFill: (percent: number) => {
+      fillPercent = clampPercent(percent);
+      const now = c.currentTime;
+      // 50ms smoothing (setTargetAtTime): responsive to the pour without
+      // zipper noise from stepping the raw AudioParam every 16ms tick.
+      resonanceFilter.frequency.setTargetAtTime(waterResonanceFreq(fillPercent), now, 0.05);
+      bodyFilter.frequency.setTargetAtTime(waterBodyCutoff(fillPercent), now, 0.05);
+    },
     stop: () => {
       stopped = true;
       if (timer) clearTimeout(timer);
@@ -321,8 +438,28 @@ function startWater(c: AudioContext): { stop: () => void } {
       out.gain.setValueAtTime(Math.max(out.gain.value, 0.0001), t);
       out.gain.exponentialRampToValueAtTime(0.0001, t + 0.16);
       body.stop(t + 0.24);
+      resonance.stop(t + 0.24);
       spray.stop(t + 0.24);
       lfo.stop(t + 0.24);
+
+      // Settle tail ─ a few decaying droplet plinks landing after the
+      // stream cuts, pitched to the fill level the pour ended at.
+      const baseFreq = waterResonanceFreq(fillPercent);
+      const plinks: Array<[delay: number, gain: number]> = [
+        [0.04, 0.05],
+        [0.16, 0.03],
+        [0.34, 0.015],
+      ];
+      plinks.forEach(([delay, gain]) => {
+        const detune = 1 + (Math.random() - 0.5) * 0.12; // small random detune
+        tone(c, {
+          freq: baseFreq * detune,
+          dur: 0.12 + Math.random() * 0.06,
+          gain,
+          delay,
+          type: 'sine',
+        });
+      });
     },
   };
 }
@@ -378,6 +515,9 @@ function startAmbient(c: AudioContext): { stop: () => void } {
 }
 
 export function startLoop(name: LoopName): void {
+  // Record intent first: even if muted (so playback is skipped below),
+  // unmuting later should bring this loop back (H6).
+  activeLoopIntents.add(name);
   if (muted || loops.has(name)) return;
   const c = ensureContext();
   if (!c || !master) return;
@@ -385,13 +525,40 @@ export function startLoop(name: LoopName): void {
 }
 
 export function stopLoop(name: LoopName): void {
+  activeLoopIntents.delete(name);
   const loop = loops.get(name);
   if (!loop) return;
   loop.stop();
   loops.delete(name);
 }
 
+/** Full teardown: stops playback and forgets intent (screen unmount). */
 export function stopAllLoops(): void {
   loops.forEach((loop) => loop.stop());
   loops.clear();
+  activeLoopIntents.clear();
+}
+
+/** Mute-only stop: stops playback but keeps intent, so unmute can resume. */
+function pauseAllLoops(): void {
+  loops.forEach((loop) => loop.stop());
+  loops.clear();
+}
+
+/** Unmute: restart any loop whose intent is still active (H6). */
+function resumeIntentLoops(): void {
+  if (activeLoopIntents.size === 0) return;
+  const c = ensureContext();
+  if (!c || !master) return;
+  activeLoopIntents.forEach((name) => {
+    if (!loops.has(name)) loops.set(name, name === 'water' ? startWater(c) : startAmbient(c));
+  });
+}
+
+/**
+ * Couples the water loop to pour progress (H5 / R1). Call every pour tick;
+ * a no-op if the water loop isn't currently running (e.g. muted).
+ */
+export function setWaterFill(percent: number): void {
+  loops.get('water')?.setFill?.(percent);
 }
