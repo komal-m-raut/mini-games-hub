@@ -10,18 +10,24 @@ export const metadata: Metadata = {
   title: 'Memory Path',
   description,
   alternates: { canonical: '/games/memory-path' },
-  openGraph: { title: 'Memory Path', description, url: '/games/memory-path' },
+  openGraph: {
+    title: 'Memory Path',
+    description,
+    url: '/games/memory-path',
+    images: [{ url: '/og.png', width: 1200, height: 630, alt: 'Memory Path' }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Memory Path',
+    description,
+    images: ['/og.png'],
+  },
 };
 
 export default function MemoryPathPage() {
   return (
     <div className="page-container py-8 sm:py-12 flex flex-col gap-12">
       <MemoryPathGame />
-
-      {/* Ad sits outside the game view — never during a round */}
-      <div className="flex justify-center">
-        <AdBanner placement="between-games-banner" format="leaderboard" />
-      </div>
 
       {/* Leaderboard */}
       <section>
@@ -30,6 +36,11 @@ export default function MemoryPathPage() {
         </h2>
         <Leaderboard gameId="memory-path" />
       </section>
+
+      {/* Ad: below leaderboard, well clear of gameplay and the primary action button */}
+      <div className="flex justify-center">
+        <AdBanner placement="between-games-banner" format="leaderboard" />
+      </div>
     </div>
   );
 }

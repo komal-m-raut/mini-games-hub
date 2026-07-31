@@ -87,11 +87,13 @@ export function generateChallengeCode(): string {
   return Array.from(bytes, (b) => CODE_ALPHABET[b % CODE_ALPHABET.length]).join('');
 }
 
-/** Everyone gets the same code (and therefore rounds) on a given day. */
+/** Everyone gets the same code (and therefore rounds) on a given day, in UTC —
+ *  using local time would silently split the "same board worldwide" daily
+ *  challenge across timezones. */
 export function getDailyChallengeCode(date: Date = new Date()): string {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, '0');
-  const d = String(date.getDate()).padStart(2, '0');
+  const y = date.getUTCFullYear();
+  const m = String(date.getUTCMonth() + 1).padStart(2, '0');
+  const d = String(date.getUTCDate()).padStart(2, '0');
   return `daily-${y}${m}${d}`;
 }
 

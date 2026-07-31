@@ -5,6 +5,7 @@ import { Orbitron, Space_Grotesk, JetBrains_Mono } from 'next/font/google';
 import { Navigation } from '@/components/layout/Navigation';
 import { Footer } from '@/components/layout/Footer';
 import { ParticleBackground } from '@/components/ui/ParticleBackground';
+import { MotionProvider } from '@/components/ui/MotionProvider';
 import { ServiceWorkerRegister } from '@/components/pwa/ServiceWorkerRegister';
 import { SITE_URL } from '@/lib/constants';
 import './globals.css';
@@ -92,14 +93,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         )}
       </head>
       <body className="scanlines">
-        <ServiceWorkerRegister />
-        <ParticleBackground count={18} />
-        <Navigation />
-        <main className="relative z-10 pt-16 flex-1 flex flex-col">
-          {children}
-        </main>
-        <Footer />
-        <Analytics />
+        <MotionProvider>
+          <ServiceWorkerRegister />
+          <ParticleBackground count={18} />
+          <Navigation />
+          <main className="relative z-10 pt-16 flex-1 flex flex-col">
+            {children}
+          </main>
+          <Footer />
+          <Analytics />
+        </MotionProvider>
       </body>
     </html>
   );

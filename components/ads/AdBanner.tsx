@@ -69,8 +69,6 @@ export function AdBanner({ placement, format = 'banner', className = '' }: AdBan
         style={{ display: 'block', width: '100%', height: '100%' }}
         data-ad-client={ADSENSE_CONFIG.publisherId}
         data-ad-slot={slot}
-        data-ad-format="auto"
-        data-full-width-responsive="true"
       />
     </div>
   );

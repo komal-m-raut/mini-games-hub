@@ -95,9 +95,21 @@ describe('challenge codes', () => {
     }
   });
 
-  it('formats the daily code from the local date', () => {
-    expect(getDailyChallengeCode(new Date(2026, 6, 8))).toBe('daily-20260708');
-    expect(getDailyChallengeCode(new Date(2026, 0, 1))).toBe('daily-20260101');
+  it('formats the daily code from the UTC date', () => {
+    expect(getDailyChallengeCode(new Date(Date.UTC(2026, 6, 8)))).toBe('daily-20260708');
+    expect(getDailyChallengeCode(new Date(Date.UTC(2026, 0, 1)))).toBe('daily-20260101');
+  });
+
+  it('uses UTC, not host-local time, so the daily code is identical worldwide', () => {
+    // Pinned instant well inside 2026-07-31 UTC — must resolve to that UTC
+    // date regardless of which timezone the test runner's host is in.
+    expect(getDailyChallengeCode(new Date('2026-07-31T23:30:00Z'))).toBe('daily-20260731');
+
+    // Either side of a UTC midnight boundary: these must land on different
+    // days even though many local timezones would still consider the earlier
+    // instant "the same evening" as the later one.
+    expect(getDailyChallengeCode(new Date('2026-07-31T23:59:59Z'))).toBe('daily-20260731');
+    expect(getDailyChallengeCode(new Date('2026-08-01T00:00:00Z'))).toBe('daily-20260801');
   });
 
   it('classifies codes', () => {
