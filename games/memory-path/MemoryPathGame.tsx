@@ -33,13 +33,9 @@ const DIFFICULTY_OPTIONS: DifficultyOption[] = (
   return {
     id,
     label: cfg.label,
-    description: cfg.description,
+    qualifier: `${cfg.size}×${cfg.size} grid`,
     color: cfg.color,
     glow: cfg.glow,
-    stats: [
-      { label: 'Grid', value: `${cfg.size}×${cfg.size}` },
-      { label: 'Path', value: `${cfg.pathLength} cells` },
-    ],
   };
 });
 
@@ -258,7 +254,7 @@ export function MemoryPathGame({ challengeCode }: MemoryPathGameProps = {}) {
               traced={state.traced}
               size={cfg.size}
               neon={cfg.neon}
-              nextLabel={isFinalRound ? 'Final Results' : 'Next Round'}
+              nextLabel={isFinalRound ? 'Results' : 'Next'}
               onNext={nextRound}
               onMenu={resetToMenu}
             />

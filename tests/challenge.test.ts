@@ -123,7 +123,7 @@ describe('challenge codes', () => {
   it('builds paths and labels', () => {
     expect(challengePath('balloon-match', 'abc123')).toBe('/games/balloon-match/challenge/abc123');
     expect(challengePath('perfect-pour', 'abc123')).toBe('/games/perfect-pour/challenge/abc123');
-    expect(challengeLabel('daily-20260708')).toBe('Daily · 2026-07-08');
+    expect(challengeLabel('daily-20260708')).toBe('Daily · 8 July 2026');
     expect(challengeLabel('abc123')).toBe('Challenge ABC123');
   });
 });

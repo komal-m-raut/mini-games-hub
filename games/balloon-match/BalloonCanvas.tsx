@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { UNIT_TO_PX } from '@/lib/constants';
 
@@ -10,6 +11,10 @@ interface BalloonProps {
   isTarget?: boolean;
   visible?: boolean;
   pulse?: boolean;
+  /** Shrinks the rendered diameter without touching `units` — lets a
+   *  container clamp both balloons in a comparison by the same factor so
+   *  their *ratio* (the whole point of the screen) stays truthful. */
+  scale?: number;
 }
 
 function darkenColor(hex: string, factor = 0.6): string {
@@ -68,8 +73,16 @@ function BalloonSVG({ color, id }: { color: string; id: string }) {
   );
 }
 
-export function Balloon({ units, color, id, isTarget = false, visible = true, pulse = false }: BalloonProps) {
-  const diameter = Math.max(units * UNIT_TO_PX, 8);
+export function Balloon({
+  units,
+  color,
+  id,
+  isTarget = false,
+  visible = true,
+  pulse = false,
+  scale = 1,
+}: BalloonProps) {
+  const diameter = Math.max(units * UNIT_TO_PX * scale, 8);
 
   return (
     <AnimatePresence>
@@ -109,7 +122,13 @@ export function Balloon({ units, color, id, isTarget = false, visible = true, pu
   );
 }
 
-/** Side-by-side comparison of target vs player balloon. */
+/** Side-by-side comparison of target vs player balloon.
+ *
+ * Both balloons are clamped by the *same* scale factor derived from the
+ * container's measured width, so two full-size balloons plus the gap never
+ * exceed the space available — flexbox shrinking them independently would
+ * distort the size ratio, which is the entire point of this screen (H2).
+ */
 export function BalloonComparison({
   targetUnits,
   actualUnits,
@@ -119,14 +138,39 @@ export function BalloonComparison({
   actualUnits: number;
   color: string;
 }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [scale, setScale] = useState(1);
+
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el) return;
+
+    const recompute = () => {
+      const width = el.clientWidth;
+      if (width === 0) return;
+      // Read the actual applied gap (it changes at the sm: breakpoint)
+      // rather than guessing a pixel value from the Tailwind class.
+      const gapPx = parseFloat(getComputedStyle(el).columnGap || '0') || 0;
+      const largerUnits = Math.max(targetUnits, actualUnits, 1);
+      const largerDiameter = largerUnits * UNIT_TO_PX;
+      const available = (width - gapPx) / 2;
+      setScale(Math.min(1, available / largerDiameter));
+    };
+
+    recompute();
+    const ro = new ResizeObserver(recompute);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [targetUnits, actualUnits]);
+
   return (
-    <div className="flex items-end justify-center gap-16 sm:gap-24 py-8">
+    <div ref={containerRef} className="flex items-end justify-center gap-8 sm:gap-24 py-8">
       <div className="flex flex-col items-center gap-3">
-        <Balloon units={targetUnits} color={color} id="cmp-target" visible />
+        <Balloon units={targetUnits} color={color} id="cmp-target" visible scale={scale} />
         <p className="text-xs font-mono text-white/40 uppercase tracking-widest">Target</p>
       </div>
       <div className="flex flex-col items-center gap-3">
-        <Balloon units={actualUnits} color={color} id="cmp-actual" visible />
+        <Balloon units={actualUnits} color={color} id="cmp-actual" visible scale={scale} />
         <p className="text-xs font-mono text-white/40 uppercase tracking-widest">Yours</p>
       </div>
     </div>

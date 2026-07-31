@@ -5,10 +5,6 @@ import { usePathname } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { Gamepad2, Home } from 'lucide-react';
 
-const NAV_LINKS = [
-  { href: '/', label: 'Hub', Icon: Home },
-];
-
 export function Navigation() {
   const pathname = usePathname();
   const isGame = pathname !== '/';
@@ -39,29 +35,16 @@ export function Navigation() {
             </span>
           </Link>
 
-          {/* Nav links */}
-          <div className="flex items-center gap-1">
-            {NAV_LINKS.map(({ href, label, Icon }) => {
-              const isActive = pathname === href;
-              return (
-                <Link
-                  key={href}
-                  href={href}
-                  className={`nav-link ${isActive ? 'nav-link-active' : ''}`}
-                >
-                  <Icon className="w-4 h-4" strokeWidth={1.5} />
-                  <span className="hidden sm:inline">{label}</span>
-                </Link>
-              );
-            })}
-
-            {isGame && (
-              <Link href="/" className="nav-link ml-2 whitespace-nowrap">
-                <span className="sm:hidden">← Back</span>
-                <span className="hidden sm:inline">← All Games</span>
-              </Link>
-            )}
-          </div>
+          {/* Single, clearly-labelled control back to the hub — the logo
+              already covers "go home", so this is the only other link
+              pointing at "/" (M21). Only shown on game pages: on the hub
+              itself there's nowhere else for it to go. */}
+          {isGame && (
+            <Link href="/" className="nav-link whitespace-nowrap">
+              <Home className="w-4 h-4" strokeWidth={1.5} />
+              <span>All Games</span>
+            </Link>
+          )}
         </div>
       </div>
     </motion.nav>

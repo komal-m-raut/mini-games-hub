@@ -264,23 +264,6 @@ body {
   box-shadow: 0 0 40px var(--glow, transparent);
 }
 
-.stat-pill {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding: 6px 8px;
-  border-radius: 6px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-}
-
-/* Horizontal pill variant for full-width rows */
-.stat-pill-row {
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-}
-
 /* ─────────────────────────────────────────────
    Game Card (hub)
 ───────────────────────────────────────────── */
@@ -414,17 +397,28 @@ body {
 .mode-card {
   --mode-accent: #06b6d4;
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0.6rem;
-  padding: 1.5rem;
-  border-radius: var(--radius-xl);
+  flex-direction: row;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.85rem 1.1rem;
+  border-radius: var(--radius-lg);
   text-align: left;
   cursor: pointer;
   background: color-mix(in srgb, var(--mode-accent) 6%, rgba(255, 255, 255, 0.02));
   border: 1.5px solid color-mix(in srgb, var(--mode-accent) 22%, transparent);
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
   transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Icon-over-label on wider screens, where the grid goes 3-up and each
+   card has more width than height to spare. */
+@media (min-width: 640px) {
+  .mode-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.6rem;
+    padding: 1.25rem;
+  }
 }
 
 .mode-card:hover {
@@ -443,12 +437,20 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 3rem;
-  height: 3rem;
+  width: 2.5rem;
+  height: 2.5rem;
+  flex-shrink: 0;
   border-radius: 999px;
   color: var(--mode-accent);
   background: color-mix(in srgb, var(--mode-accent) 15%, transparent);
   box-shadow: 0 0 18px color-mix(in srgb, var(--mode-accent) 30%, transparent);
+}
+
+@media (min-width: 640px) {
+  .mode-icon {
+    width: 3rem;
+    height: 3rem;
+  }
 }
 
 /* ─────────────────────────────────────────────
@@ -501,7 +503,9 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  /* flex-start (not center): a two-line value shouldn't push its label out
+     of line with single-line neighbours in the same row (M27). */
+  justify-content: flex-start;
   min-height: 72px;
 }
 
@@ -681,12 +685,15 @@ body {
 }
 
 /* ─────────────────────────────────────────────
-   Score card layout
+   Tabular numeric readouts (scores, rounds, timers, …)
+   JetBrains Mono's digits are all the same width, and tabular-nums stops
+   them jittering as values tick over — Orbitron bold numerals go near-
+   solid at small sizes (M19), so anything that changes every frame reads
+   better in mono anyway.
 ───────────────────────────────────────────── */
-.score-divider {
-  width: 1px;
-  height: 32px;
-  background: rgba(255, 255, 255, 0.08);
+.font-score {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
 }
 
 /* ─────────────────────────────────────────────

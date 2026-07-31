@@ -3,15 +3,14 @@
 import { motion } from 'framer-motion';
 import { Difficulty } from '@/types/game';
 
-/** One difficulty card. Games supply their own stats so the selector stays generic. */
+/** One difficulty card. Games supply their own accent so the selector stays generic. */
 export interface DifficultyOption {
   id: Difficulty;
   label: string;
-  description: string;
+  /** Optional short qualifier shown under the label, e.g. "Fast". */
+  qualifier?: string;
   color: string;
   glow: string;
-  /** Up to two short stat pills, e.g. { label: 'Speed', value: 'Fast' }. */
-  stats: { label: string; value: string }[];
 }
 
 interface DifficultySelectorProps {
@@ -39,7 +38,7 @@ export function DifficultySelector({
   title = 'Choose Difficulty',
 }: DifficultySelectorProps) {
   return (
-    <div className="flex flex-col items-center gap-8">
+    <div className="flex flex-col items-center gap-6">
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -49,7 +48,7 @@ export function DifficultySelector({
       </motion.div>
 
       <motion.div
-        className="flex flex-col sm:flex-row gap-4 w-full max-w-2xl"
+        className="flex flex-col sm:flex-row gap-3 w-full max-w-2xl"
         variants={container}
         initial="hidden"
         animate="show"
@@ -67,33 +66,20 @@ export function DifficultySelector({
           >
             {/* Color accent bar */}
             <div
-              className="h-1 w-full rounded-t-xl mb-4 transition-all duration-300 group-hover:h-1.5"
+              className="h-1 w-full rounded-t-xl transition-all duration-300 group-hover:h-1.5"
               style={{ background: `linear-gradient(90deg, ${opt.color}, transparent)` }}
             />
 
-            <div className="px-5 pb-5">
+            <div className="px-5 py-3.5 flex items-center justify-between gap-3 sm:block sm:py-4">
               <p
-                className="font-display text-2xl font-bold mb-1"
+                className="font-display text-xl sm:text-2xl font-bold"
                 style={{ color: opt.color, textShadow: `0 0 16px ${opt.color}80` }}
               >
                 {opt.label}
               </p>
-              <p className="text-white/50 text-xs font-mono mb-4 leading-relaxed">
-                {opt.description}
-              </p>
-
-              <div className="grid grid-cols-2 gap-2 font-mono">
-                {opt.stats.map((stat) => (
-                  <div key={stat.label} className="stat-pill">
-                    <span className="text-white/35 text-[0.6rem] uppercase tracking-wider">
-                      {stat.label}
-                    </span>
-                    <span className="text-xs font-bold" style={{ color: opt.color }}>
-                      {stat.value}
-                    </span>
-                  </div>
-                ))}
-              </div>
+              {opt.qualifier && (
+                <p className="text-white/45 text-xs font-mono">{opt.qualifier}</p>
+              )}
             </div>
           </motion.button>
         ))}

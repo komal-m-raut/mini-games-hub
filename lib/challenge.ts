@@ -109,10 +109,22 @@ export function challengePath(gameId: string, code: string): string {
   return `/games/${gameId}/challenge/${code}`;
 }
 
+const MONTH_NAMES = [
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December',
+];
+
 export function challengeLabel(code: string): string {
   if (isDailyCode(code)) {
     const raw = code.slice(6);
-    return `Daily · ${raw.slice(0, 4)}-${raw.slice(4, 6)}-${raw.slice(6, 8)}`;
+    const year = raw.slice(0, 4);
+    const month = Number(raw.slice(4, 6));
+    const day = Number(raw.slice(6, 8));
+    // Computed straight off the code digits (no Date/Intl involved) so this
+    // formats identically on the server and the client — no hydration
+    // mismatch risk from locale/timezone. Non-breaking spaces keep the date
+    // itself from splitting mid-token when the line wraps (M20).
+    return `Daily · ${day} ${MONTH_NAMES[month - 1]} ${year}`;
   }
   return `Challenge ${code.toUpperCase()}`;
 }

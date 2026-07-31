@@ -138,7 +138,7 @@ export function SessionSummary({
           variant="ghost"
           size="md"
           onClick={onMenu}
-          className="flex-1 flex items-center justify-center gap-2 whitespace-nowrap"
+          className="flex-1 min-w-0 flex items-center justify-center gap-2 whitespace-nowrap"
         >
           <Home className="w-4 h-4 shrink-0" strokeWidth={1.5} />
           Menu
@@ -147,10 +147,10 @@ export function SessionSummary({
           variant="primary"
           size="md"
           onClick={onReplay}
-          className="flex-1 flex items-center justify-center gap-2 whitespace-nowrap"
+          className="flex-1 min-w-0 flex items-center justify-center gap-2 whitespace-nowrap"
           glow="rgba(124, 58, 237, 0.5)"
         >
-          <RotateCcw className="w-4 h-4 shrink-0" strokeWidth={1.5} />
+          <RotateCcw className="w-4 h-4 shrink-0 hidden sm:block" strokeWidth={1.5} />
           Play Again
         </NeonButton>
       </div>

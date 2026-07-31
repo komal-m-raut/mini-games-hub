@@ -6,7 +6,6 @@ import { GameResult, Rating } from '@/types/game';
 import { NeonButton } from '@/components/ui/NeonButton';
 import { ConfettiEffect } from '@/components/ui/ConfettiEffect';
 import { BalloonComparison } from './BalloonCanvas';
-import { getSizeDiffLabel } from '@/utils/accuracy';
 import { MAX_ROUND_SCORE } from '@/utils/scoring';
 
 const RATING_META: Record<
@@ -62,6 +61,9 @@ export function ResultScreen({
   onMenu,
 }: ResultScreenProps) {
   const meta = RATING_META[result.rating];
+  // A "Try Again" is the worst rating band — never worth a celebration,
+  // even if it happens to beat a fresh/low stored best (M29).
+  const showHighScoreBadge = isNewHighScore && result.rating !== 'Try Again';
 
   return (
     <motion.div
@@ -89,7 +91,21 @@ export function ResultScreen({
           {result.rating}
         </h2>
         <p className="text-white/50 font-mono text-sm mt-1">{meta.message}</p>
-        {isNewHighScore && (
+
+        {/* Round score — the one number on this screen (the top bar shows
+            the running total separately), promoted under the rating word */}
+        <motion.p
+          className="font-score font-bold text-3xl mt-1"
+          style={{ color: meta.color }}
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+        >
+          {result.score}
+          <span className="text-white/50 text-lg">/{MAX_ROUND_SCORE}</span>
+        </motion.p>
+
+        {showHighScoreBadge && (
           <motion.div
             className="mt-2 px-3 py-1 rounded-full bg-yellow-500/20 border border-yellow-500/40 text-yellow-400 text-xs font-mono"
             initial={{ opacity: 0, scale: 0.8 }}
@@ -101,35 +117,8 @@ export function ResultScreen({
         )}
       </motion.div>
 
-      {/* Stats grid */}
-      <motion.div
-        className="grid grid-cols-3 gap-3 w-full max-w-sm"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.25 }}
-      >
-        <div className="stat-card">
-          <p className="stat-label">Accuracy</p>
-          <p className="stat-value" style={{ color: meta.color }}>
-            {result.accuracy.toFixed(1)}%
-          </p>
-        </div>
-        <div className="stat-card">
-          <p className="stat-label">Difference</p>
-          <p className="stat-value text-white/80">
-            {getSizeDiffLabel(result.targetSize, result.actualSize)}
-          </p>
-        </div>
-        <div className="stat-card">
-          <p className="stat-label">Round Score</p>
-          <p className="stat-value text-brand-purple">
-            {result.score}
-            <span className="text-white/30 text-sm">/{MAX_ROUND_SCORE}</span>
-          </p>
-        </div>
-      </motion.div>
-
-      {/* Balloon comparison */}
+      {/* Balloon comparison — shows how far off the player was more
+          legibly than an accuracy/difference stat row would (U7) */}
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -154,7 +143,7 @@ export function ResultScreen({
           variant="ghost"
           size="md"
           onClick={onMenu}
-          className="flex-1 flex items-center justify-center gap-2 whitespace-nowrap"
+          className="flex-1 min-w-0 flex items-center justify-center gap-2 whitespace-nowrap"
         >
           <Home className="w-4 h-4 shrink-0" strokeWidth={1.5} />
           Menu
@@ -163,10 +152,10 @@ export function ResultScreen({
           variant="primary"
           size="md"
           onClick={onPlayAgain}
-          className="flex-1 flex items-center justify-center gap-2 whitespace-nowrap"
+          className="flex-1 min-w-0 flex items-center justify-center gap-2 whitespace-nowrap"
           glow="rgba(124, 58, 237, 0.5)"
         >
-          <RotateCcw className="w-4 h-4 shrink-0" strokeWidth={1.5} />
+          <RotateCcw className="w-4 h-4 shrink-0 hidden sm:block" strokeWidth={1.5} />
           {nextLabel}
         </NeonButton>
       </motion.div>

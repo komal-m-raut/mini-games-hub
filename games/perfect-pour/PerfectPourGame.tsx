@@ -27,6 +27,12 @@ interface PerfectPourGameProps {
   challengeCode?: string;
 }
 
+const GLASS_LABEL: Record<Difficulty, string> = {
+  easy: 'Large glass',
+  medium: 'Medium glass',
+  hard: 'Small glass',
+};
+
 const DIFFICULTY_OPTIONS: DifficultyOption[] = (
   ['easy', 'medium', 'hard'] as Difficulty[]
 ).map((id) => {
@@ -34,13 +40,9 @@ const DIFFICULTY_OPTIONS: DifficultyOption[] = (
   return {
     id,
     label: cfg.label,
-    description: cfg.description,
+    qualifier: GLASS_LABEL[id],
     color: cfg.color,
     glow: cfg.glow,
-    stats: [
-      { label: 'Glass', value: id === 'easy' ? 'Large' : id === 'medium' ? 'Medium' : 'Small' },
-      { label: 'Perfect', value: `±${cfg.tolerance}%` },
-    ],
   };
 });
 
@@ -263,7 +265,7 @@ export function PerfectPourGame({ challengeCode }: PerfectPourGameProps = {}) {
             <PourResultScreen
               result={state.result}
               liquidColor={cfg.liquid}
-              nextLabel={isFinalRound ? 'Final Results' : 'Next Round'}
+              nextLabel={isFinalRound ? 'Results' : 'Next'}
               onNext={nextRound}
               onMenu={resetToMenu}
             />

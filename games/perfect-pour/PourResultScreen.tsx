@@ -7,7 +7,6 @@ import { ConfettiEffect } from '@/components/ui/ConfettiEffect';
 import { Rating } from '@/types/game';
 import { MAX_ROUND_SCORE } from '@/utils/scoring';
 import { GlassComparison } from './GlassCanvas';
-import { getPourDiffLabel } from './constants';
 import { PourResult } from './types';
 
 const RATING_META: Record<
@@ -39,7 +38,10 @@ const RATING_META: Record<
     emoji: '💧',
     color: '#94A3B8',
     glow: 'rgba(148, 163, 184, 0.3)',
-    message: 'Ease off the pour a little.',
+    // Direction-neutral: the old copy assumed an over-pour, which contradicted
+    // an under-pour result like "6% too little" (H4). The glass comparison
+    // already shows which way the player missed.
+    message: 'Not quite — try again.',
     confetti: null,
   },
 };
@@ -85,34 +87,19 @@ export function PourResultScreen({
           {result.rating}
         </h2>
         <p className="text-white/50 font-mono text-sm mt-1">{meta.message}</p>
-      </motion.div>
 
-      {/* Stats */}
-      <motion.div
-        className="grid grid-cols-3 gap-3 w-full max-w-sm"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.25 }}
-      >
-        <div className="stat-card">
-          <p className="stat-label">Accuracy</p>
-          <p className="stat-value" style={{ color: meta.color }}>
-            {result.accuracy.toFixed(1)}%
-          </p>
-        </div>
-        <div className="stat-card">
-          <p className="stat-label">Difference</p>
-          <p className="stat-value text-white/80">
-            {getPourDiffLabel(result.targetFill, result.actualFill)}
-          </p>
-        </div>
-        <div className="stat-card">
-          <p className="stat-label">Round Score</p>
-          <p className="stat-value text-brand-purple">
-            {result.score}
-            <span className="text-white/30 text-sm">/{MAX_ROUND_SCORE}</span>
-          </p>
-        </div>
+        {/* Round score — the one number on this screen, promoted under the
+            rating word (U7); the glass comparison below shows the miss). */}
+        <motion.p
+          className="font-score font-bold text-3xl mt-1"
+          style={{ color: meta.color }}
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+        >
+          {result.score}
+          <span className="text-white/50 text-lg">/{MAX_ROUND_SCORE}</span>
+        </motion.p>
       </motion.div>
 
       {/* Glass comparison */}
@@ -140,7 +127,7 @@ export function PourResultScreen({
           variant="ghost"
           size="md"
           onClick={onMenu}
-          className="flex-1 flex items-center justify-center gap-2 whitespace-nowrap"
+          className="flex-1 min-w-0 flex items-center justify-center gap-2 whitespace-nowrap"
         >
           <Home className="w-4 h-4 shrink-0" strokeWidth={1.5} />
           Menu
@@ -149,10 +136,10 @@ export function PourResultScreen({
           variant="primary"
           size="md"
           onClick={onNext}
-          className="flex-1 flex items-center justify-center gap-2 whitespace-nowrap"
+          className="flex-1 min-w-0 flex items-center justify-center gap-2 whitespace-nowrap"
           glow="rgba(124, 58, 237, 0.5)"
         >
-          <RotateCcw className="w-4 h-4 shrink-0" strokeWidth={1.5} />
+          <RotateCcw className="w-4 h-4 shrink-0 hidden sm:block" strokeWidth={1.5} />
           {nextLabel}
         </NeonButton>
       </motion.div>

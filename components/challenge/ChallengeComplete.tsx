@@ -182,7 +182,7 @@ export function ChallengeComplete({ gameId, code, roundScores, onReplay }: Chall
 
       {/* Actions */}
       <div className="flex gap-3 w-full max-w-sm">
-        <Link href={`/games/${gameId}`} className="flex-1">
+        <Link href={`/games/${gameId}`} className="flex-1 min-w-0">
           <NeonButton
             variant="ghost"
             size="md"
@@ -196,9 +196,9 @@ export function ChallengeComplete({ gameId, code, roundScores, onReplay }: Chall
           variant="secondary"
           size="md"
           onClick={onReplay}
-          className="flex-1 flex items-center justify-center gap-2 whitespace-nowrap"
+          className="flex-1 min-w-0 flex items-center justify-center gap-2 whitespace-nowrap"
         >
-          <RotateCcw className="w-4 h-4 shrink-0" strokeWidth={1.5} />
+          <RotateCcw className="w-4 h-4 shrink-0 hidden sm:block" strokeWidth={1.5} />
           Retry
         </NeonButton>
       </div>

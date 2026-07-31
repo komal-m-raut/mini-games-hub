@@ -39,13 +39,9 @@ const DIFFICULTY_OPTIONS: DifficultyOption[] = (
   return {
     id,
     label: cfg.label,
-    description: cfg.description,
+    qualifier: SPEED_LABEL[id],
     color: cfg.color,
     glow: cfg.glow,
-    stats: [
-      { label: 'Speed', value: SPEED_LABEL[id] },
-      { label: 'Time', value: cfg.inflateSeconds === null ? '∞' : `${cfg.inflateSeconds}s` },
-    ],
   };
 });
 
@@ -288,9 +284,7 @@ export function BalloonGame({ challengeCode }: BalloonGameProps) {
               result={state.result}
               targetColor={state.targetColor}
               isNewHighScore={state.isNewHighScore}
-              nextLabel={
-                isFinalRound ? 'Final Results' : isChallenge ? 'Next Challenge' : 'Next Round'
-              }
+              nextLabel={isFinalRound ? 'Results' : 'Next'}
               onPlayAgain={playAgain}
               onMenu={resetToMenu}
             />

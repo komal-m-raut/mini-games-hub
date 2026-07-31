@@ -223,7 +223,6 @@ export function useBalloonGame({ challengeCode }: UseBalloonGameOptions = {}) {
           accuracy,
           targetSize: prev.targetUnits,
           actualSize: prev.currentUnits,
-          sizeDiffPercent: Math.abs(((prev.currentUnits - prev.targetUnits) / prev.targetUnits) * 100),
           rating,
           score: roundScore,
         },

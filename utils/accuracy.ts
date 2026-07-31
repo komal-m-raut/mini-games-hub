@@ -21,14 +21,3 @@ export function getRating(accuracy: number, tolerancePercent: number): Rating {
   if (accuracy >= base - tolerancePercent) return 'Good';
   return 'Try Again';
 }
-
-/**
- * Returns descriptive text explaining the size difference.
- */
-export function getSizeDiffLabel(targetUnits: number, actualUnits: number): string {
-  const diff = actualUnits - targetUnits;
-  const pct = Math.abs(Math.round((diff / targetUnits) * 100));
-  if (Math.abs(diff) < 1) return 'Spot on!';
-  if (diff > 0) return `${pct}% too big`;
-  return `${pct}% too small`;
-}

@@ -81,11 +81,3 @@ export function getPourAccuracy(target: number, actual: number): number {
   const diff = Math.abs(target - actual);
   return Math.round(Math.max(0, 100 - diff) * 10) / 10;
 }
-
-/** Human-readable miss direction, e.g. "6% too much". */
-export function getPourDiffLabel(target: number, actual: number): string {
-  const diff = actual - target;
-  const rounded = Math.abs(Math.round(diff));
-  if (rounded === 0) return 'Spot on!';
-  return diff > 0 ? `${rounded}% too much` : `${rounded}% too little`;
-}

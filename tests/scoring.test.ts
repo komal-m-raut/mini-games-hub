@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { calculateAccuracy, getRating, getSizeDiffLabel } from '@/utils/accuracy';
+import { calculateAccuracy, getRating } from '@/utils/accuracy';
 import {
   MAX_ROUND_SCORE,
   calculateScore,
@@ -93,18 +93,6 @@ describe('getRating — accuracy vs difficulty tolerance', () => {
     expect(getRating(100, 15)).toBe('Perfect');
     expect(getRating(100, 10)).toBe('Perfect');
     expect(getRating(100, 5)).toBe('Perfect');
-  });
-});
-
-describe('getSizeDiffLabel', () => {
-  it('celebrates near-exact matches', () => {
-    expect(getSizeDiffLabel(50, 50)).toBe('Spot on!');
-    expect(getSizeDiffLabel(50, 50.9)).toBe('Spot on!');
-  });
-
-  it('describes direction and magnitude', () => {
-    expect(getSizeDiffLabel(50, 60)).toBe('20% too big');
-    expect(getSizeDiffLabel(50, 40)).toBe('20% too small');
   });
 });
 
