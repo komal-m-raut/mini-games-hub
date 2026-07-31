@@ -47,17 +47,29 @@ async function readFileStats(): Promise<FileLayout> {
   }
 }
 
+// Same read-modify-write hazard as scoreStore.ts: serialize writes with an
+// in-process promise-chain mutex. Single-process-safe only — a multi-instance
+// deploy needs the Redis store below.
+let queue: Promise<unknown> = Promise.resolve();
+function serialize<T>(task: () => Promise<T>): Promise<T> {
+  const result = queue.then(task, task);
+  queue = result.catch(() => undefined);
+  return result;
+}
+
 const fileStore: StatsStore = {
-  async recordPlay(gameId, playerId) {
-    const stats = await readFileStats();
-    const day = `${gameId}:${todayKey()}`;
-    stats.playsTotal += 1;
-    stats.playsByDay[day] = (stats.playsByDay[day] ?? 0) + 1;
-    if (!stats.playersAll.includes(playerId)) stats.playersAll.push(playerId);
-    const daily = (stats.playersByDay[day] ??= []);
-    if (!daily.includes(playerId)) daily.push(playerId);
-    await fs.mkdir(path.dirname(DATA_FILE), { recursive: true });
-    await fs.writeFile(DATA_FILE, JSON.stringify(stats, null, 2));
+  recordPlay(gameId, playerId) {
+    return serialize(async () => {
+      const stats = await readFileStats();
+      const day = `${gameId}:${todayKey()}`;
+      stats.playsTotal += 1;
+      stats.playsByDay[day] = (stats.playsByDay[day] ?? 0) + 1;
+      if (!stats.playersAll.includes(playerId)) stats.playersAll.push(playerId);
+      const daily = (stats.playersByDay[day] ??= []);
+      if (!daily.includes(playerId)) daily.push(playerId);
+      await fs.mkdir(path.dirname(DATA_FILE), { recursive: true });
+      await fs.writeFile(DATA_FILE, JSON.stringify(stats, null, 2));
+    });
   },
   async getStats() {
     const stats = await readFileStats();

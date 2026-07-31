@@ -1,12 +1,18 @@
 import { NextRequest } from 'next/server';
 import { GAME_REGISTRY } from '@/lib/gameRegistry';
 import { statsStore } from '@/lib/server/statsStore';
+import { createRateLimiter, getClientIp, rateLimitResponse } from '@/lib/server/rateLimit';
 
 /**
  * Fire-and-forget gameplay events. Currently one type:
  * { type: 'play', gameId, playerId } — sent when a player completes a round.
  */
+const eventsRateLimit = createRateLimiter(60, 60_000);
+
 export async function POST(req: NextRequest) {
+  const { limited, retryAfterSeconds } = eventsRateLimit(getClientIp(req));
+  if (limited) return rateLimitResponse(retryAfterSeconds);
+
   let body: { type?: string; gameId?: string; playerId?: string };
   try {
     body = await req.json();

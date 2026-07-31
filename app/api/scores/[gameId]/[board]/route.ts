@@ -3,6 +3,8 @@ import { ScoreEntry } from '@/types/game';
 import { CHALLENGE_ROUND_COUNT, MAX_CHALLENGE_SCORE } from '@/lib/challenge';
 import { MAX_ROUND_SCORE } from '@/utils/scoring';
 import { scoreStore, upsertScore } from '@/lib/server/scoreStore';
+import { createRateLimiter, getClientIp, rateLimitResponse } from '@/lib/server/rateLimit';
+import { sanitizeName } from '@/lib/moderation';
 
 /**
  * Shared scores API for every game: /api/scores/{gameId}/{board}
@@ -29,6 +31,10 @@ const GAME_RULES: Record<string, GameRules> = {
 
 const BOARD_PATTERN = /^[a-z0-9-]{1,40}$/;
 
+// Scores POST is the more "expensive"/impactful write (feeds public
+// leaderboards); keep it tighter than the events limiter below.
+const scoresRateLimit = createRateLimiter(10, 60_000);
+
 type Params = { params: Promise<{ gameId: string; board: string }> };
 
 async function validateParams(params: Params['params']) {
@@ -47,6 +53,9 @@ export async function GET(_req: NextRequest, { params }: Params) {
 }
 
 export async function POST(req: NextRequest, { params }: Params) {
+  const { limited, retryAfterSeconds } = scoresRateLimit(getClientIp(req));
+  if (limited) return rateLimitResponse(retryAfterSeconds);
+
   const parsed = await validateParams(params);
   if (!parsed) {
     return Response.json({ error: 'Unknown game or board' }, { status: 400 });
@@ -88,13 +97,26 @@ export async function POST(req: NextRequest, { params }: Params) {
     score = typeof body.score === 'number' ? body.score : NaN;
   }
 
+  // NOTE: scores are integers-only for now (Number.isInteger below). A later
+  // change allows two decimal places (e.g. 7.46) — when that lands, this
+  // becomes a bounds + step check instead of an integer check. Don't touch
+  // the round-score validation above in the meantime; it has the same
+  // assumption baked in.
   if (!Number.isInteger(score) || score < 0 || score > rules.maxScore) {
     return Response.json({ error: 'Invalid score' }, { status: 400 });
   }
 
+  const cleanName = sanitizeName(name);
+  if (cleanName === null) {
+    return Response.json(
+      { error: 'That name is not allowed, please try something else.' },
+      { status: 400 }
+    );
+  }
+
   const entry: ScoreEntry = {
     playerId,
-    name: name.trim().slice(0, 20),
+    name: cleanName,
     score,
     ...(rules.rounds ? { roundScores } : {}),
     createdAt: new Date().toISOString(),
