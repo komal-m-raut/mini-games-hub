@@ -115,14 +115,25 @@ games/perfect-pour/
 
 **Difficulty config** (`games/memory-path/constants.ts`):
 - Easy: 9×9 grid, 6-cell path, 520ms/cell reveal, 2.4s memorize window
-- Medium: 16×16 grid, 9-cell path, 340ms/cell reveal, 2.8s memorize window
-- Hard: 25×25 grid, 12-cell path, 300ms/cell reveal, 3.4s memorize window
+- Medium: 12×12 grid, 8-cell path, 440ms/cell reveal, 2.7s memorize window
+- Hard: 16×16 grid, 11-cell path, 320ms/cell reveal, 3.2s memorize window
+
+Grid sizes were cut down from 9/16/25 (R3) — at a 375px viewport the old Hard
+tap target was 12.4px, far under the WCAG 2.5.8 24px floor. Post-change tap
+targets at 375px are Easy 34.6px, Medium 25.9px, Hard 19.4px — much better,
+but Hard still lands under the 24px floor; closing that gap needs a smaller
+grid or a full-bleed mobile layout, both out of scope here. Note this also
+means existing seeded challenge codes (including the daily) now generate
+different paths, since the RNG stream draws depend on grid size and path
+length — a deliberate one-time reset, not a bug.
 
 **Big-grid performance & tracing** (`PathGrid.tsx`): tiles are plain divs in a
-`useMemo`'d layer so sparkle updates don't re-render the 256/625 cells; the few
+`useMemo`'d layer so sparkle updates don't re-render the 144/256 cells; the few
 active overlays (traced ripple, start hint) keep framer-motion. `gridMetrics(size)`
-scales tile inset/radius, connector stroke, grid max-width, and drops sparkles on
-the 25×25 board. Fast drags fill colinear gaps via `straightRun()` (in `pathGen.ts`,
+scales tile inset/radius, connector stroke, and grid max-width per difficulty
+(tiers re-cut to `<= 9` / `<= 12` / else after the resize). Sparkles now run on
+all three sizes — the old 25×25 board was the only one that dropped them, and
+it no longer exists. Fast drags fill colinear gaps via `straightRun()` (in `pathGen.ts`,
 unit-tested) so tracing tiny tiles completes runs instead of erroring on skipped cells.
 
 **Key files:**

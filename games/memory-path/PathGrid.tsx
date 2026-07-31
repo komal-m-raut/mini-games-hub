@@ -31,18 +31,20 @@ interface Sparkle {
 }
 
 /**
- * Per-size visual tuning. Small grids get chunky, rounded tiles; the 16×16
- * and 25×25 grids shrink the gutter, radius and connector so hundreds of
- * tiles still read as a clean grid instead of a smear.
+ * Per-size visual tuning. Small grids get chunky, rounded tiles; the 12×12
+ * and 16×16 grids shrink the gutter, radius and connector so the grid still
+ * reads as a clean chunky→thin progression across all three difficulties —
+ * tuned for tile sizes of ~34.6 / 25.9 / 19.4px at a 375px viewport. Sparkles
+ * run on all three sizes now that Hard tops out at 256 cells (was 625).
  */
 function gridMetrics(size: number) {
   if (size <= 9) {
     return { inset: 3, radius: 6, stroke: 5, maxWidth: 420, sparkles: true };
   }
-  if (size <= 16) {
-    return { inset: 1.6, radius: 3, stroke: 3, maxWidth: 480, sparkles: true };
+  if (size <= 12) {
+    return { inset: 2, radius: 4, stroke: 3.5, maxWidth: 480, sparkles: true };
   }
-  return { inset: 1, radius: 2, stroke: 2.2, maxWidth: 540, sparkles: false };
+  return { inset: 1.4, radius: 3, stroke: 2.6, maxWidth: 540, sparkles: true };
 }
 
 export function PathGrid({
@@ -215,7 +217,7 @@ export function PathGrid({
               transition,
             }}
           >
-            {/* Ripple as the player enters a cell (skip on the huge grid) */}
+            {/* Ripple as the player enters a cell */}
             {isTraced && metrics.sparkles && (
               <motion.span
                 className="absolute inset-0 rounded-[inherit] pointer-events-none"

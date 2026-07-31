@@ -61,6 +61,35 @@ describe('generatePath', () => {
   });
 });
 
+describe('PATH_DIFFICULTY', () => {
+  it('pins the grid sizes to the 9 / 12 / 16 trio', () => {
+    // Regression guard: touch-target sizing (WCAG 2.5.8) depends on these
+    // exact sizes — an accidental edit here should fail loudly.
+    expect(PATH_DIFFICULTY.easy.size).toBe(9);
+    expect(PATH_DIFFICULTY.medium.size).toBe(12);
+    expect(PATH_DIFFICULTY.hard.size).toBe(16);
+  });
+
+  it('keeps every requested path short enough to fit its grid', () => {
+    for (const cfg of Object.values(PATH_DIFFICULTY)) {
+      expect(cfg.pathLength).toBeLessThan(cfg.size * cfg.size);
+    }
+  });
+
+  it('orders reveal speed and memorize time sensibly across difficulties', () => {
+    const { easy, medium, hard } = PATH_DIFFICULTY;
+    // Harder difficulties reveal each cell faster...
+    expect(easy.revealMs).toBeGreaterThan(medium.revealMs);
+    expect(medium.revealMs).toBeGreaterThan(hard.revealMs);
+    // ...but hold the finished path on screen longer to memorize.
+    expect(easy.memorizeMs).toBeLessThan(medium.memorizeMs);
+    expect(medium.memorizeMs).toBeLessThan(hard.memorizeMs);
+    // ...and ask for a longer path.
+    expect(easy.pathLength).toBeLessThan(medium.pathLength);
+    expect(medium.pathLength).toBeLessThan(hard.pathLength);
+  });
+});
+
 describe('straightRun', () => {
   it('returns a single cell for an adjacent step', () => {
     expect(straightRun({ r: 2, c: 2 }, { r: 2, c: 3 })).toEqual([{ r: 2, c: 3 }]);
