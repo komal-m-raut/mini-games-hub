@@ -29,11 +29,18 @@ interface ChallengeIntroProps {
 export function ChallengeIntro({ gameId, code, difficulties, onStart }: ChallengeIntroProps) {
   const daily = isDailyCode(code);
   const [copied, setCopied] = useState(false);
+  const [copyFailed, setCopyFailed] = useState(false);
 
   const copyInvite = async () => {
-    await navigator.clipboard.writeText(`${window.location.origin}${challengePath(gameId, code)}`);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    try {
+      await navigator.clipboard.writeText(`${window.location.origin}${challengePath(gameId, code)}`);
+      setCopyFailed(false);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      setCopyFailed(true);
+      setTimeout(() => setCopyFailed(false), 2000);
+    }
   };
 
   return (
@@ -60,7 +67,7 @@ export function ChallengeIntro({ gameId, code, difficulties, onStart }: Challeng
               className="px-4 py-2 rounded-xl border text-xs font-mono"
               style={{ color, borderColor: `${color}40`, background: `${color}10` }}
             >
-              <span className="block text-white/40 text-[0.6rem] uppercase tracking-wider mb-0.5">
+              <span className="block text-white/55 text-xs uppercase tracking-wider mb-0.5">
                 Round {i + 1}
               </span>
               {DIFFICULTY_LABEL[difficulty]}
@@ -75,14 +82,14 @@ export function ChallengeIntro({ gameId, code, difficulties, onStart }: Challeng
         </NeonButton>
         <button
           onClick={copyInvite}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-white/10 bg-white/5 text-white/60 hover:text-white hover:border-white/25 transition-all text-xs font-mono cursor-pointer"
+          className="relative after:absolute after:content-[''] after:-inset-2 flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-white/10 bg-white/5 text-white/60 hover:text-white hover:border-white/25 transition-all text-xs font-mono cursor-pointer"
         >
           {copied ? (
             <Check className="w-3.5 h-3.5 text-green-400" strokeWidth={1.5} />
           ) : (
             <Copy className="w-3.5 h-3.5" strokeWidth={1.5} />
           )}
-          {copied ? 'Copied!' : 'Copy invite link'}
+          {copyFailed ? 'Copy failed' : copied ? 'Copied!' : 'Copy invite link'}
         </button>
       </div>
     </div>

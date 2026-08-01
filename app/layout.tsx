@@ -4,6 +4,7 @@ import Script from 'next/script';
 import { Orbitron, Space_Grotesk, JetBrains_Mono } from 'next/font/google';
 import { Navigation } from '@/components/layout/Navigation';
 import { Footer } from '@/components/layout/Footer';
+import { RouteFocusManager } from '@/components/layout/RouteFocusManager';
 import { ParticleBackground } from '@/components/ui/ParticleBackground';
 import { MotionProvider } from '@/components/ui/MotionProvider';
 import { ServiceWorkerRegister } from '@/components/pwa/ServiceWorkerRegister';
@@ -73,6 +74,11 @@ export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   themeColor: '#0F0F23',
+  // Lets the page paint under the notch/status bar/home indicator in
+  // installed standalone PWA mode (paired with `appleWebApp.statusBarStyle:
+  // 'black-translucent'` above); content clears those areas via the
+  // env(safe-area-inset-*) padding on the nav and footer (L15).
+  viewportFit: 'cover',
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -93,11 +99,22 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         )}
       </head>
       <body className="scanlines">
+        <a
+          href="#main-content"
+          className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[100] focus:rounded-lg focus:bg-brand-purple focus:px-4 focus:py-2 focus:text-white focus:outline-none focus-visible:outline-2 focus-visible:outline-white"
+        >
+          Skip to content
+        </a>
         <MotionProvider>
           <ServiceWorkerRegister />
+          <RouteFocusManager />
           <ParticleBackground count={18} />
           <Navigation />
-          <main className="relative z-10 pt-16 flex-1 flex flex-col">
+          <main
+            id="main-content"
+            tabIndex={-1}
+            className="content-offset relative z-10 flex-1 flex flex-col"
+          >
             {children}
           </main>
           <Footer />

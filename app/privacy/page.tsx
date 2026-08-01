@@ -18,7 +18,7 @@ export default function PrivacyPage() {
       <div className="max-w-2xl mx-auto">
         <Link
           href="/"
-          className="inline-flex items-center gap-1.5 text-sm text-white/40 hover:text-white/70 transition-colors mb-8"
+          className="inline-flex items-center gap-1.5 text-sm text-white/55 hover:text-white/80 transition-colors mb-8"
         >
           ← Back to Hub
         </Link>
@@ -26,7 +26,7 @@ export default function PrivacyPage() {
         <h1 className="font-display font-black text-3xl sm:text-4xl text-white mb-2">
           Privacy Policy
         </h1>
-        <p className="text-white/40 text-sm mb-10">Last updated: July 2026</p>
+        <p className="text-white/55 text-sm mb-10">Last updated: July 2026</p>
 
         <div className="space-y-10 text-white/70 leading-relaxed">
 

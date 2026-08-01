@@ -37,12 +37,12 @@ function GameCard({ game }: { game: GameMeta }) {
         </motion.span>
 
         {game.isAvailable ? (
-          <span className="absolute top-3 right-3 flex items-center gap-1 text-[10px] font-mono px-2 py-0.5 rounded-full bg-green-500/15 text-green-400 border border-green-500/25">
+          <span className="absolute top-3 right-3 flex items-center gap-1 text-xs font-mono px-2 py-0.5 rounded-full bg-green-500/15 text-green-400 border border-green-500/25">
             <span className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse inline-block" />
             Play Now
           </span>
         ) : (
-          <span className="absolute top-3 right-3 text-[10px] font-mono px-2 py-0.5 rounded-full bg-white/5 text-white/30 border border-white/10">
+          <span className="absolute top-3 right-3 text-xs font-mono px-2 py-0.5 rounded-full bg-white/5 text-white/55 border border-white/10">
             Coming Soon
           </span>
         )}
@@ -60,12 +60,12 @@ function GameCard({ game }: { game: GameMeta }) {
         >
           {game.title}
         </h3>
-        <p className="text-white/45 text-sm leading-relaxed mb-3">{game.description}</p>
+        <p className="text-white/55 text-sm leading-relaxed mb-3">{game.description}</p>
         <div className="flex flex-wrap gap-1.5">
           {game.tags.map((tag) => (
             <span
               key={tag}
-              className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-white/5 text-white/30 border border-white/[0.08] capitalize"
+              className="text-xs font-mono px-2 py-0.5 rounded-full bg-white/5 text-white/55 border border-white/[0.08] capitalize"
             >
               {tag}
             </span>

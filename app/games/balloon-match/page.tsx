@@ -29,7 +29,7 @@ export default function BalloonMatchPage() {
     <div className="page-container py-8 sm:py-12 flex flex-col gap-12">
       {/* Game */}
       <div>
-        <h1 className="text-center font-display text-xs sm:text-sm font-bold text-white/40 uppercase tracking-[0.2em] mb-3">
+        <h1 className="text-center font-display text-xs sm:text-sm font-bold text-white/55 uppercase tracking-[0.2em] mb-3">
           🎈 Balloon Match
         </h1>
         <BalloonGame />

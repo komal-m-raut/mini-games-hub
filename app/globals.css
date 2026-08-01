@@ -141,16 +141,40 @@ body {
 /* ─────────────────────────────────────────────
    Navigation Glass
 ───────────────────────────────────────────── */
+/* Single source of truth for the fixed nav's real on-screen height:
+   the inner row is a fixed 4rem (`h-16` in Navigation.tsx) plus, in
+   installed standalone PWA mode on a notched iPhone, whatever inset the
+   status bar/notch eats via `padding-top` below (L15). Anything that
+   needs to sit clear of the nav — the content offset, scroll anchors —
+   must read this variable instead of a hardcoded px value, or the two
+   will drift apart again the next time either side changes. */
+:root {
+  --nav-height: calc(4rem + env(safe-area-inset-top, 0px));
+}
+
 .glass-nav {
   background: rgba(8, 8, 24, 0.7);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  /* Installed standalone PWA on notched iPhones: the nav is `fixed` at the
+     very top, so it needs its own inset padding to clear the status bar/
+     notch (L15). Zero on non-PWA/non-notched viewports since the env()
+     value resolves to 0 there. This is the same env() term baked into
+     --nav-height above — the two must stay in lockstep. */
+  padding-top: env(safe-area-inset-top, 0px);
 }
 
-/* Anchor targets land below the fixed 64px nav */
+/* Content offset for the fixed nav (M4/L15) — see `--nav-height` above.
+   Applied to <main> in app/layout.tsx instead of a Tailwind `pt-16`
+   literal so it can't drift out of sync with the nav's real height. */
+.content-offset {
+  padding-top: var(--nav-height);
+}
+
+/* Anchor targets land below the fixed nav, plus a small breathing gap. */
 #leaderboard {
-  scroll-margin-top: 88px;
+  scroll-margin-top: calc(var(--nav-height) + 24px);
 }
 
 .nav-link {
@@ -158,6 +182,7 @@ body {
   align-items: center;
   gap: 6px;
   padding: 6px 14px;
+  min-height: 44px;
   border-radius: var(--radius-sm);
   font-size: 0.875rem;
   font-family: var(--font-mono);
@@ -512,7 +537,6 @@ body {
 .path-grid {
   display: grid;
   gap: 0;
-  touch-action: none;
   user-select: none;
   -webkit-user-select: none;
   width: 100%;
@@ -524,7 +548,6 @@ body {
 .path-cell {
   position: relative;
   aspect-ratio: 1 / 1;
-  touch-action: none;
 }
 
 /* Inset, border-radius and transition are driven inline per grid size
@@ -561,10 +584,10 @@ body {
 
 .stat-label {
   font-family: var(--font-mono);
-  font-size: 0.65rem;
+  font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  color: rgba(255, 255, 255, 0.35);
+  color: rgba(255, 255, 255, 0.55);
   margin-bottom: 6px;
   white-space: nowrap;
 }
@@ -597,10 +620,11 @@ body {
   display: inline-flex;
   align-items: center;
   padding: 5px 14px;
+  min-height: 44px;
   border-radius: 6px;
   font-size: 0.75rem;
   font-family: var(--font-mono);
-  color: rgba(255, 255, 255, 0.4);
+  color: rgba(255, 255, 255, 0.55);
   background: transparent;
   border: none;
   cursor: pointer;
@@ -631,12 +655,15 @@ body {
 
 .ad-placeholder-label {
   font-family: var(--font-mono);
-  font-size: 0.7rem;
-  color: rgba(255, 255, 255, 0.2);
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.55);
   text-transform: uppercase;
   letter-spacing: 0.08em;
 }
 
+/* Decorative: the ad slot's pixel dimensions, shown only inside the dashed
+   placeholder box as a dev/debug annotation — not information a player
+   needs, so it stays low-contrast/small on purpose (M1/M7). */
 .ad-placeholder-size {
   font-family: var(--font-mono);
   font-size: 0.65rem;
@@ -744,6 +771,17 @@ body {
 .font-score {
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
+}
+
+/* ─────────────────────────────────────────────
+   Safe-area insets (L15)
+   The footer sits at the very bottom of the document; in installed
+   standalone PWA mode on iPhone it can land under the home-indicator
+   strip. Padding-bottom, not margin, so the border/background still
+   extends under the inset instead of leaving a gap.
+───────────────────────────────────────────── */
+.site-footer {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 /* ─────────────────────────────────────────────

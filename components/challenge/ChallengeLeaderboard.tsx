@@ -64,7 +64,7 @@ export function ChallengeLeaderboard({
         </div>
         <button
           onClick={load}
-          className="p-1.5 rounded-lg text-white/40 hover:text-white/70 hover:bg-white/5 transition-all"
+          className="min-w-11 min-h-11 flex items-center justify-center rounded-lg text-white/55 hover:text-white/80 hover:bg-white/5 transition-all"
           aria-label="Refresh challenge leaderboard"
         >
           <RefreshCw className="w-4 h-4" strokeWidth={1.5} />
@@ -78,9 +78,9 @@ export function ChallengeLeaderboard({
           ))}
         </div>
       ) : error ? (
-        <p className="text-white/40 text-sm py-6 text-center">Couldn&apos;t load scores. Try refreshing.</p>
+        <p className="text-white/55 text-sm py-6 text-center">Couldn&apos;t load scores. Try refreshing.</p>
       ) : entries.length === 0 ? (
-        <p className="text-white/40 text-sm py-6 text-center">
+        <p className="text-white/55 text-sm py-6 text-center">
           No scores yet — be the first on the board!
         </p>
       ) : (
@@ -108,7 +108,7 @@ export function ChallengeLeaderboard({
                         strokeWidth={1.5}
                       />
                     ) : (
-                      <span className="text-white/30 font-mono text-sm">{rank}</span>
+                      <span className="text-white/55 font-mono text-sm">{rank}</span>
                     )}
                   </div>
                   <p className="text-white font-medium truncate">
@@ -119,13 +119,13 @@ export function ChallengeLeaderboard({
 
                 <div className="flex items-center gap-4 shrink-0">
                   {entry.roundScores && (
-                    <p className="font-mono text-xs text-white/40 hidden sm:block">
+                    <p className="font-mono text-xs text-white/55 hidden sm:block">
                       {entry.roundScores.map(formatScore).join(' · ')}
                     </p>
                   )}
                   <p className="font-display font-bold text-brand-purple">
                     {formatScore(entry.score)}
-                    <span className="text-white/30 text-xs">/{MAX_CHALLENGE_SCORE}</span>
+                    <span className="text-white/55 text-xs">/{MAX_CHALLENGE_SCORE}</span>
                   </p>
                 </div>
               </motion.div>

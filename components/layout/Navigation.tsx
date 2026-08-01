@@ -16,7 +16,7 @@ export function Navigation() {
       animate={{ y: 0 }}
       transition={{ type: 'spring', stiffness: 200, damping: 25 }}
     >
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="page-container">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2 group shrink-0">

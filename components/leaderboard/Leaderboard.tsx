@@ -31,7 +31,7 @@ function RankBadge({ rank }: { rank: number }) {
       />
     );
   }
-  return <span className="text-white/30 font-mono text-sm w-5 text-center">{rank}</span>;
+  return <span className="text-white/55 font-mono text-sm w-5 text-center">{rank}</span>;
 }
 
 function LeaderboardRow({
@@ -63,17 +63,17 @@ function LeaderboardRow({
       <div className="flex items-center gap-6 shrink-0">
         {entry.roundScores && (
           <div className="text-right hidden sm:block">
-            <p className="text-xs text-white/40 font-mono">Rounds</p>
+            <p className="text-xs text-white/55 font-mono">Rounds</p>
             <p className="text-white/70 font-mono text-sm">
               {entry.roundScores.map(formatScore).join(' · ')}
             </p>
           </div>
         )}
         <div className="text-right">
-          <p className="text-xs text-white/40 font-mono">Score</p>
+          <p className="text-xs text-white/55 font-mono">Score</p>
           <p className="font-display font-bold text-brand-purple">
             {formatScore(entry.score)}
-            <span className="text-white/30 text-xs">/{MAX_CHALLENGE_SCORE}</span>
+            <span className="text-white/55 text-xs">/{MAX_CHALLENGE_SCORE}</span>
           </p>
         </div>
       </div>
@@ -96,14 +96,14 @@ export function Leaderboard({ gameId }: LeaderboardProps) {
             <h3 className="font-display font-bold text-white text-lg sm:text-xl">Leaderboard</h3>
           </div>
           <div className="flex items-center gap-3 shrink-0">
-            <div className="flex items-center gap-1.5 text-xs text-white/40 font-mono whitespace-nowrap">
+            <div className="flex items-center gap-1.5 text-xs text-white/55 font-mono whitespace-nowrap">
               <Users className="w-3.5 h-3.5 shrink-0" />
               {(stats?.totalPlayers ?? 0).toLocaleString()} player{stats?.totalPlayers === 1 ? '' : 's'}
             </div>
             <button
               onClick={refresh}
               disabled={isLoading}
-              className="p-1.5 rounded-lg text-white/40 hover:text-white/70 hover:bg-white/5 transition-all disabled:opacity-30"
+              className="min-w-11 min-h-11 flex items-center justify-center rounded-lg text-white/55 hover:text-white/80 hover:bg-white/5 transition-all disabled:opacity-30"
               aria-label="Refresh leaderboard"
             >
               <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} strokeWidth={1.5} />
@@ -135,7 +135,7 @@ export function Leaderboard({ gameId }: LeaderboardProps) {
           </div>
         ) : entries && entries.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 gap-2 text-center">
-            <p className="text-white/40">No scores yet — play a challenge to get on the board!</p>
+            <p className="text-white/55">No scores yet — play a challenge to get on the board!</p>
           </div>
         ) : (
           <AnimatePresence mode="wait">
