@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import { PerfectPourGame } from '@/games/perfect-pour/PerfectPourGame';
 import { AdBanner } from '@/components/ads/AdBanner';
+import { GameBackLink } from '@/components/game/GameBackLink';
 import { Leaderboard } from '@/components/leaderboard/Leaderboard';
 
 const description =
@@ -28,6 +29,9 @@ export default function PerfectPourPage() {
   return (
     <div className="page-container py-8 sm:py-12 flex flex-col gap-12">
       <div>
+        <div className="mb-3">
+          <GameBackLink />
+        </div>
         <h1 className="text-center font-display text-xs sm:text-sm font-bold text-white/55 uppercase tracking-[0.2em] mb-3">
           🥤 Perfect Pour
         </h1>
