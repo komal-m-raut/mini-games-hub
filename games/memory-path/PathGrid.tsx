@@ -1,8 +1,8 @@
 'use client';
 
-import { useCallback, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
-import { Cell, cellKey } from './pathGen';
+import { Cell, cellKey, moveCursor } from './pathGen';
 
 interface PathGridProps {
   size: number;
@@ -13,7 +13,7 @@ interface PathGridProps {
   traced: Cell[];
   /** Pulsing hint so the player knows where to begin. */
   startCell?: Cell | null;
-  /** Whether pointer tracing is active. */
+  /** Whether pointer/keyboard tracing is active. */
   interactive: boolean;
   /** Per-traced-index correctness; set on the results screen. */
   marks?: boolean[];
@@ -22,6 +22,10 @@ interface PathGridProps {
   onTraceStart?: () => void;
   onTraceCell?: (cell: Cell) => void;
   onTraceEnd?: () => void;
+  /** Removes the whole trace — wired to the same "Clear" the pointer UI
+   *  offers, reused so Backspace-to-empty doesn't invent a second way to
+   *  reset a round. */
+  onTraceClear?: () => void;
 }
 
 interface Sparkle {
@@ -31,18 +35,20 @@ interface Sparkle {
 }
 
 /**
- * Per-size visual tuning. Small grids get chunky, rounded tiles; the 16×16
- * and 25×25 grids shrink the gutter, radius and connector so hundreds of
- * tiles still read as a clean grid instead of a smear.
+ * Per-size visual tuning. Small grids get chunky, rounded tiles; the 12×12
+ * and 16×16 grids shrink the gutter, radius and connector so the grid still
+ * reads as a clean chunky→thin progression across all three difficulties —
+ * tuned for tile sizes of ~34.6 / 25.9 / 19.4px at a 375px viewport. Sparkles
+ * run on all three sizes now that Hard tops out at 256 cells (was 625).
  */
 function gridMetrics(size: number) {
   if (size <= 9) {
     return { inset: 3, radius: 6, stroke: 5, maxWidth: 420, sparkles: true };
   }
-  if (size <= 16) {
-    return { inset: 1.6, radius: 3, stroke: 3, maxWidth: 480, sparkles: true };
+  if (size <= 12) {
+    return { inset: 2, radius: 4, stroke: 3.5, maxWidth: 480, sparkles: true };
   }
-  return { inset: 1, radius: 2, stroke: 2.2, maxWidth: 540, sparkles: false };
+  return { inset: 1.4, radius: 3, stroke: 2.6, maxWidth: 540, sparkles: true };
 }
 
 export function PathGrid({
@@ -57,12 +63,40 @@ export function PathGrid({
   onTraceStart,
   onTraceCell,
   onTraceEnd,
+  onTraceClear,
 }: PathGridProps) {
   const gridRef = useRef<HTMLDivElement>(null);
   const drawingRef = useRef(false);
+  // The pointerId that started the current trace — a second finger landing
+  // mid-trace must not be able to interleave cells or end the trace.
+  const activePointerId = useRef<number | null>(null);
   const sparkleId = useRef(0);
   const lastSparkleAt = useRef(0);
+  const sparkleTimeouts = useRef<Set<ReturnType<typeof setTimeout>>>(new Set());
   const [sparkles, setSparkles] = useState<Sparkle[]>([]);
+
+  // Keyboard focus cursor — the arrow-key equivalent of the finger position.
+  // Reset to the start hint (or the origin) each time the grid goes from
+  // non-interactive to interactive, so a new round always starts the cursor
+  // somewhere sane rather than wherever it was left on the previous grid.
+  const [cursor, setCursor] = useState<Cell>(() => startCell ?? { r: 0, c: 0 });
+  const wasInteractive = useRef(interactive);
+  useEffect(() => {
+    if (interactive && !wasInteractive.current) {
+      setCursor(startCell ?? { r: 0, c: 0 });
+    }
+    wasInteractive.current = interactive;
+  }, [interactive, startCell]);
+
+  // Sparkles schedule their own removal via setTimeout; if the component
+  // unmounts mid-trace those timeouts must not setState afterward.
+  useEffect(() => {
+    const timeouts = sparkleTimeouts.current;
+    return () => {
+      timeouts.forEach((id) => clearTimeout(id));
+      timeouts.clear();
+    };
+  }, []);
 
   const metrics = useMemo(() => gridMetrics(size), [size]);
 
@@ -87,7 +121,11 @@ export function PathGrid({
       const id = sparkleId.current++;
       const sparkle = { id, x: clientX - rect.left, y: clientY - rect.top };
       setSparkles((prev) => [...prev.slice(-7), sparkle]);
-      setTimeout(() => setSparkles((prev) => prev.filter((s) => s.id !== id)), 600);
+      const timeoutId = setTimeout(() => {
+        sparkleTimeouts.current.delete(timeoutId);
+        setSparkles((prev) => prev.filter((s) => s.id !== id));
+      }, 600);
+      sparkleTimeouts.current.add(timeoutId);
     },
     [metrics.sparkles]
   );
@@ -95,10 +133,13 @@ export function PathGrid({
   const handleDown = useCallback(
     (e: React.PointerEvent) => {
       if (!interactive) return;
+      // A trace is already in progress from another pointer — ignore.
+      if (drawingRef.current) return;
       e.preventDefault();
       // Capture so the drag survives leaving the grid bounds
       (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
       drawingRef.current = true;
+      activePointerId.current = e.pointerId;
       onTraceStart?.();
       const cell = cellAtPoint(e.clientX, e.clientY);
       if (cell) {
@@ -112,6 +153,7 @@ export function PathGrid({
   const handleMove = useCallback(
     (e: React.PointerEvent) => {
       if (!interactive || !drawingRef.current) return;
+      if (e.pointerId !== activePointerId.current) return;
       const cell = cellAtPoint(e.clientX, e.clientY);
       if (cell) onTraceCell?.(cell);
       addSparkle(e.clientX, e.clientY);
@@ -119,11 +161,68 @@ export function PathGrid({
     [interactive, onTraceCell, cellAtPoint, addSparkle]
   );
 
-  const handleUp = useCallback(() => {
-    if (!drawingRef.current) return;
-    drawingRef.current = false;
-    onTraceEnd?.();
-  }, [onTraceEnd]);
+  const handleUp = useCallback(
+    (e: React.PointerEvent) => {
+      if (!drawingRef.current) return;
+      if (e.pointerId !== activePointerId.current) return;
+      drawingRef.current = false;
+      activePointerId.current = null;
+      onTraceEnd?.();
+    },
+    [onTraceEnd]
+  );
+
+  /**
+   * Keyboard tracing: arrow keys move a focus cursor one cell at a time,
+   * Space/Enter lays it, Backspace removes the last laid cell. Laying goes
+   * through the exact same `onTraceCell` the pointer path uses (via
+   * `extendTrace` in the hook), so a keyboard round scores identically to a
+   * dragged one — including the straight-run fill if the cursor moved
+   * several cells before Space was pressed.
+   */
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent<HTMLDivElement>) => {
+      if (!interactive) return;
+
+      switch (e.key) {
+        case 'ArrowUp':
+          e.preventDefault();
+          setCursor((c) => moveCursor(c, -1, 0, size));
+          return;
+        case 'ArrowDown':
+          e.preventDefault();
+          setCursor((c) => moveCursor(c, 1, 0, size));
+          return;
+        case 'ArrowLeft':
+          e.preventDefault();
+          setCursor((c) => moveCursor(c, 0, -1, size));
+          return;
+        case 'ArrowRight':
+          e.preventDefault();
+          setCursor((c) => moveCursor(c, 0, 1, size));
+          return;
+        case ' ':
+        case 'Enter':
+          e.preventDefault();
+          if (traced.length === 0) onTraceStart?.();
+          onTraceCell?.(cursor);
+          return;
+        case 'Backspace':
+          e.preventDefault();
+          if (traced.length <= 1) {
+            onTraceClear?.();
+          } else {
+            // Landing on the second-to-last cell is what the pointer path
+            // treats as "erase the last one" (extendTrace's backtrack case).
+            onTraceCell?.(traced[traced.length - 2]);
+          }
+          return;
+        default:
+          return;
+      }
+    },
+    [interactive, size, cursor, traced, onTraceStart, onTraceCell, onTraceClear]
+  );
 
   // Path polyline in unit-cell coordinates; zero grid gap keeps centers exact
   const linePoints = revealed.map((c) => `${c.c + 0.5},${c.r + 0.5}`).join(' ');
@@ -147,6 +246,7 @@ export function PathGrid({
       const isTraced = traceIdx !== undefined;
       const mark = isTraced && marks ? marks[traceIdx!] : undefined;
       const isStart = startCell?.r === r && startCell?.c === c;
+      const isCursor = interactive && cursor.r === r && cursor.c === c;
 
       // Results view colors traced cells by correctness; otherwise the neon
       // path (reveal) and the live trace share the accent color.
@@ -175,7 +275,12 @@ export function PathGrid({
       const opacity = fading && isRevealed && !isTraced ? 0.12 : 1;
 
       return (
-        <div key={key} className="path-cell" data-cell={key}>
+        <div
+          key={key}
+          className="path-cell"
+          data-cell={key}
+          style={{ touchAction: interactive ? 'none' : 'pan-y' }}
+        >
           <div
             className="path-tile"
             style={{
@@ -188,7 +293,7 @@ export function PathGrid({
               transition,
             }}
           >
-            {/* Ripple as the player enters a cell (skip on the huge grid) */}
+            {/* Ripple as the player enters a cell */}
             {isTraced && metrics.sparkles && (
               <motion.span
                 className="absolute inset-0 rounded-[inherit] pointer-events-none"
@@ -207,11 +312,23 @@ export function PathGrid({
                 transition={{ duration: 1.6, repeat: Infinity }}
               />
             )}
+            {/* Keyboard focus cursor — a dashed outline so it reads as
+                "you are here" without relying on color alone; layered above
+                the fill/traced/mark states so it stays visible on all of them. */}
+            {isCursor && (
+              <motion.span
+                className="absolute inset-0 rounded-[inherit] pointer-events-none"
+                style={{ border: '2px dashed white', boxShadow: '0 0 0 1px rgba(0,0,0,0.5)' }}
+                initial={false}
+                animate={{ opacity: [0.55, 1, 0.55] }}
+                transition={{ duration: 1, repeat: Infinity }}
+              />
+            )}
           </div>
         </div>
       );
     });
-  }, [size, revealed, traced, marks, startCell, fading, neon, metrics]);
+  }, [size, revealed, traced, marks, startCell, fading, neon, metrics, interactive, cursor]);
 
   return (
     <div
@@ -220,7 +337,21 @@ export function PathGrid({
       style={{
         gridTemplateColumns: `repeat(${size}, 1fr)`,
         maxWidth: metrics.maxWidth,
+        touchAction: interactive ? 'none' : 'pan-y',
       }}
+      // "application" so a screen reader passes arrow keys through to this
+      // widget instead of using them for its own virtual-cursor navigation —
+      // there's no per-cell focus target, just this one container plus the
+      // visible cursor cell.
+      role="application"
+      aria-label={
+        interactive
+          ? `Trace the path on a ${size} by ${size} grid. Arrow keys move the cursor, Space or Enter lays the current cell, Backspace removes the last one.`
+          : `${size} by ${size} memory path grid`
+      }
+      aria-disabled={!interactive}
+      tabIndex={interactive ? 0 : -1}
+      onKeyDown={handleKeyDown}
       onPointerDown={handleDown}
       onPointerMove={handleMove}
       onPointerUp={handleUp}

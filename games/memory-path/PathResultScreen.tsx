@@ -5,7 +5,7 @@ import { Home, RotateCcw } from 'lucide-react';
 import { NeonButton } from '@/components/ui/NeonButton';
 import { ConfettiEffect } from '@/components/ui/ConfettiEffect';
 import { Rating } from '@/types/game';
-import { MAX_ROUND_SCORE } from '@/utils/scoring';
+import { MAX_ROUND_SCORE, formatScore } from '@/utils/scoring';
 import { PathGrid } from './PathGrid';
 import { Cell } from './pathGen';
 import { PathResult } from './types';
@@ -98,44 +98,29 @@ export function PathResultScreen({
           {result.rating}
         </h2>
         <p className="text-white/50 font-mono text-sm mt-1">{meta.message}</p>
-      </motion.div>
 
-      {/* Stats */}
-      <motion.div
-        className="grid grid-cols-2 sm:grid-cols-4 gap-3 w-full max-w-lg"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.25 }}
-      >
-        <div className="stat-card">
-          <p className="stat-label">Accuracy</p>
-          <motion.p
-            className="stat-value"
-            style={{ color: meta.color }}
-            initial={{ scale: 0.6, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ type: 'spring', stiffness: 260, damping: 16, delay: 0.35 }}
-          >
-            {result.accuracy.toFixed(1)}%
-          </motion.p>
-        </div>
-        <div className="stat-card">
-          <p className="stat-label">Correct</p>
-          <p className="stat-value text-green-400">
-            {result.correct}
-            <span className="text-white/30 text-sm">/{result.pathLength}</span>
-          </p>
-        </div>
-        <div className="stat-card">
-          <p className="stat-label">Mistakes</p>
-          <p className={result.mistakes === 0 ? 'stat-value text-white/80' : 'stat-value text-red-400'}>
-            {result.mistakes}
-          </p>
-        </div>
-        <div className="stat-card">
-          <p className="stat-label">Time</p>
-          <p className="stat-value text-white/80">{result.seconds.toFixed(1)}s</p>
-        </div>
+        {/* Round score — the one number on this screen, promoted under the
+            rating word (U7). Accuracy/correct/mistakes are dropped: the grid
+            below already shows right/wrong/missed cells more legibly than a
+            stat row would. */}
+        <motion.p
+          className="font-score font-bold text-3xl mt-1"
+          style={{ color: meta.color }}
+          initial={{ opacity: 0, y: 6 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+        >
+          {formatScore(result.score)}
+          <span className="text-white/50 text-lg">/{MAX_ROUND_SCORE}</span>
+        </motion.p>
+
+        {/* Everything the grid can't show at a glance, kept as a quiet line
+            rather than its own card row. */}
+        <p className="font-score text-xs text-white/40 mt-1">
+          {result.mistakes === 0 ? 'No mistakes' : `${result.mistakes} mistake${result.mistakes === 1 ? '' : 's'}`}
+          {' · '}
+          {result.seconds.toFixed(1)}s
+        </p>
       </motion.div>
 
       {/* The original path, with the player's trace marked right/wrong */}
@@ -166,17 +151,6 @@ export function PathResultScreen({
         </div>
       </motion.div>
 
-      <motion.p
-        className="font-mono text-sm text-white/50"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.4 }}
-      >
-        Round score:{' '}
-        <span className="text-brand-purple font-bold">{result.score}</span>
-        <span className="text-white/30">/{MAX_ROUND_SCORE}</span>
-      </motion.p>
-
       {/* Actions */}
       <motion.div
         className="flex gap-3 w-full max-w-sm"
@@ -188,7 +162,7 @@ export function PathResultScreen({
           variant="ghost"
           size="md"
           onClick={onMenu}
-          className="flex-1 flex items-center justify-center gap-2 whitespace-nowrap"
+          className="flex-1 min-w-0 flex items-center justify-center gap-2 whitespace-nowrap"
         >
           <Home className="w-4 h-4 shrink-0" strokeWidth={1.5} />
           Menu
@@ -197,10 +171,10 @@ export function PathResultScreen({
           variant="primary"
           size="md"
           onClick={onNext}
-          className="flex-1 flex items-center justify-center gap-2 whitespace-nowrap"
+          className="flex-1 min-w-0 flex items-center justify-center gap-2 whitespace-nowrap"
           glow="rgba(124, 58, 237, 0.5)"
         >
-          <RotateCcw className="w-4 h-4 shrink-0" strokeWidth={1.5} />
+          <RotateCcw className="w-4 h-4 shrink-0 hidden sm:block" strokeWidth={1.5} />
           {nextLabel}
         </NeonButton>
       </motion.div>

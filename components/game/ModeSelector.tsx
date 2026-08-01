@@ -20,7 +20,6 @@ export function ModeSelector({
     {
       icon: <User className="w-7 h-7" strokeWidth={1.5} />,
       label: 'Solo',
-      sub: 'Free play · 5 rounds · beat your own best',
       accent: '#8B5CF6',
       onClick: onSolo,
       delay: 0,
@@ -28,7 +27,6 @@ export function ModeSelector({
     {
       icon: <CalendarDays className="w-7 h-7" strokeWidth={1.5} />,
       label: 'Daily Challenge',
-      sub: 'Same rounds worldwide today · shared board',
       accent: '#06B6D4',
       onClick: onDailyChallenge,
       delay: 0.06,
@@ -36,7 +34,6 @@ export function ModeSelector({
     {
       icon: <Swords className="w-7 h-7" strokeWidth={1.5} />,
       label: 'Challenge a Friend',
-      sub: 'Private code · compare scores head-to-head',
       accent,
       onClick: onFriendChallenge,
       delay: 0.12,
@@ -52,21 +49,19 @@ export function ModeSelector({
         <p className="text-white/40 text-sm font-mono">Pick a mode to begin</p>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        {cards.map(({ icon, label, sub, accent: a, onClick, delay }) => (
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        {cards.map(({ icon, label, accent: a, onClick, delay }) => (
           <motion.button
             key={label}
             onClick={onClick}
-            className="mode-card group"
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay }}
+            className="mode-card group fade-up"
             whileHover={{ y: -3 }}
-            style={{ '--mode-accent': a } as React.CSSProperties}
+            style={
+              { '--mode-accent': a, animationDelay: `${delay}s` } as React.CSSProperties
+            }
           >
             <span className="mode-icon">{icon}</span>
             <span className="font-display font-bold text-white text-lg">{label}</span>
-            <span className="text-white/45 text-sm">{sub}</span>
           </motion.button>
         ))}
       </div>

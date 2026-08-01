@@ -1,7 +1,8 @@
 import { Difficulty } from '@/types/game';
 import { BALLOON_COLORS, DIFFICULTY_CONFIG } from '@/lib/constants';
 import { GAME_REGISTRY } from '@/lib/gameRegistry';
-import { MAX_ROUND_SCORE } from '@/utils/scoring';
+import { MAX_ROUND_SCORE, formatScore, round2 } from '@/utils/scoring';
+import { scoreEmoji } from '@/lib/share';
 
 /**
  * Challenge Mode: a series of 3 seeded rounds (easy → medium → hard).
@@ -16,9 +17,9 @@ export const MAX_CHALLENGE_SCORE = CHALLENGE_ROUND_COUNT * MAX_ROUND_SCORE;
 
 /** Shared difficulty accents for the generic challenge screens. */
 export const DIFFICULTY_ACCENT: Record<Difficulty, string> = {
-  easy: '#22C55E',
-  medium: '#F97316',
-  hard: '#EF4444',
+  easy: DIFFICULTY_CONFIG.easy.color,
+  medium: DIFFICULTY_CONFIG.medium.color,
+  hard: DIFFICULTY_CONFIG.hard.color,
 };
 
 export interface ChallengeRound {
@@ -87,11 +88,13 @@ export function generateChallengeCode(): string {
   return Array.from(bytes, (b) => CODE_ALPHABET[b % CODE_ALPHABET.length]).join('');
 }
 
-/** Everyone gets the same code (and therefore rounds) on a given day. */
+/** Everyone gets the same code (and therefore rounds) on a given day, in UTC —
+ *  using local time would silently split the "same board worldwide" daily
+ *  challenge across timezones. */
 export function getDailyChallengeCode(date: Date = new Date()): string {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, '0');
-  const d = String(date.getDate()).padStart(2, '0');
+  const y = date.getUTCFullYear();
+  const m = String(date.getUTCMonth() + 1).padStart(2, '0');
+  const d = String(date.getUTCDate()).padStart(2, '0');
   return `daily-${y}${m}${d}`;
 }
 
@@ -107,23 +110,29 @@ export function challengePath(gameId: string, code: string): string {
   return `/games/${gameId}/challenge/${code}`;
 }
 
+const MONTH_NAMES = [
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December',
+];
+
 export function challengeLabel(code: string): string {
   if (isDailyCode(code)) {
     const raw = code.slice(6);
-    return `Daily · ${raw.slice(0, 4)}-${raw.slice(4, 6)}-${raw.slice(6, 8)}`;
+    const year = raw.slice(0, 4);
+    const month = Number(raw.slice(4, 6));
+    const day = Number(raw.slice(6, 8));
+    // Computed straight off the code digits (no Date/Intl involved) so this
+    // formats identically on the server and the client — no hydration
+    // mismatch risk from locale/timezone. Non-breaking spaces keep the date
+    // itself from splitting mid-token when the line wraps (M20).
+    return `Daily · ${day} ${MONTH_NAMES[month - 1]} ${year}`;
   }
   return `Challenge ${code.toUpperCase()}`;
 }
 
 // ── Result sharing (Wordle/dialed.gg-style emoji summary) ───────────
-
-function scoreEmoji(score: number): string {
-  if (score >= 10) return '🎯';
-  if (score >= 8) return '🟢';
-  if (score >= 6) return '🟡';
-  if (score >= 3) return '🟠';
-  return '🔴';
-}
+// `scoreEmoji` used to be duplicated here with its own (already-diverging)
+// thresholds; it now imports the single copy from `lib/share.ts` (L10).
 
 /** Emoji + display name for a game, for share text headers. */
 function gameHeader(gameId: string): string {
@@ -138,28 +147,11 @@ export function buildChallengeShareText(
   roundScores: number[],
   origin: string
 ): string {
-  const total = roundScores.reduce((a, b) => a + b, 0);
+  const total = round2(roundScores.reduce((a, b) => a + b, 0));
   const grid = roundScores.map(scoreEmoji).join(' ');
   return [
     `${gameHeader(gameId)} — ${challengeLabel(code)}`,
-    `${grid}  ${total}/${MAX_CHALLENGE_SCORE}`,
+    `${grid}  ${formatScore(total)}/${MAX_CHALLENGE_SCORE}`,
     `Beat my score: ${origin}${challengePath(gameId, code)}`,
-  ].join('\n');
-}
-
-/** Share text for a completed free-play session (5 rounds, /50). */
-export function buildSessionShareText(
-  gameId: string,
-  difficultyLabel: string,
-  roundScores: number[],
-  origin: string
-): string {
-  const total = roundScores.reduce((a, b) => a + b, 0);
-  const max = roundScores.length * MAX_ROUND_SCORE;
-  const grid = roundScores.map(scoreEmoji).join(' ');
-  return [
-    `${gameHeader(gameId)} — ${difficultyLabel}`,
-    `${grid}  ${total}/${max}`,
-    `Play: ${origin}/games/${gameId}`,
   ].join('\n');
 }

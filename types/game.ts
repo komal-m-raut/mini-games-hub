@@ -17,7 +17,6 @@ export interface GameResult {
   accuracy: number;
   targetSize: number;
   actualSize: number;
-  sizeDiffPercent: number;
   rating: Rating;
   score: number;
 }

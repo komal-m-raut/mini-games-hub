@@ -15,11 +15,12 @@ import {
   NORMAL_ROUND_COUNT,
   calculateScore,
   getLocalBestSession,
+  round2,
   saveBestSession,
 } from '@/utils/scoring';
 import { PathChallengeRound, getPathChallengeRounds } from './challenge';
 import { PATH_DIFFICULTY, PATH_FADE_MS, getPathRating } from './constants';
-import { Cell, cellsEqual, comparePaths, generatePath, straightRun } from './pathGen';
+import { Cell, comparePaths, extendTrace, generatePath } from './pathGen';
 import { PathGameState } from './types';
 
 const GAME_ID = 'memory-path';
@@ -36,6 +37,7 @@ const INITIAL_STATE: PathGameState = {
   revealCount: 0,
   traced: [],
   traceMs: 0,
+  locked: false,
   round: 1,
   totalRounds: NORMAL_ROUND_COUNT,
   score: 0,
@@ -75,6 +77,7 @@ export function useMemoryPathGame({ challengeCode }: UseMemoryPathGameOptions = 
   const phaseTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const traceTickRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const finalizeTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const transitionTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const transitioningRef = useRef(false);
 
   // The trace is mirrored in a ref because pointermove fires faster than React
@@ -111,6 +114,10 @@ export function useMemoryPathGame({ challengeCode }: UseMemoryPathGameOptions = 
       clearTimeout(finalizeTimeoutRef.current);
       finalizeTimeoutRef.current = null;
     }
+    if (transitionTimeoutRef.current) {
+      clearTimeout(transitionTimeoutRef.current);
+      transitionTimeoutRef.current = null;
+    }
   }, []);
 
   // ── Round lifecycle ───────────────────────────────────────────────
@@ -136,6 +143,7 @@ export function useMemoryPathGame({ challengeCode }: UseMemoryPathGameOptions = 
         revealCount: 1,
         traced: [],
         traceMs: 0,
+        locked: false,
         round,
         score: 0,
         result: null,
@@ -228,15 +236,15 @@ export function useMemoryPathGame({ challengeCode }: UseMemoryPathGameOptions = 
     const traced = [...tracedRef.current];
     const { correct, mistakes, accuracy, marks } = comparePaths(pathRef.current, traced);
     const seconds = Math.round(((performance.now() - traceStartRef.current) / 1000) * 10) / 10;
-    const rating = getPathRating(accuracy, mistakes);
     const score = calculateScore(accuracy);
+    const rating = getPathRating(score, mistakes);
 
     setState((s) => ({
       ...s,
       phase: 'results',
       traced,
       score,
-      totalScore: s.totalScore + score,
+      totalScore: round2(s.totalScore + score),
       roundScores: [...s.roundScores, score],
       result: {
         accuracy,
@@ -252,60 +260,39 @@ export function useMemoryPathGame({ challengeCode }: UseMemoryPathGameOptions = 
   }, [clearTimers]);
 
   /**
-   * Extends the trace toward `cell`. A single adjacent step is the common
-   * case; on the big grids a fast drag can skip several cells, so any straight
-   * run between the last cell and this one is filled in. Stepping back onto
-   * the previous cell rubs the last one out, so a wrong turn is fixable
-   * mid-drag. Anything else (a diagonal, a jump, or a cell already used) is
-   * rejected — the path never crosses itself.
+   * Extends the trace toward `cell` — the shared step used by both pointer
+   * dragging and keyboard laying, so either input scores through the exact
+   * same `extendTrace` core (see pathGen.ts) rather than a parallel path.
    */
   const traceCell = useCallback(
     (cell: Cell) => {
       if (lockedRef.current || stateRef.current.phase !== 'tracing') return;
 
       const path = pathRef.current;
-      const traced = tracedRef.current;
-      const last = traced[traced.length - 1];
+      const result = extendTrace(tracedRef.current, cell, path.length);
 
-      if (!last) {
-        tracedRef.current = [cell];
-      } else if (cellsEqual(last, cell)) {
+      if (result.type === 'ignored') return;
+      if (result.type === 'illegal') {
+        play('error');
         return;
-      } else if (traced.length > 1 && cellsEqual(traced[traced.length - 2], cell)) {
-        // Backtrack one cell to erase a wrong turn
-        tracedRef.current = traced.slice(0, -1);
-        play('trace');
-        setState((s) => ({ ...s, traced: [...tracedRef.current] }));
-        return;
-      } else if (traced.length >= path.length) {
-        // Trace is already as long as the path — nothing more to add
-        return;
-      } else {
-        // Fill the straight run from the last cell to this one, stopping at
-        // the path length or the first cell that's off-line or already used.
-        const run = straightRun(last, cell);
-        const used = new Set(traced.map((c) => `${c.r},${c.c}`));
-        let added = 0;
-        for (const step of run) {
-          if (traced.length + added >= path.length) break;
-          if (used.has(`${step.r},${step.c}`)) break;
-          used.add(`${step.r},${step.c}`);
-          tracedRef.current = [...tracedRef.current, step];
-          added += 1;
-        }
-        if (added === 0) {
-          // Diagonal or a jump onto used cells: not a legal move
-          play('error');
-          return;
-        }
       }
 
+      tracedRef.current = result.traced;
       play('trace');
-      setState((s) => ({ ...s, traced: [...tracedRef.current] }));
 
-      // Full-length trace scores itself, after a beat on the last cell
-      if (tracedRef.current.length >= path.length) {
-        lockedRef.current = true;
+      if (result.type === 'backtrack') {
+        setState((s) => ({ ...s, traced: [...tracedRef.current] }));
+        return;
+      }
+
+      // Full-length trace locks immediately (state, not just the ref) so
+      // controls that read `locked` disable right away — scoring itself
+      // still lands ~380ms later, after a beat on the last cell.
+      const isComplete = tracedRef.current.length >= path.length;
+      if (isComplete) lockedRef.current = true;
+      setState((s) => ({ ...s, traced: [...tracedRef.current], locked: isComplete || s.locked }));
+
+      if (isComplete) {
         finalizeTimeoutRef.current = setTimeout(finalizeTrace, FINALIZE_DELAY_MS);
       }
     },
@@ -352,7 +339,8 @@ export function useMemoryPathGame({ challengeCode }: UseMemoryPathGameOptions = 
       startRound(nextDifficulty, round + 1);
     }
 
-    setTimeout(() => {
+    transitionTimeoutRef.current = setTimeout(() => {
+      transitionTimeoutRef.current = null;
       transitioningRef.current = false;
     }, 500);
   }, [startRound, play, challengeRounds]);

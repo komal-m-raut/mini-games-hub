@@ -13,26 +13,33 @@ import {
   challengeLabel,
   challengePath,
 } from '@/lib/challenge';
-import { MAX_ROUND_SCORE } from '@/utils/scoring';
+import { MAX_ROUND_SCORE, formatScore, round2 } from '@/utils/scoring';
 import { setPlayerName, usePlayerId, usePlayerName } from '@/lib/player';
 
 function CopyButton({ getText, label }: { getText: () => string; label: string }) {
   const [copied, setCopied] = useState(false);
+  const [failed, setFailed] = useState(false);
   return (
     <button
       onClick={async () => {
-        await navigator.clipboard.writeText(getText());
-        setCopied(true);
-        setTimeout(() => setCopied(false), 2000);
+        try {
+          await navigator.clipboard.writeText(getText());
+          setFailed(false);
+          setCopied(true);
+          setTimeout(() => setCopied(false), 2000);
+        } catch {
+          setFailed(true);
+          setTimeout(() => setFailed(false), 2000);
+        }
       }}
-      className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-white/10 bg-white/5 text-white/60 hover:text-white hover:border-white/25 transition-all text-xs font-mono cursor-pointer"
+      className="relative after:absolute after:content-[''] after:-inset-2 flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-white/10 bg-white/5 text-white/60 hover:text-white hover:border-white/25 transition-all text-xs font-mono cursor-pointer"
     >
       {copied ? (
         <Check className="w-3.5 h-3.5 text-green-400" strokeWidth={1.5} />
       ) : (
         <Copy className="w-3.5 h-3.5" strokeWidth={1.5} />
       )}
-      {copied ? 'Copied!' : label}
+      {failed ? 'Copy failed' : copied ? 'Copied!' : label}
     </button>
   );
 }
@@ -46,7 +53,7 @@ interface ChallengeCompleteProps {
 }
 
 export function ChallengeComplete({ gameId, code, roundScores, onReplay }: ChallengeCompleteProps) {
-  const total = roundScores.reduce((a, b) => a + b, 0);
+  const total = round2(roundScores.reduce((a, b) => a + b, 0));
   const playerId = usePlayerId();
   const storedName = usePlayerName();
   // null = untouched → show the stored nickname; edits take over from there
@@ -54,6 +61,7 @@ export function ChallengeComplete({ gameId, code, roundScores, onReplay }: Chall
   const name = editedName ?? storedName;
   const [submitState, setSubmitState] = useState<'idle' | 'sending' | 'done' | 'error'>('idle');
   const [refreshKey, setRefreshKey] = useState(0);
+  const [shareState, setShareState] = useState<'idle' | 'shared' | 'error'>('idle');
 
   const submit = async () => {
     if (!name.trim() || submitState === 'sending') return;
@@ -83,7 +91,14 @@ export function ChallengeComplete({ gameId, code, roundScores, onReplay }: Chall
         // fall through to clipboard (user may have dismissed the sheet)
       }
     }
-    await navigator.clipboard.writeText(text);
+    try {
+      await navigator.clipboard.writeText(text);
+      setShareState('shared');
+      setTimeout(() => setShareState('idle'), 2000);
+    } catch {
+      setShareState('error');
+      setTimeout(() => setShareState('idle'), 2000);
+    }
   };
 
   const inviteUrl = () => `${window.location.origin}${challengePath(gameId, code)}`;
@@ -102,10 +117,10 @@ export function ChallengeComplete({ gameId, code, roundScores, onReplay }: Chall
           Challenge Complete
         </p>
         <p className="font-display text-6xl font-black text-white mb-1">
-          {total}
-          <span className="text-white/30 text-3xl">/{MAX_CHALLENGE_SCORE}</span>
+          {formatScore(total)}
+          <span className="text-white/55 text-3xl">/{MAX_CHALLENGE_SCORE}</span>
         </p>
-        <p className="text-white/40 text-sm font-mono">{challengeLabel(code)}</p>
+        <p className="text-white/55 text-sm font-mono">{challengeLabel(code)}</p>
       </motion.div>
 
       {/* Per-round breakdown */}
@@ -120,8 +135,8 @@ export function ChallengeComplete({ gameId, code, roundScores, onReplay }: Chall
           >
             <p className="stat-label">Round {i + 1}</p>
             <p className="stat-value text-brand-purple">
-              {score}
-              <span className="text-white/30 text-sm">/{MAX_ROUND_SCORE}</span>
+              {formatScore(score)}
+              <span className="text-white/55 text-sm">/{MAX_ROUND_SCORE}</span>
             </p>
           </motion.div>
         ))}
@@ -137,7 +152,7 @@ export function ChallengeComplete({ gameId, code, roundScores, onReplay }: Chall
             onKeyDown={(e) => e.key === 'Enter' && submit()}
             placeholder="Your nickname"
             maxLength={20}
-            className="flex-1 w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white placeholder-white/25 font-mono text-sm outline-none focus:border-brand-purple/60 transition-colors"
+            className="flex-1 w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white placeholder-white/55 font-mono text-sm outline-none focus:border-brand-purple/60 transition-colors"
           />
           <NeonButton
             variant="primary"
@@ -163,10 +178,10 @@ export function ChallengeComplete({ gameId, code, roundScores, onReplay }: Chall
       <div className="flex flex-wrap items-center justify-center gap-2">
         <button
           onClick={share}
-          className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-brand-cyan/30 bg-brand-cyan/10 text-brand-cyan hover:border-brand-cyan/60 transition-all text-xs font-mono cursor-pointer"
+          className="relative after:absolute after:content-[''] after:-inset-2 flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-brand-cyan/30 bg-brand-cyan/10 text-brand-cyan hover:border-brand-cyan/60 transition-all text-xs font-mono cursor-pointer"
         >
           <Share2 className="w-3.5 h-3.5" strokeWidth={1.5} />
-          Share result
+          {shareState === 'error' ? 'Share failed' : shareState === 'shared' ? 'Copied!' : 'Share result'}
         </button>
         <CopyButton
           getText={() => buildChallengeShareText(gameId, code, roundScores, window.location.origin)}
@@ -182,7 +197,7 @@ export function ChallengeComplete({ gameId, code, roundScores, onReplay }: Chall
 
       {/* Actions */}
       <div className="flex gap-3 w-full max-w-sm">
-        <Link href={`/games/${gameId}`} className="flex-1">
+        <Link href={`/games/${gameId}`} className="flex-1 min-w-0">
           <NeonButton
             variant="ghost"
             size="md"
@@ -196,9 +211,9 @@ export function ChallengeComplete({ gameId, code, roundScores, onReplay }: Chall
           variant="secondary"
           size="md"
           onClick={onReplay}
-          className="flex-1 flex items-center justify-center gap-2 whitespace-nowrap"
+          className="flex-1 min-w-0 flex items-center justify-center gap-2 whitespace-nowrap"
         >
-          <RotateCcw className="w-4 h-4 shrink-0" strokeWidth={1.5} />
+          <RotateCcw className="w-4 h-4 shrink-0 hidden sm:block" strokeWidth={1.5} />
           Retry
         </NeonButton>
       </div>

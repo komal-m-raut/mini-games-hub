@@ -12,11 +12,11 @@ import { ChallengeComplete } from '@/components/challenge/ChallengeComplete';
 import { ChallengeIntro } from '@/components/challenge/ChallengeIntro';
 import { challengePath, generateChallengeCode, getDailyChallengeCode } from '@/lib/challenge';
 import { usePressAndHold } from '@/hooks/usePressAndHold';
+import { SessionSummary } from '@/components/game/SessionSummary';
 import { DIFFICULTY_CONFIG, UNIT_TO_PX } from '@/lib/constants';
 import { Difficulty } from '@/types/game';
 import { Balloon } from './BalloonCanvas';
 import { ResultScreen } from './ResultScreen';
-import { SessionComplete } from './SessionComplete';
 import { useBalloonGame } from './useBalloonGame';
 
 const GAME_ID = 'balloon-match';
@@ -39,13 +39,9 @@ const DIFFICULTY_OPTIONS: DifficultyOption[] = (
   return {
     id,
     label: cfg.label,
-    description: cfg.description,
+    qualifier: SPEED_LABEL[id],
     color: cfg.color,
     glow: cfg.glow,
-    stats: [
-      { label: 'Speed', value: SPEED_LABEL[id] },
-      { label: 'Time', value: cfg.inflateSeconds === null ? '∞' : `${cfg.inflateSeconds}s` },
-    ],
   };
 });
 
@@ -97,7 +93,7 @@ export function BalloonGame({ challengeCode }: BalloonGameProps) {
         >
           <button
             onClick={isChallenge ? resetToMenu : backToMenu}
-            className="flex items-center gap-1.5 text-white/40 hover:text-white/70 transition-colors text-sm font-mono cursor-pointer"
+            className="flex items-center gap-1.5 -ml-3 px-3 py-2.5 min-h-11 text-white/40 hover:text-white/70 transition-colors text-sm font-mono cursor-pointer"
           >
             <ArrowLeft className="w-4 h-4" strokeWidth={1.5} />
             {isChallenge ? 'Restart' : 'Menu'}
@@ -117,10 +113,8 @@ export function BalloonGame({ challengeCode }: BalloonGameProps) {
         {state.phase === 'selecting-difficulty' && (
           <motion.div
             key={`menu-${menuView}`}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
             exit={{ opacity: 0, y: -20 }}
-            className="flex flex-col gap-6"
+            className="flex flex-col gap-6 fade-up"
           >
             {menuView === 'mode' && (
               <ModeSelector
@@ -139,7 +133,7 @@ export function BalloonGame({ challengeCode }: BalloonGameProps) {
                 <DifficultySelector options={DIFFICULTY_OPTIONS} onSelect={selectDifficulty} />
                 <button
                   onClick={() => setMenuView('mode')}
-                  className="mx-auto flex items-center gap-1.5 text-white/40 hover:text-white/70 transition-colors text-sm font-mono cursor-pointer"
+                  className="mx-auto flex items-center gap-1.5 px-3 py-2.5 min-h-11 text-white/40 hover:text-white/70 transition-colors text-sm font-mono cursor-pointer"
                 >
                   <ArrowLeft className="w-4 h-4" strokeWidth={1.5} />
                   Back
@@ -153,9 +147,8 @@ export function BalloonGame({ challengeCode }: BalloonGameProps) {
         {state.phase === 'challenge-intro' && challengeCode && challengeRounds && (
           <motion.div
             key="challenge-intro"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
             exit={{ opacity: 0, y: -20 }}
+            className="fade-up"
           >
             <ChallengeIntro
               gameId={GAME_ID}
@@ -228,9 +221,19 @@ export function BalloonGame({ challengeCode }: BalloonGameProps) {
               />
             )}
 
-            {/* Inflate zone — balloon is pointer-events:none so it never triggers pointerleave */}
-            <div
+            {/* Inflate zone — a real button so keyboard/switch users can
+                reach it (C4): Space/Enter start and release the hold via
+                usePressAndHold's key handlers. Balloon is pointer-events:none
+                so it never triggers pointerleave. */}
+            <button
+              type="button"
               {...holdHandlers}
+              aria-label={
+                state.isHolding
+                  ? 'Release to stop inflating and adjust the size'
+                  : 'Hold to inflate the balloon'
+              }
+              aria-pressed={state.isHolding}
               className={`inflate-zone ${state.isHolding ? 'inflate-zone-active' : ''}`}
             >
               <div className="pointer-events-none">
@@ -251,7 +254,7 @@ export function BalloonGame({ challengeCode }: BalloonGameProps) {
                   Hold to start
                 </motion.p>
               )}
-            </div>
+            </button>
 
             {/* Progress bar */}
             <div className="w-full max-w-xs">
@@ -283,14 +286,14 @@ export function BalloonGame({ challengeCode }: BalloonGameProps) {
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0 }}
+            role="status"
+            aria-live="polite"
           >
             <ResultScreen
               result={state.result}
               targetColor={state.targetColor}
               isNewHighScore={state.isNewHighScore}
-              nextLabel={
-                isFinalRound ? 'Final Results' : isChallenge ? 'Next Challenge' : 'Next Round'
-              }
+              nextLabel={isFinalRound ? 'Results' : 'Next'}
               onPlayAgain={playAgain}
               onMenu={resetToMenu}
             />
@@ -298,17 +301,21 @@ export function BalloonGame({ challengeCode }: BalloonGameProps) {
         )}
 
         {/* ── Session complete (normal mode): total, share, replay ── */}
-        {state.phase === 'session-complete' && state.difficulty && (
+        {state.phase === 'session-complete' && state.difficulty && cfg && (
           <motion.div
             key="session-complete"
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0 }}
           >
-            <SessionComplete
-              difficulty={state.difficulty}
+            <SessionSummary
+              emoji="🎈"
+              gameName="Balloon Match"
+              gamePath="/games/balloon-match"
+              subtitle={cfg.label}
+              accent={cfg.color}
               roundScores={state.roundScores}
-              isNewBestSession={state.isNewBestSession}
+              isNewBest={state.isNewBestSession}
               bestSession={bestSession}
               onReplay={() => selectDifficulty(state.difficulty!)}
               onMenu={resetToMenu}

@@ -4,7 +4,6 @@ import {
   CHALLENGE_ROUND_COUNT,
   MAX_CHALLENGE_SCORE,
   buildChallengeShareText,
-  buildSessionShareText,
   challengeLabel,
   challengePath,
   generateChallengeCode,
@@ -95,9 +94,21 @@ describe('challenge codes', () => {
     }
   });
 
-  it('formats the daily code from the local date', () => {
-    expect(getDailyChallengeCode(new Date(2026, 6, 8))).toBe('daily-20260708');
-    expect(getDailyChallengeCode(new Date(2026, 0, 1))).toBe('daily-20260101');
+  it('formats the daily code from the UTC date', () => {
+    expect(getDailyChallengeCode(new Date(Date.UTC(2026, 6, 8)))).toBe('daily-20260708');
+    expect(getDailyChallengeCode(new Date(Date.UTC(2026, 0, 1)))).toBe('daily-20260101');
+  });
+
+  it('uses UTC, not host-local time, so the daily code is identical worldwide', () => {
+    // Pinned instant well inside 2026-07-31 UTC — must resolve to that UTC
+    // date regardless of which timezone the test runner's host is in.
+    expect(getDailyChallengeCode(new Date('2026-07-31T23:30:00Z'))).toBe('daily-20260731');
+
+    // Either side of a UTC midnight boundary: these must land on different
+    // days even though many local timezones would still consider the earlier
+    // instant "the same evening" as the later one.
+    expect(getDailyChallengeCode(new Date('2026-07-31T23:59:59Z'))).toBe('daily-20260731');
+    expect(getDailyChallengeCode(new Date('2026-08-01T00:00:00Z'))).toBe('daily-20260801');
   });
 
   it('classifies codes', () => {
@@ -111,7 +122,7 @@ describe('challenge codes', () => {
   it('builds paths and labels', () => {
     expect(challengePath('balloon-match', 'abc123')).toBe('/games/balloon-match/challenge/abc123');
     expect(challengePath('perfect-pour', 'abc123')).toBe('/games/perfect-pour/challenge/abc123');
-    expect(challengeLabel('daily-20260708')).toBe('Daily · 2026-07-08');
+    expect(challengeLabel('daily-20260708')).toBe('Daily · 8 July 2026');
     expect(challengeLabel('abc123')).toBe('Challenge ABC123');
   });
 });
@@ -129,14 +140,24 @@ describe('buildChallengeShareText', () => {
     expect(text).toContain('Perfect Pour');
     expect(text).toContain('https://example.com/games/perfect-pour/challenge/abc123');
   });
-});
 
-describe('buildSessionShareText', () => {
-  it('summarizes a 5-round free-play session out of 50', () => {
-    const text = buildSessionShareText('balloon-match', 'Easy', [10, 8, 6, 3, 1], 'https://example.com');
-    expect(text).toContain('Easy');
-    expect(text).toContain('🎯 🟢 🟡 🟠 🔴');
-    expect(text).toContain('28/50');
-    expect(text).toContain('https://example.com/games/balloon-match');
+  it('formats a decimal total with no float noise (R2)', () => {
+    const text = buildChallengeShareText(
+      'balloon-match',
+      'abc123',
+      [7.46, 9.34, 5.98],
+      'https://example.com'
+    );
+    // 7.46 + 9.34 + 5.98 = 22.78 exactly; a naive reduce can leave trailing
+    // float noise (e.g. 22.779999999999998) — that must never reach the text.
+    expect(text).toContain('22.78/30');
+    expect(text).not.toMatch(/\d\.\d{3,}/);
+  });
+
+  it('trims a whole-number decimal total down to a bare integer', () => {
+    // 10 + 10 + 10 → a clean 30, not "30.00".
+    const text = buildChallengeShareText('balloon-match', 'abc123', [10, 10, 10], 'https://example.com');
+    expect(text).toContain('30/30');
+    expect(text).not.toContain('30.00');
   });
 });

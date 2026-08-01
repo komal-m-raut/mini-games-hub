@@ -16,6 +16,7 @@ import {
   NORMAL_ROUND_COUNT,
   calculateScore,
   getLocalBestSession,
+  round2,
   saveBestSession,
 } from '@/utils/scoring';
 import { PourChallengeRound, getPourChallengeRounds } from './challenge';
@@ -74,12 +75,17 @@ export function usePourGame({ challengeCode }: UsePourGameOptions = {}) {
     phase: isChallenge ? 'challenge-intro' : 'selecting-difficulty',
     totalRounds: isChallenge ? CHALLENGE_ROUND_COUNT : NORMAL_ROUND_COUNT,
   }));
-  const { play, loop, stop } = useSound();
+  const { play, loop, stop, setFill } = useSound();
 
   const pourIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const observeTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const fillTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const transitioningRef = useRef(false);
+  // Deadline timestamp (performance.now()-based) the observe countdown
+  // derives its remaining time from, so a throttled/backgrounded tab (where
+  // ticks coalesce) still reports correct time left instead of nearly
+  // freezing.
+  const observeDeadlineRef = useRef(0);
 
   // Mirror of the latest state for callbacks; updated in an effect (never
   // during render) so it can't trip the refs-during-render rule.
@@ -134,18 +140,31 @@ export function usePourGame({ challengeCode }: UsePourGameOptions = {}) {
         setState((s) => (s.phase === 'filling' ? { ...s, phase: 'observing' } : s));
         play('tick');
 
+        // Countdown derives remaining time from a deadline rather than
+        // decrementing by 1 per tick, so a throttled/backgrounded tab still
+        // reports correct time left. Interval-clear and ref mutation live
+        // here in the interval callback, not inside the setState updater,
+        // which React may invoke more than once.
+        observeDeadlineRef.current = performance.now() + cfg.observeSeconds * 1000;
         observeTimerRef.current = setInterval(() => {
-          setState((prev) => {
-            if (prev.phase !== 'observing') return prev;
-            const next = prev.observeTimeLeft - 1;
-            if (next <= 0) {
-              clearInterval(observeTimerRef.current!);
-              observeTimerRef.current = null;
-              // Glass empties and the player takes over
-              return { ...prev, observeTimeLeft: 0, phase: 'pouring', currentFill: 0 };
-            }
-            return { ...prev, observeTimeLeft: next };
-          });
+          const remaining = Math.ceil((observeDeadlineRef.current - performance.now()) / 1000);
+          if (remaining <= 0) {
+            clearInterval(observeTimerRef.current!);
+            observeTimerRef.current = null;
+            // Glass empties and the player takes over
+            setState((prev) =>
+              prev.phase !== 'observing'
+                ? prev
+                : { ...prev, observeTimeLeft: 0, phase: 'pouring', currentFill: 0 }
+            );
+            play('tick');
+            return;
+          }
+          setState((prev) =>
+            prev.phase !== 'observing' || prev.observeTimeLeft === remaining
+              ? prev
+              : { ...prev, observeTimeLeft: remaining }
+          );
           play('tick');
         }, 1000);
       }, FILL_ANIMATION_MS);
@@ -202,18 +221,17 @@ export function usePourGame({ challengeCode }: UsePourGameOptions = {}) {
     setState((prev) => {
       if (prev.phase !== 'pouring') return prev;
 
-      const cfg = POUR_DIFFICULTY[prev.difficulty!];
       const diff = Math.abs(prev.targetFill - prev.currentFill);
       const accuracy = getPourAccuracy(prev.targetFill, prev.currentFill);
-      const rating = getPourRating(diff, cfg.tolerance);
       const score = calculateScore(accuracy);
+      const rating = getPourRating(score);
 
       return {
         ...prev,
         phase: 'results',
         isPouring: false,
         score,
-        totalScore: prev.totalScore + score,
+        totalScore: round2(prev.totalScore + score),
         roundScores: [...prev.roundScores, score],
         result: {
           targetFill: prev.targetFill,
@@ -251,24 +269,39 @@ export function usePourGame({ challengeCode }: UsePourGameOptions = {}) {
     });
     loop('water');
 
-    // Wall-clock based so a throttled tab doesn't slow the pour rate
+    // Wall-clock based so a throttled tab doesn't slow the pour rate. dt is
+    // clamped so a backgrounded/throttled tab (where ticks coalesce) can't
+    // let a single tick carry several seconds of pour in one jump.
     let last = performance.now();
     pourIntervalRef.current = setInterval(() => {
       const now = performance.now();
-      const dt = (now - last) / 1000;
+      const dt = Math.min((now - last) / 1000, (TICK_MS / 1000) * 4);
       last = now;
       setState((prev) => {
         if (!prev.isPouring || prev.phase !== 'pouring') return prev;
         const cfg = POUR_DIFFICULTY[prev.difficulty!];
         const next = Math.min(100, prev.currentFill + cfg.pourSpeed * dt);
+        // Couple the water loop to fill level (H5/R1) — reuses this
+        // existing 16ms tick rather than adding a new timer. setWaterFill
+        // just nudges an AudioParam, so re-invocation is harmless.
+        setFill(next);
         return { ...prev, currentFill: next };
       });
     }, TICK_MS);
-  }, [loop]);
+  }, [loop, setFill]);
 
   const stopPouring = useCallback(() => {
+    if (pourIntervalRef.current) {
+      clearInterval(pourIntervalRef.current);
+      pourIntervalRef.current = null;
+    }
+    stop('water');
+    setState((prev) => {
+      if (prev.phase !== 'pouring') return prev;
+      return { ...prev, isPouring: false };
+    });
     lockIn();
-  }, [lockIn]);
+  }, [stop, lockIn]);
 
   // ── Advance ───────────────────────────────────────────────────────
 
@@ -300,6 +333,18 @@ export function usePourGame({ challengeCode }: UsePourGameOptions = {}) {
     const { difficulty } = stateRef.current;
     if (difficulty) selectDifficulty(difficulty);
   }, [selectDifficulty]);
+
+  // Backgrounding the tab mid-pour must not be exploitable — end the pour
+  // and lock in immediately, same as a pointer release.
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.hidden && stateRef.current.isPouring) {
+        stopPouring();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [stopPouring]);
 
   // Cleanup on unmount
   useEffect(

@@ -38,6 +38,9 @@ export interface PathGameState {
   traced: Cell[];
   /** Live stopwatch for the tracing phase, in ms. */
   traceMs: number;
+  /** True the instant the trace completes, ~380ms before scoring lands
+   *  (phase is still 'tracing'). Drives disabling trace controls early. */
+  locked: boolean;
   round: number;
   totalRounds: number;
   score: number;

@@ -5,18 +5,20 @@ import { Trophy, Users, RefreshCw } from 'lucide-react';
 import { useLeaderboard, LeaderboardTab } from '@/hooks/useLeaderboard';
 import { useSiteStats } from '@/hooks/useSiteStats';
 import { MAX_CHALLENGE_SCORE } from '@/lib/challenge';
+import { RANK_COLORS } from '@/lib/constants';
 import { usePlayerId } from '@/lib/player';
 import { ScoreEntry } from '@/types/game';
+import { formatScore } from '@/utils/scoring';
 
 const TABS: { id: LeaderboardTab; label: string }[] = [
   { id: 'today', label: "Today's Challenge" },
   { id: 'alltime', label: 'All Time' },
 ];
 
-const RANK_COLORS = ['#EAB308', '#94A3B8', '#D97706'];
-
 interface LeaderboardProps {
   gameId: string;
+  /** Heading text for this section. Defaults to "Leaderboard". */
+  title?: string;
 }
 
 function RankBadge({ rank }: { rank: number }) {
@@ -30,7 +32,7 @@ function RankBadge({ rank }: { rank: number }) {
       />
     );
   }
-  return <span className="text-white/30 font-mono text-sm w-5 text-center">{rank}</span>;
+  return <span className="text-white/55 font-mono text-sm w-5 text-center">{rank}</span>;
 }
 
 function LeaderboardRow({
@@ -62,15 +64,17 @@ function LeaderboardRow({
       <div className="flex items-center gap-6 shrink-0">
         {entry.roundScores && (
           <div className="text-right hidden sm:block">
-            <p className="text-xs text-white/40 font-mono">Rounds</p>
-            <p className="text-white/70 font-mono text-sm">{entry.roundScores.join(' · ')}</p>
+            <p className="text-xs text-white/55 font-mono">Rounds</p>
+            <p className="text-white/70 font-mono text-sm">
+              {entry.roundScores.map(formatScore).join(' · ')}
+            </p>
           </div>
         )}
         <div className="text-right">
-          <p className="text-xs text-white/40 font-mono">Score</p>
+          <p className="text-xs text-white/55 font-mono">Score</p>
           <p className="font-display font-bold text-brand-purple">
-            {entry.score}
-            <span className="text-white/30 text-xs">/{MAX_CHALLENGE_SCORE}</span>
+            {formatScore(entry.score)}
+            <span className="text-white/55 text-xs">/{MAX_CHALLENGE_SCORE}</span>
           </p>
         </div>
       </div>
@@ -78,7 +82,7 @@ function LeaderboardRow({
   );
 }
 
-export function Leaderboard({ gameId }: LeaderboardProps) {
+export function Leaderboard({ gameId, title = 'Leaderboard' }: LeaderboardProps) {
   const { entries, activeTab, setActiveTab, isLoading, refresh } = useLeaderboard(gameId);
   const stats = useSiteStats();
   const playerId = usePlayerId();
@@ -90,17 +94,17 @@ export function Leaderboard({ gameId }: LeaderboardProps) {
         <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 mb-4">
           <div className="flex items-center gap-2">
             <Trophy className="w-5 h-5 text-brand-yellow" strokeWidth={1.5} />
-            <h3 className="font-display font-bold text-white text-lg sm:text-xl">Leaderboard</h3>
+            <h2 className="font-display font-bold text-white text-lg sm:text-xl">{title}</h2>
           </div>
           <div className="flex items-center gap-3 shrink-0">
-            <div className="flex items-center gap-1.5 text-xs text-white/40 font-mono whitespace-nowrap">
+            <div className="flex items-center gap-1.5 text-xs text-white/55 font-mono whitespace-nowrap">
               <Users className="w-3.5 h-3.5 shrink-0" />
               {(stats?.totalPlayers ?? 0).toLocaleString()} player{stats?.totalPlayers === 1 ? '' : 's'}
             </div>
             <button
               onClick={refresh}
               disabled={isLoading}
-              className="p-1.5 rounded-lg text-white/40 hover:text-white/70 hover:bg-white/5 transition-all disabled:opacity-30"
+              className="min-w-11 min-h-11 flex items-center justify-center rounded-lg text-white/55 hover:text-white/80 hover:bg-white/5 transition-all disabled:opacity-30"
               aria-label="Refresh leaderboard"
             >
               <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} strokeWidth={1.5} />
@@ -132,7 +136,7 @@ export function Leaderboard({ gameId }: LeaderboardProps) {
           </div>
         ) : entries && entries.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 gap-2 text-center">
-            <p className="text-white/40">No scores yet — play a challenge to get on the board!</p>
+            <p className="text-white/55">No scores yet — play a challenge to get on the board!</p>
           </div>
         ) : (
           <AnimatePresence mode="wait">

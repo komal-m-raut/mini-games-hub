@@ -4,13 +4,13 @@ import { AdBanner } from '@/components/ads/AdBanner';
 
 export function Footer() {
   return (
-    <footer className="relative z-10 mt-auto border-t border-white/5">
+    <footer className="site-footer relative z-10 mt-auto border-t border-white/5">
       {/* Footer Ad */}
       <div className="py-4 flex justify-center">
         <AdBanner placement="footer-banner" format="leaderboard" />
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div className="page-container py-8">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <Gamepad2 className="w-5 h-5 text-brand-purple" strokeWidth={1.5} />
@@ -19,13 +19,20 @@ export function Footer() {
             </span>
           </div>
 
-          <div className="flex items-center gap-6 text-sm text-white/40">
-            <Link href="/privacy" className="hover:text-white/70 transition-colors">Privacy Policy</Link>
-            <a href="/privacy#contact" className="hover:text-white/70 transition-colors">Contact</a>
+          {/* -my-3 py-3 grows the tap target to 44px+ tall without changing
+              the visible line height — these anchors have no background/
+              border, so the extra padding renders invisibly (M6). */}
+          <div className="flex items-center gap-6 text-sm text-white/55">
+            <Link href="/privacy" className="-my-3 py-3 hover:text-white/80 transition-colors">
+              Privacy Policy
+            </Link>
+            <a href="/privacy#contact" className="-my-3 py-3 hover:text-white/80 transition-colors">
+              Contact
+            </a>
           </div>
         </div>
 
-        <p className="mt-4 text-center text-xs text-white/20">
+        <p className="mt-4 text-center text-xs text-white/55">
           © {new Date().getFullYear()} Mini Games Hub. All rights reserved.
         </p>
       </div>

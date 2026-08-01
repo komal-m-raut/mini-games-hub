@@ -10,18 +10,6 @@ export const SITE_URL =
   process.env.NEXT_PUBLIC_SITE_URL ??
   (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : 'http://localhost:3000');
 
-// Neon palette used throughout the UI
-export const NEON = {
-  purple: '#7C3AED',
-  purpleLight: '#A78BFA',
-  cyan: '#06B6D4',
-  pink: '#EC4899',
-  teal: '#14B8A6',
-  blue: '#3B82F6',
-  rose: '#F43F5E',
-  green: '#22C55E',
-} as const;
-
 // Balloon game: all size values are "units" (0-100).
 // Display diameter = units * UNIT_TO_PX.
 // Constraint: the .inflate-zone is 320px tall and the balloon renders at
@@ -43,11 +31,9 @@ export const BALLOON_COLORS: string[] = [
 
 export interface DifficultyConfig {
   label: string;
-  description: string;
   minUnits: number;
   maxUnits: number;
   inflationSpeed: number; // units per second while holding
-  tolerancePercent: number;
   observeSeconds: number;
   inflateSeconds: number | null; // time limit to lock in a size; null = no limit
   color: string;
@@ -59,11 +45,9 @@ export const DIFFICULTY_CONFIG: Record<Difficulty, DifficultyConfig> = {
   // (worst case ~70% of the window) or some targets become unwinnable.
   easy: {
     label: 'Easy',
-    description: 'No timer · Forgiving',
     minUnits: 30,
     maxUnits: 65,
     inflationSpeed: 12,
-    tolerancePercent: 15,
     observeSeconds: 5,
     inflateSeconds: null,
     color: '#22C55E',
@@ -71,11 +55,9 @@ export const DIFFICULTY_CONFIG: Record<Difficulty, DifficultyConfig> = {
   },
   medium: {
     label: 'Medium',
-    description: '5 seconds · Tighter',
     minUnits: 20,
     maxUnits: 78,
     inflationSpeed: 25,
-    tolerancePercent: 10,
     observeSeconds: 5,
     inflateSeconds: 5,
     color: '#F97316',
@@ -83,11 +65,9 @@ export const DIFFICULTY_CONFIG: Record<Difficulty, DifficultyConfig> = {
   },
   hard: {
     label: 'Hard',
-    description: '3 seconds · No mercy',
     minUnits: 15,
     maxUnits: 88,
     inflationSpeed: 45,
-    tolerancePercent: 5,
     observeSeconds: 5,
     inflateSeconds: 3,
     color: '#EF4444',
@@ -95,12 +75,5 @@ export const DIFFICULTY_CONFIG: Record<Difficulty, DifficultyConfig> = {
   },
 };
 
-// Placeholder Google AdSense Publisher ID — replace before going live
-export const ADSENSE_PUBLISHER_ID = 'ca-pub-XXXXXXXXXXXXXXXXX';
-
-// Placeholder Ad Unit IDs
-export const AD_UNITS = {
-  BELOW_HUB_BANNER: 'XXXXXXXXXX',
-  BETWEEN_GAMES_BANNER: 'XXXXXXXXXX',
-  FOOTER_BANNER: 'XXXXXXXXXX',
-} as const;
+/** Gold / silver / bronze — shared by every leaderboard's top-3 styling. */
+export const RANK_COLORS = ['#EAB308', '#94A3B8', '#D97706'];

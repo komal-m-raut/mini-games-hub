@@ -52,6 +52,65 @@ export function straightRun(from: Cell, to: Cell): Cell[] {
   return out;
 }
 
+/**
+ * Moves a keyboard focus cursor by (dr, dc), clamped to stay inside a
+ * `size`×`size` grid. Pure so cursor-clamping at the grid edges can be unit
+ * tested without mounting `PathGrid`.
+ */
+export function moveCursor(cursor: Cell, dr: number, dc: number, size: number): Cell {
+  return {
+    r: Math.min(size - 1, Math.max(0, cursor.r + dr)),
+    c: Math.min(size - 1, Math.max(0, cursor.c + dc)),
+  };
+}
+
+export type TraceStepResult =
+  | { type: 'ignored' }
+  | { type: 'illegal' }
+  | { type: 'backtrack'; traced: Cell[] }
+  | { type: 'extended'; traced: Cell[] };
+
+/**
+ * Pure core of a single trace step, shared by pointer dragging and keyboard
+ * laying so both inputs score through identical logic (no parallel scoring
+ * path). A single adjacent step is the common case; a fast pointer drag (or
+ * a keyboard cursor moved several cells before Space) can land past the
+ * last-laid cell, so any straight run between the last cell and this one is
+ * filled in. Stepping back onto the previous cell rubs the last one out.
+ * Anything else (a diagonal, a jump, or a cell already used) is illegal.
+ */
+export function extendTrace(traced: Cell[], cell: Cell, pathLength: number): TraceStepResult {
+  const last = traced[traced.length - 1];
+
+  if (!last) {
+    return { type: 'extended', traced: [cell] };
+  }
+  if (cellsEqual(last, cell)) {
+    return { type: 'ignored' };
+  }
+  if (traced.length > 1 && cellsEqual(traced[traced.length - 2], cell)) {
+    return { type: 'backtrack', traced: traced.slice(0, -1) };
+  }
+  if (traced.length >= pathLength) {
+    return { type: 'ignored' };
+  }
+
+  const run = straightRun(last, cell);
+  const used = new Set(traced.map(cellKey));
+  let next = traced;
+  for (const step of run) {
+    if (next.length >= pathLength) break;
+    const key = cellKey(step);
+    if (used.has(key)) break;
+    used.add(key);
+    next = [...next, step];
+  }
+  if (next === traced) {
+    return { type: 'illegal' };
+  }
+  return { type: 'extended', traced: next };
+}
+
 const DIRECTIONS: Cell[] = [
   { r: -1, c: 0 },
   { r: 1, c: 0 },

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
+import { useReducedMotion } from 'framer-motion';
 import confetti from 'canvas-confetti';
 
 type ConfettiPreset = 'perfect' | 'great' | 'good';
@@ -40,10 +41,21 @@ const PRESETS: Record<ConfettiPreset, Parameters<typeof confetti>[0]> = {
 
 export function ConfettiEffect({ trigger, preset = 'great', onComplete }: ConfettiEffectProps) {
   const firedRef = useRef(false);
+  const prefersReducedMotion = useReducedMotion();
 
   useEffect(() => {
     if (!trigger || firedRef.current) return;
     firedRef.current = true;
+
+    if (prefersReducedMotion) {
+      // Respect the user's motion preference — skip the burst entirely,
+      // but still fire onComplete so callers relying on it don't stall.
+      setTimeout(() => {
+        onComplete?.();
+        firedRef.current = false;
+      }, 0);
+      return;
+    }
 
     const options = PRESETS[preset];
 
@@ -60,7 +72,7 @@ export function ConfettiEffect({ trigger, preset = 'great', onComplete }: Confet
       onComplete?.();
       firedRef.current = false;
     }, 2500);
-  }, [trigger, preset, onComplete]);
+  }, [trigger, preset, onComplete, prefersReducedMotion]);
 
   return null;
 }

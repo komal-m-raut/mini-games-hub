@@ -57,7 +57,12 @@
 
 html {
   color-scheme: dark;
-  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
 }
 
 body {
@@ -136,16 +141,40 @@ body {
 /* ─────────────────────────────────────────────
    Navigation Glass
 ───────────────────────────────────────────── */
+/* Single source of truth for the fixed nav's real on-screen height:
+   the inner row is a fixed 4rem (`h-16` in Navigation.tsx) plus, in
+   installed standalone PWA mode on a notched iPhone, whatever inset the
+   status bar/notch eats via `padding-top` below (L15). Anything that
+   needs to sit clear of the nav — the content offset, scroll anchors —
+   must read this variable instead of a hardcoded px value, or the two
+   will drift apart again the next time either side changes. */
+:root {
+  --nav-height: calc(4rem + env(safe-area-inset-top, 0px));
+}
+
 .glass-nav {
   background: rgba(8, 8, 24, 0.7);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  /* Installed standalone PWA on notched iPhones: the nav is `fixed` at the
+     very top, so it needs its own inset padding to clear the status bar/
+     notch (L15). Zero on non-PWA/non-notched viewports since the env()
+     value resolves to 0 there. This is the same env() term baked into
+     --nav-height above — the two must stay in lockstep. */
+  padding-top: env(safe-area-inset-top, 0px);
 }
 
-/* Anchor targets land below the fixed 64px nav */
+/* Content offset for the fixed nav (M4/L15) — see `--nav-height` above.
+   Applied to <main> in app/layout.tsx instead of a Tailwind `pt-16`
+   literal so it can't drift out of sync with the nav's real height. */
+.content-offset {
+  padding-top: var(--nav-height);
+}
+
+/* Anchor targets land below the fixed nav, plus a small breathing gap. */
 #leaderboard {
-  scroll-margin-top: 88px;
+  scroll-margin-top: calc(var(--nav-height) + 24px);
 }
 
 .nav-link {
@@ -153,6 +182,7 @@ body {
   align-items: center;
   gap: 6px;
   padding: 6px 14px;
+  min-height: 44px;
   border-radius: var(--radius-sm);
   font-size: 0.875rem;
   font-family: var(--font-mono);
@@ -259,23 +289,6 @@ body {
   box-shadow: 0 0 40px var(--glow, transparent);
 }
 
-.stat-pill {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding: 6px 8px;
-  border-radius: 6px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.06);
-}
-
-/* Horizontal pill variant for full-width rows */
-.stat-pill-row {
-  flex-direction: row;
-  align-items: center;
-  justify-content: space-between;
-}
-
 /* ─────────────────────────────────────────────
    Game Card (hub)
 ───────────────────────────────────────────── */
@@ -330,6 +343,56 @@ body {
   border-color: rgba(124, 58, 237, 0.5);
   background: rgba(124, 58, 237, 0.04);
   box-shadow: 0 0 40px rgba(124, 58, 237, 0.12) inset;
+}
+
+.inflate-zone:focus-visible {
+  outline: 2px solid rgba(124, 58, 237, 0.7);
+  outline-offset: 3px;
+}
+
+/* ─────────────────────────────────────────────
+   Fine-adjust step buttons (U8) — Balloon Match size,
+   Perfect Pour water level. Real <button>s at a ≥44px
+   touch target; this is also the C4 keyboard-play fix.
+───────────────────────────────────────────── */
+.step-btn {
+  --step-accent: #7c3aed;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono, monospace);
+  font-size: 1.4rem;
+  line-height: 1;
+  color: rgba(255, 255, 255, 0.85);
+  background: color-mix(in srgb, var(--step-accent) 10%, rgba(255, 255, 255, 0.03));
+  border: 1.5px solid color-mix(in srgb, var(--step-accent) 40%, transparent);
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+  transition: transform 0.1s ease, background 0.2s ease, border-color 0.2s ease;
+}
+
+.step-btn:hover {
+  background: color-mix(in srgb, var(--step-accent) 18%, rgba(255, 255, 255, 0.03));
+  border-color: color-mix(in srgb, var(--step-accent) 60%, transparent);
+}
+
+.step-btn:active {
+  transform: scale(0.94);
+}
+
+.step-btn:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--step-accent) 70%, transparent);
+  outline-offset: 3px;
+}
+
+.step-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
 }
 
 /* ─────────────────────────────────────────────
@@ -409,17 +472,28 @@ body {
 .mode-card {
   --mode-accent: #06b6d4;
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 0.6rem;
-  padding: 1.5rem;
-  border-radius: var(--radius-xl);
+  flex-direction: row;
+  align-items: center;
+  gap: 0.85rem;
+  padding: 0.85rem 1.1rem;
+  border-radius: var(--radius-lg);
   text-align: left;
   cursor: pointer;
   background: color-mix(in srgb, var(--mode-accent) 6%, rgba(255, 255, 255, 0.02));
   border: 1.5px solid color-mix(in srgb, var(--mode-accent) 22%, transparent);
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
   transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* Icon-over-label on wider screens, where the grid goes 3-up and each
+   card has more width than height to spare. */
+@media (min-width: 640px) {
+  .mode-card {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.6rem;
+    padding: 1.25rem;
+  }
 }
 
 .mode-card:hover {
@@ -438,12 +512,20 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 3rem;
-  height: 3rem;
+  width: 2.5rem;
+  height: 2.5rem;
+  flex-shrink: 0;
   border-radius: 999px;
   color: var(--mode-accent);
   background: color-mix(in srgb, var(--mode-accent) 15%, transparent);
   box-shadow: 0 0 18px color-mix(in srgb, var(--mode-accent) 30%, transparent);
+}
+
+@media (min-width: 640px) {
+  .mode-icon {
+    width: 3rem;
+    height: 3rem;
+  }
 }
 
 /* ─────────────────────────────────────────────
@@ -455,7 +537,6 @@ body {
 .path-grid {
   display: grid;
   gap: 0;
-  touch-action: none;
   user-select: none;
   -webkit-user-select: none;
   width: 100%;
@@ -467,7 +548,6 @@ body {
 .path-cell {
   position: relative;
   aspect-ratio: 1 / 1;
-  touch-action: none;
 }
 
 /* Inset, border-radius and transition are driven inline per grid size
@@ -496,16 +576,18 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  /* flex-start (not center): a two-line value shouldn't push its label out
+     of line with single-line neighbours in the same row (M27). */
+  justify-content: flex-start;
   min-height: 72px;
 }
 
 .stat-label {
   font-family: var(--font-mono);
-  font-size: 0.65rem;
+  font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  color: rgba(255, 255, 255, 0.35);
+  color: rgba(255, 255, 255, 0.55);
   margin-bottom: 6px;
   white-space: nowrap;
 }
@@ -538,10 +620,11 @@ body {
   display: inline-flex;
   align-items: center;
   padding: 5px 14px;
+  min-height: 44px;
   border-radius: 6px;
   font-size: 0.75rem;
   font-family: var(--font-mono);
-  color: rgba(255, 255, 255, 0.4);
+  color: rgba(255, 255, 255, 0.55);
   background: transparent;
   border: none;
   cursor: pointer;
@@ -572,19 +655,57 @@ body {
 
 .ad-placeholder-label {
   font-family: var(--font-mono);
-  font-size: 0.7rem;
-  color: rgba(255, 255, 255, 0.2);
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.55);
   text-transform: uppercase;
   letter-spacing: 0.08em;
 }
 
+/* Decorative: the ad slot's pixel dimensions, shown only inside the dashed
+   placeholder box as a dev/debug annotation — not information a player
+   needs, so it stays low-contrast/small on purpose (M1/M7). */
 .ad-placeholder-size {
   font-family: var(--font-mono);
   font-size: 0.65rem;
   color: rgba(255, 255, 255, 0.1);
 }
 
-.ad-container { max-width: 100%; }
+.ad-container {
+  max-width: 100%;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: var(--radius-md);
+}
+
+/* ─────────────────────────────────────────────
+   Fade-up entrance (CSS-driven, not Framer)
+   Above-the-fold content must be visible in the
+   server-rendered HTML — a Framer `initial={{ opacity: 0 }}`
+   serializes into the SSR output and leaves the page
+   blank until JS hydrates. CSS animations paint before
+   hydration and already respect the reduced-motion rule
+   below.
+───────────────────────────────────────────── */
+@keyframes fade-up-in {
+  from { opacity: 0; transform: translateY(24px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.fade-up {
+  animation: fade-up-in 0.6s ease-out both;
+}
+
+/* Same rationale as fade-up-in, but for the fixed top nav: it slides down
+   from off-screen rather than rising from below, so it gets its own
+   keyframe instead of being forced through fade-up's translateY(24px). */
+@keyframes slide-down-in {
+  from { transform: translateY(-80px); }
+  to   { transform: translateY(0); }
+}
+
+.slide-down {
+  animation: slide-down-in 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
 
 /* ─────────────────────────────────────────────
    Particle Floats
@@ -653,12 +774,26 @@ body {
 }
 
 /* ─────────────────────────────────────────────
-   Score card layout
+   Tabular numeric readouts (scores, rounds, timers, …)
+   JetBrains Mono's digits are all the same width, and tabular-nums stops
+   them jittering as values tick over — Orbitron bold numerals go near-
+   solid at small sizes (M19), so anything that changes every frame reads
+   better in mono anyway.
 ───────────────────────────────────────────── */
-.score-divider {
-  width: 1px;
-  height: 32px;
-  background: rgba(255, 255, 255, 0.08);
+.font-score {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ─────────────────────────────────────────────
+   Safe-area insets (L15)
+   The footer sits at the very bottom of the document; in installed
+   standalone PWA mode on iPhone it can land under the home-indicator
+   strip. Padding-bottom, not margin, so the border/background still
+   extends under the inset instead of leaving a gap.
+───────────────────────────────────────────── */
+.site-footer {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
 /* ─────────────────────────────────────────────

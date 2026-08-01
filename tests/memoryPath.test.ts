@@ -3,11 +3,14 @@ import {
   Cell,
   cellKey,
   comparePaths,
+  extendTrace,
   generatePath,
   isAdjacent,
+  moveCursor,
   straightRun,
 } from '@/games/memory-path/pathGen';
 import { PATH_DIFFICULTY, getPathRating } from '@/games/memory-path/constants';
+import { calculateScore } from '@/utils/scoring';
 
 /** Deterministic RNG so a failing case is reproducible. */
 function seeded(seed: number): () => number {
@@ -58,6 +61,35 @@ describe('generatePath', () => {
     for (const cfg of Object.values(PATH_DIFFICULTY)) {
       expect(generatePath(cfg.size, cfg.pathLength)).toHaveLength(cfg.pathLength);
     }
+  });
+});
+
+describe('PATH_DIFFICULTY', () => {
+  it('pins the grid sizes to the 9 / 12 / 16 trio', () => {
+    // Regression guard: touch-target sizing (WCAG 2.5.8) depends on these
+    // exact sizes — an accidental edit here should fail loudly.
+    expect(PATH_DIFFICULTY.easy.size).toBe(9);
+    expect(PATH_DIFFICULTY.medium.size).toBe(12);
+    expect(PATH_DIFFICULTY.hard.size).toBe(16);
+  });
+
+  it('keeps every requested path short enough to fit its grid', () => {
+    for (const cfg of Object.values(PATH_DIFFICULTY)) {
+      expect(cfg.pathLength).toBeLessThan(cfg.size * cfg.size);
+    }
+  });
+
+  it('orders reveal speed and memorize time sensibly across difficulties', () => {
+    const { easy, medium, hard } = PATH_DIFFICULTY;
+    // Harder difficulties reveal each cell faster...
+    expect(easy.revealMs).toBeGreaterThan(medium.revealMs);
+    expect(medium.revealMs).toBeGreaterThan(hard.revealMs);
+    // ...but hold the finished path on screen longer to memorize.
+    expect(easy.memorizeMs).toBeLessThan(medium.memorizeMs);
+    expect(medium.memorizeMs).toBeLessThan(hard.memorizeMs);
+    // ...and ask for a longer path.
+    expect(easy.pathLength).toBeLessThan(medium.pathLength);
+    expect(medium.pathLength).toBeLessThan(hard.pathLength);
   });
 });
 
@@ -145,18 +177,124 @@ describe('comparePaths', () => {
   });
 });
 
-describe('getPathRating', () => {
-  it('needs a flawless trace for Perfect', () => {
-    expect(getPathRating(100, 0)).toBe('Perfect');
-    // Full recall but an extra cell traced past the end isn't Perfect
-    expect(getPathRating(100, 1)).toBe('Great');
+describe('moveCursor', () => {
+  it('steps by one cell in each direction', () => {
+    expect(moveCursor({ r: 2, c: 2 }, -1, 0, 5)).toEqual({ r: 1, c: 2 });
+    expect(moveCursor({ r: 2, c: 2 }, 1, 0, 5)).toEqual({ r: 3, c: 2 });
+    expect(moveCursor({ r: 2, c: 2 }, 0, -1, 5)).toEqual({ r: 2, c: 1 });
+    expect(moveCursor({ r: 2, c: 2 }, 0, 1, 5)).toEqual({ r: 2, c: 3 });
   });
 
-  it('rates by how much of the path came back', () => {
-    expect(getPathRating(80, 1)).toBe('Great');
-    expect(getPathRating(79.9, 1)).toBe('Good');
-    expect(getPathRating(60, 2)).toBe('Good');
-    expect(getPathRating(59.9, 2)).toBe('Try Again');
-    expect(getPathRating(0, 5)).toBe('Try Again');
+  it('clamps at the top-left edge', () => {
+    expect(moveCursor({ r: 0, c: 0 }, -1, 0, 5)).toEqual({ r: 0, c: 0 });
+    expect(moveCursor({ r: 0, c: 0 }, 0, -1, 5)).toEqual({ r: 0, c: 0 });
+  });
+
+  it('clamps at the bottom-right edge', () => {
+    const last = 4; // size 5 → valid indices 0..4
+    expect(moveCursor({ r: last, c: last }, 1, 0, 5)).toEqual({ r: last, c: last });
+    expect(moveCursor({ r: last, c: last }, 0, 1, 5)).toEqual({ r: last, c: last });
+  });
+
+  it('clamps independently on each axis for a diagonal delta', () => {
+    expect(moveCursor({ r: 0, c: 4 }, -1, 1, 5)).toEqual({ r: 0, c: 4 });
+  });
+});
+
+describe('extendTrace', () => {
+  const path: Cell[] = [
+    { r: 0, c: 0 },
+    { r: 0, c: 1 },
+    { r: 0, c: 2 },
+    { r: 1, c: 2 },
+  ];
+
+  it('starts a trace from an empty array', () => {
+    const res = extendTrace([], path[0], path.length);
+    expect(res).toEqual({ type: 'extended', traced: [path[0]] });
+  });
+
+  it('ignores a repeat of the current cell', () => {
+    const res = extendTrace([path[0]], path[0], path.length);
+    expect(res).toEqual({ type: 'ignored' });
+  });
+
+  it('backtracks onto the second-to-last cell', () => {
+    const res = extendTrace([path[0], path[1]], path[0], path.length);
+    expect(res).toEqual({ type: 'backtrack', traced: [path[0]] });
+  });
+
+  it('rejects a diagonal or non-adjacent jump', () => {
+    const res = extendTrace([path[0]], { r: 5, c: 5 }, path.length);
+    expect(res).toEqual({ type: 'illegal' });
+  });
+
+  it('fills a straight run for a multi-cell jump, same as a fast drag', () => {
+    const res = extendTrace([path[0]], path[2], path.length);
+    expect(res).toEqual({ type: 'extended', traced: [path[0], path[1], path[2]] });
+  });
+
+  it('ignores further input once the trace already matches the path length', () => {
+    const res = extendTrace(path, path[path.length - 1], path.length);
+    expect(res).toEqual({ type: 'ignored' });
+  });
+
+  /**
+   * The whole point of keyboard tracing: a player who moves the cursor one
+   * cell at a time and presses Space at every step must end up with the
+   * exact same `traced` array a pointer drag over the same cells would
+   * produce — same shape, same order, scored by the same code either way.
+   */
+  it('produces an identical traced array whether stepped one cell at a time (keyboard) or dragged in one jump (pointer)', () => {
+    // A straight run so a single pointer jump from the first to the last
+    // cell is legal (straightRun only fills colinear gaps).
+    const straightPath: Cell[] = [
+      { r: 3, c: 0 },
+      { r: 3, c: 1 },
+      { r: 3, c: 2 },
+      { r: 3, c: 3 },
+    ];
+
+    let keyboardTraced: Cell[] = [];
+    for (const cell of straightPath) {
+      const step = extendTrace(keyboardTraced, cell, straightPath.length);
+      if (step.type === 'extended' || step.type === 'backtrack') {
+        keyboardTraced = step.traced;
+      }
+    }
+
+    const pointerStep = extendTrace(
+      [straightPath[0]],
+      straightPath[straightPath.length - 1],
+      straightPath.length
+    );
+    expect(pointerStep.type).toBe('extended');
+    const pointerTraced = pointerStep.type === 'extended' ? pointerStep.traced : [];
+
+    expect(keyboardTraced).toEqual(straightPath);
+    expect(pointerTraced).toEqual(straightPath);
+    expect(keyboardTraced).toEqual(pointerTraced);
+  });
+});
+
+describe('getPathRating — derived from the score curve (H3)', () => {
+  // getPathRating now takes a *score* (0–10), not raw accuracy — same
+  // curve as ratingFromScore (Perfect ≥9.5, Great ≥8, Good ≥6, else Try
+  // Again) — so the label can never disagree with the score shown next to
+  // it. `mistakes` still carries a signal score alone can't: a near-max
+  // score with a stray extra cell traced past the end reads as Great, not
+  // a flawless Perfect.
+  it('needs a flawless trace for Perfect', () => {
+    expect(getPathRating(calculateScore(100), 0)).toBe('Perfect');
+    // Full recall but an extra cell traced past the end isn't Perfect
+    expect(getPathRating(calculateScore(100), 1)).toBe('Great');
+  });
+
+  it('rates by how much of the path came back, on the same score bands every game uses', () => {
+    expect(getPathRating(calculateScore(90), 1)).toBe('Great'); // score 8
+    expect(getPathRating(calculateScore(89.9), 1)).toBe('Good'); // score 7.98
+    expect(getPathRating(calculateScore(80), 2)).toBe('Good'); // score 6
+    expect(getPathRating(calculateScore(79.9), 2)).toBe('Try Again'); // score 5.98
+    expect(getPathRating(calculateScore(0), 5)).toBe('Try Again');
   });
 });

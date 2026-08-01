@@ -27,6 +27,12 @@ interface PerfectPourGameProps {
   challengeCode?: string;
 }
 
+const GLASS_LABEL: Record<Difficulty, string> = {
+  easy: 'Large glass',
+  medium: 'Medium glass',
+  hard: 'Small glass',
+};
+
 const DIFFICULTY_OPTIONS: DifficultyOption[] = (
   ['easy', 'medium', 'hard'] as Difficulty[]
 ).map((id) => {
@@ -34,13 +40,9 @@ const DIFFICULTY_OPTIONS: DifficultyOption[] = (
   return {
     id,
     label: cfg.label,
-    description: cfg.description,
+    qualifier: GLASS_LABEL[id],
     color: cfg.color,
     glow: cfg.glow,
-    stats: [
-      { label: 'Glass', value: id === 'easy' ? 'Large' : id === 'medium' ? 'Medium' : 'Small' },
-      { label: 'Perfect', value: `±${cfg.tolerance}%` },
-    ],
   };
 });
 
@@ -89,7 +91,7 @@ export function PerfectPourGame({ challengeCode }: PerfectPourGameProps = {}) {
         >
           <button
             onClick={isChallenge ? resetToMenu : backToMenu}
-            className="flex items-center gap-1.5 text-white/40 hover:text-white/70 transition-colors text-sm font-mono cursor-pointer"
+            className="flex items-center gap-1.5 -ml-3 px-3 py-2.5 min-h-11 text-white/40 hover:text-white/70 transition-colors text-sm font-mono cursor-pointer"
           >
             <ArrowLeft className="w-4 h-4" strokeWidth={1.5} />
             {isChallenge ? 'Restart' : 'Menu'}
@@ -108,10 +110,8 @@ export function PerfectPourGame({ challengeCode }: PerfectPourGameProps = {}) {
         {state.phase === 'selecting-difficulty' && (
           <motion.div
             key={`menu-${menuView}`}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
             exit={{ opacity: 0, y: -20 }}
-            className="flex flex-col gap-6"
+            className="flex flex-col gap-6 fade-up"
           >
             {menuView === 'mode' && (
               <ModeSelector
@@ -130,7 +130,7 @@ export function PerfectPourGame({ challengeCode }: PerfectPourGameProps = {}) {
                 <DifficultySelector options={DIFFICULTY_OPTIONS} onSelect={selectDifficulty} />
                 <button
                   onClick={() => setMenuView('mode')}
-                  className="mx-auto flex items-center gap-1.5 text-white/40 hover:text-white/70 transition-colors text-sm font-mono cursor-pointer"
+                  className="mx-auto flex items-center gap-1.5 px-3 py-2.5 min-h-11 text-white/40 hover:text-white/70 transition-colors text-sm font-mono cursor-pointer"
                 >
                   <ArrowLeft className="w-4 h-4" strokeWidth={1.5} />
                   Back
@@ -144,9 +144,8 @@ export function PerfectPourGame({ challengeCode }: PerfectPourGameProps = {}) {
         {state.phase === 'challenge-intro' && challengeCode && challengeRounds && (
           <motion.div
             key="challenge-intro"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
             exit={{ opacity: 0, y: -20 }}
+            className="fade-up"
           >
             <ChallengeIntro
               gameId={GAME_ID}
@@ -259,11 +258,13 @@ export function PerfectPourGame({ challengeCode }: PerfectPourGameProps = {}) {
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0 }}
+            role="status"
+            aria-live="polite"
           >
             <PourResultScreen
               result={state.result}
               liquidColor={cfg.liquid}
-              nextLabel={isFinalRound ? 'Final Results' : 'Next Round'}
+              nextLabel={isFinalRound ? 'Results' : 'Next'}
               onNext={nextRound}
               onMenu={resetToMenu}
             />

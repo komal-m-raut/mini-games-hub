@@ -8,6 +8,7 @@ import {
   NORMAL_ROUND_COUNT,
   calculateScore,
   getLocalBestSession,
+  round2,
   saveBestSession,
   saveHighScore,
 } from '@/utils/scoring';
@@ -71,6 +72,12 @@ export function useBalloonGame({ challengeCode }: UseBalloonGameOptions = {}) {
   }));
   const holdIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const observeTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  // Deadline timestamps (performance.now()-based) that the observe/inflate
+  // countdowns derive their remaining time from, so a throttled/backgrounded
+  // tab that only gets to run one tick every few seconds still reports the
+  // correct time left instead of losing 1s per callback firing.
+  const observeDeadlineRef = useRef(0);
+  const inflateDeadlineRef = useRef(0);
   // Mirrors latest state so callbacks can read it without stale closures.
   // Updated in an effect (not during render) per the react-hooks/refs rule;
   // effects run before any user event or interval tick can read it.
@@ -122,17 +129,24 @@ export function useBalloonGame({ challengeCode }: UseBalloonGameOptions = {}) {
         isHolding: false,
       }));
 
-      // Countdown timer
+      // Countdown timer — derives remaining time from a deadline rather than
+      // decrementing by 1 per tick, so a throttled/backgrounded tab (where
+      // ticks coalesce) still reports correct time left instead of nearly
+      // freezing. Interval-clear and ref mutation live here in the interval
+      // callback, not inside the setState updater, which React may invoke
+      // more than once.
+      observeDeadlineRef.current = performance.now() + cfg.observeSeconds * 1000;
       observeTimerRef.current = setInterval(() => {
-        setState((prev) => {
-          const next = prev.observeTimeLeft - 1;
-          if (next <= 0) {
-            clearInterval(observeTimerRef.current!);
-            observeTimerRef.current = null;
-            return { ...prev, observeTimeLeft: 0, phase: 'inflating' };
-          }
-          return { ...prev, observeTimeLeft: next };
-        });
+        const remaining = Math.ceil((observeDeadlineRef.current - performance.now()) / 1000);
+        if (remaining <= 0) {
+          clearInterval(observeTimerRef.current!);
+          observeTimerRef.current = null;
+          setState((prev) => ({ ...prev, observeTimeLeft: 0, phase: 'inflating' }));
+          return;
+        }
+        setState((prev) =>
+          prev.observeTimeLeft === remaining ? prev : { ...prev, observeTimeLeft: remaining }
+        );
       }, 1000);
     },
     [clearTimers, challengeRounds]
@@ -180,8 +194,7 @@ export function useBalloonGame({ challengeCode }: UseBalloonGameOptions = {}) {
 
   // ---------- Round scoring ----------
 
-  /** Locks in the current size and scores the round. Works whether the
-   *  player released the balloon or the inflate timer ran out. */
+  /** Locks in the current size and scores the round. */
   const lockIn = useCallback(() => {
     if (holdIntervalRef.current) {
       clearInterval(holdIntervalRef.current);
@@ -191,9 +204,8 @@ export function useBalloonGame({ challengeCode }: UseBalloonGameOptions = {}) {
     setState((prev) => {
       if (prev.phase !== 'inflating') return prev;
 
-      const cfg = DIFFICULTY_CONFIG[prev.difficulty!];
       const accuracy = calculateAccuracy(prev.targetUnits, prev.currentUnits);
-      const rating = getRating(accuracy, cfg.tolerancePercent);
+      const rating = getRating(accuracy);
       const roundScore = calculateScore(accuracy);
       const roundScores = [...prev.roundScores, roundScore];
       const isNewHighScore = prev.mode === 'normal' && saveHighScore(roundScore);
@@ -203,14 +215,13 @@ export function useBalloonGame({ challengeCode }: UseBalloonGameOptions = {}) {
         phase: 'results',
         isHolding: false,
         score: roundScore,
-        totalScore: prev.totalScore + roundScore,
+        totalScore: round2(prev.totalScore + roundScore),
         roundScores,
         isNewHighScore,
         result: {
           accuracy,
           targetSize: prev.targetUnits,
           actualSize: prev.currentUnits,
-          sizeDiffPercent: Math.abs(((prev.currentUnits - prev.targetUnits) / prev.targetUnits) * 100),
           rating,
           score: roundScore,
         },
@@ -229,22 +240,28 @@ export function useBalloonGame({ challengeCode }: UseBalloonGameOptions = {}) {
     }).catch(() => {});
   }, [state.phase]);
 
-  // Inflate countdown — same time pressure in Normal and Challenge mode.
-  // When it hits zero the current size is locked in automatically.
-  // Difficulties with inflateSeconds: null (Easy) have no time limit.
+  // Inflate countdown — when it hits zero the current size is locked in
+  // automatically. Difficulties with inflateSeconds: null (Easy) have no
+  // time limit.
   useEffect(() => {
     if (state.phase !== 'inflating') return;
-    if (DIFFICULTY_CONFIG[state.difficulty!].inflateSeconds === null) return;
+    const inflateSeconds = DIFFICULTY_CONFIG[state.difficulty!].inflateSeconds;
+    if (inflateSeconds === null) return;
+
+    inflateDeadlineRef.current = performance.now() + inflateSeconds * 1000;
 
     const id = setInterval(() => {
       const s = stateRef.current;
       if (s.phase !== 'inflating') return;
-      if (s.inflateTimeLeft <= 1) {
+      const remaining = Math.ceil((inflateDeadlineRef.current - performance.now()) / 1000);
+      if (remaining <= 0) {
         clearInterval(id);
         setState((prev) => ({ ...prev, inflateTimeLeft: 0 }));
         lockIn();
       } else {
-        setState((prev) => ({ ...prev, inflateTimeLeft: prev.inflateTimeLeft - 1 }));
+        setState((prev) =>
+          prev.inflateTimeLeft === remaining ? prev : { ...prev, inflateTimeLeft: remaining }
+        );
       }
     }, 1000);
 
@@ -254,10 +271,13 @@ export function useBalloonGame({ challengeCode }: UseBalloonGameOptions = {}) {
   // ---------- Inflation hold mechanics ----------
 
   const startInflating = useCallback(() => {
-    // usePressAndHold's `disabled` flag already gates this to the inflating
-    // phase, and the functional setState re-checks the live state — no
-    // stateRef read here, so a not-yet-flushed mirror can't reject the press.
+    // usePressAndHold's `disabled` flag gates this to the inflating phase in
+    // the common case, but AnimatePresence keeps the inflate zone mounted
+    // during its exit animation, so a stray pointerdown can still land here
+    // after the phase has moved on — check the live phase before creating
+    // the interval, mirroring lockIn's phase guard.
     if (holdIntervalRef.current) return;
+    if (stateRef.current.phase !== 'inflating') return;
 
     setState((s) => {
       if (s.phase !== 'inflating' || s.isHolding) return s;
@@ -265,24 +285,32 @@ export function useBalloonGame({ challengeCode }: UseBalloonGameOptions = {}) {
     });
 
     // Growth is wall-clock based (not per-tick) so throttled or dropped
-    // intervals on slow devices don't slow the balloon down.
+    // intervals on slow devices don't slow the balloon down. dt is clamped
+    // so a backgrounded/throttled tab (where ticks coalesce) can't let a
+    // single tick carry several seconds of growth in one jump.
     let lastTick = performance.now();
     holdIntervalRef.current = setInterval(() => {
       const now = performance.now();
-      const elapsedSec = (now - lastTick) / 1000;
+      const dt = Math.min((now - lastTick) / 1000, (TICK_MS / 1000) * 4);
       lastTick = now;
       setState((prev) => {
         if (!prev.isHolding || prev.phase !== 'inflating') return prev;
         const cfg = DIFFICULTY_CONFIG[prev.difficulty!];
-        const next = clamp(prev.currentUnits + cfg.inflationSpeed * elapsedSec, 0, 100);
+        const next = clamp(prev.currentUnits + cfg.inflationSpeed * dt, 0, 100);
         return { ...prev, currentUnits: next };
       });
     }, TICK_MS);
   }, []);
 
   const stopInflating = useCallback(() => {
-    // usePressAndHold only fires onEnd after a successful onStart, and
-    // lockIn's setState no-ops unless the round is still inflating.
+    if (holdIntervalRef.current) {
+      clearInterval(holdIntervalRef.current);
+      holdIntervalRef.current = null;
+    }
+    setState((prev) => {
+      if (prev.phase !== 'inflating') return prev;
+      return { ...prev, isHolding: false };
+    });
     lockIn();
   }, [lockIn]);
 
@@ -315,6 +343,18 @@ export function useBalloonGame({ challengeCode }: UseBalloonGameOptions = {}) {
     setTimeout(() => { transitioningRef.current = false; }, 500);
   }, [startObserving, challengeRounds]);
 
+  // Backgrounding the tab mid-hold must not be exploitable — end the hold
+  // and lock in immediately, same as a pointer release.
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (document.hidden && stateRef.current.isHolding) {
+        stopInflating();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    return () => document.removeEventListener('visibilitychange', handleVisibilityChange);
+  }, [stopInflating]);
+
   // Cleanup on unmount
   useEffect(() => () => clearTimers(), [clearTimers]);
 
@@ -326,6 +366,7 @@ export function useBalloonGame({ challengeCode }: UseBalloonGameOptions = {}) {
     startChallenge,
     startInflating,
     stopInflating,
+    lockIn,
     playAgain,
     resetToMenu,
   };

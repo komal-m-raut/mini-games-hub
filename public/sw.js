@@ -1,7 +1,9 @@
 // Mini Games Hub service worker — offline-first shell caching.
-// Bump CACHE_VERSION to invalidate all caches on deploy.
-const CACHE_VERSION = 'mgh-v1';
-const CORE_ASSETS = ['/', '/games/balloon-match'];
+// CACHE_VERSION MUST be bumped on every deploy that changes any cached
+// asset (pages, styles, scripts) — otherwise clients keep serving stale
+// content indefinitely, since nothing else invalidates the cache.
+const CACHE_VERSION = 'mgh-v2';
+const CORE_ASSETS = ['/', '/games/balloon-match', '/games/perfect-pour', '/games/memory-path'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(
@@ -36,8 +38,10 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(
       fetch(request)
         .then((response) => {
-          const copy = response.clone();
-          caches.open(CACHE_VERSION).then((cache) => cache.put(request, copy));
+          if (response.ok) {
+            const copy = response.clone();
+            caches.open(CACHE_VERSION).then((cache) => cache.put(request, copy));
+          }
           return response;
         })
         .catch(() =>
@@ -59,8 +63,10 @@ self.addEventListener('fetch', (event) => {
         (cached) =>
           cached ??
           fetch(request).then((response) => {
-            const copy = response.clone();
-            caches.open(CACHE_VERSION).then((cache) => cache.put(request, copy));
+            if (response.ok) {
+              const copy = response.clone();
+              caches.open(CACHE_VERSION).then((cache) => cache.put(request, copy));
+            }
             return response;
           })
       )
@@ -73,8 +79,10 @@ self.addEventListener('fetch', (event) => {
     caches.match(request).then((cached) => {
       const network = fetch(request)
         .then((response) => {
-          const copy = response.clone();
-          caches.open(CACHE_VERSION).then((cache) => cache.put(request, copy));
+          if (response.ok) {
+            const copy = response.clone();
+            caches.open(CACHE_VERSION).then((cache) => cache.put(request, copy));
+          }
           return response;
         })
         .catch(() => cached);

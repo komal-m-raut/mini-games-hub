@@ -1,4 +1,5 @@
 import { Difficulty, Rating } from '@/types/game';
+import { ratingFromScore } from '@/utils/scoring';
 
 /**
  * Memory Path difficulty. Bigger grids carry longer paths, revealed faster
@@ -7,7 +8,6 @@ import { Difficulty, Rating } from '@/types/game';
  */
 export interface PathDifficultyConfig {
   label: string;
-  description: string;
   /** Grid is size × size. */
   size: number;
   /** Cells in the path. */
@@ -27,7 +27,6 @@ export interface PathDifficultyConfig {
 export const PATH_DIFFICULTY: Record<Difficulty, PathDifficultyConfig> = {
   easy: {
     label: 'Easy',
-    description: '9×9 grid · Short path',
     size: 9,
     pathLength: 6,
     revealMs: 520,
@@ -39,11 +38,10 @@ export const PATH_DIFFICULTY: Record<Difficulty, PathDifficultyConfig> = {
   },
   medium: {
     label: 'Medium',
-    description: '16×16 grid · Small tiles',
-    size: 16,
-    pathLength: 9,
-    revealMs: 340,
-    memorizeMs: 2800,
+    size: 12,
+    pathLength: 8,
+    revealMs: 440,
+    memorizeMs: 2700,
     color: '#F97316',
     glow: 'rgba(249, 115, 22, 0.4)',
     neon: '#A78BFA',
@@ -51,11 +49,10 @@ export const PATH_DIFFICULTY: Record<Difficulty, PathDifficultyConfig> = {
   },
   hard: {
     label: 'Hard',
-    description: '25×25 grid · Tiny tiles',
-    size: 25,
-    pathLength: 12,
-    revealMs: 300,
-    memorizeMs: 3400,
+    size: 16,
+    pathLength: 11,
+    revealMs: 320,
+    memorizeMs: 3200,
     color: '#EF4444',
     glow: 'rgba(239, 68, 68, 0.4)',
     neon: '#F472B6',
@@ -67,12 +64,13 @@ export const PATH_DIFFICULTY: Record<Difficulty, PathDifficultyConfig> = {
 export const PATH_FADE_MS = 700;
 
 /**
- * Rating from the trace comparison. A Perfect needs the whole path back in
- * order with nothing extra; below that it's purely how much was recovered.
+ * Rating for a trace's round score. Derived from the same score curve as
+ * `calculateScore` (H3), so the label can never disagree with the number
+ * shown beside it. A Perfect still needs the whole path back in order with
+ * nothing extra — `mistakes` carries a signal `score` alone can't (a
+ * near-max score with a stray extra cell shouldn't read as flawless).
  */
-export function getPathRating(accuracy: number, mistakes: number): Rating {
-  if (accuracy >= 100 && mistakes === 0) return 'Perfect';
-  if (accuracy >= 80) return 'Great';
-  if (accuracy >= 60) return 'Good';
-  return 'Try Again';
+export function getPathRating(score: number, mistakes: number): Rating {
+  if (mistakes > 0 && score >= 9.5) return 'Great';
+  return ratingFromScore(score);
 }

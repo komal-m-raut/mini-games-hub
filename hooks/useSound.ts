@@ -4,9 +4,11 @@ import { useCallback, useEffect, useSyncExternalStore } from 'react';
 import {
   LoopName,
   SoundName,
+  initAudioUnlock,
   isMuted,
   loadMutePreference,
   playSound,
+  setWaterFill,
   startLoop,
   stopAllLoops,
   stopLoop,
@@ -26,6 +28,9 @@ export function useSound() {
   // Pick up the stored preference once on mount (localStorage is client-only)
   useEffect(() => {
     loadMutePreference();
+    // M18: register the gesture-based AudioContext unlock backstop once per
+    // page, independent of whether playSound()/startLoop() has run yet.
+    initAudioUnlock();
   }, []);
 
   // Never leave a loop running when the screen unmounts
@@ -34,6 +39,7 @@ export function useSound() {
   const play = useCallback((name: SoundName) => playSound(name), []);
   const loop = useCallback((name: LoopName) => startLoop(name), []);
   const stop = useCallback((name: LoopName) => stopLoop(name), []);
+  const setFill = useCallback((percent: number) => setWaterFill(percent), []);
 
-  return { muted, play, loop, stop, toggle: toggleMuted };
+  return { muted, play, loop, stop, setFill, toggle: toggleMuted };
 }
