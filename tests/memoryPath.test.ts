@@ -3,8 +3,10 @@ import {
   Cell,
   cellKey,
   comparePaths,
+  extendTrace,
   generatePath,
   isAdjacent,
+  moveCursor,
   straightRun,
 } from '@/games/memory-path/pathGen';
 import { PATH_DIFFICULTY, getPathRating } from '@/games/memory-path/constants';
@@ -171,6 +173,106 @@ describe('comparePaths', () => {
   it('rounds accuracy to one decimal place', () => {
     const long = Array.from({ length: 3 }, (_, i) => ({ r: 0, c: i }));
     expect(comparePaths(long, [long[0]]).accuracy).toBe(33.3);
+  });
+});
+
+describe('moveCursor', () => {
+  it('steps by one cell in each direction', () => {
+    expect(moveCursor({ r: 2, c: 2 }, -1, 0, 5)).toEqual({ r: 1, c: 2 });
+    expect(moveCursor({ r: 2, c: 2 }, 1, 0, 5)).toEqual({ r: 3, c: 2 });
+    expect(moveCursor({ r: 2, c: 2 }, 0, -1, 5)).toEqual({ r: 2, c: 1 });
+    expect(moveCursor({ r: 2, c: 2 }, 0, 1, 5)).toEqual({ r: 2, c: 3 });
+  });
+
+  it('clamps at the top-left edge', () => {
+    expect(moveCursor({ r: 0, c: 0 }, -1, 0, 5)).toEqual({ r: 0, c: 0 });
+    expect(moveCursor({ r: 0, c: 0 }, 0, -1, 5)).toEqual({ r: 0, c: 0 });
+  });
+
+  it('clamps at the bottom-right edge', () => {
+    const last = 4; // size 5 → valid indices 0..4
+    expect(moveCursor({ r: last, c: last }, 1, 0, 5)).toEqual({ r: last, c: last });
+    expect(moveCursor({ r: last, c: last }, 0, 1, 5)).toEqual({ r: last, c: last });
+  });
+
+  it('clamps independently on each axis for a diagonal delta', () => {
+    expect(moveCursor({ r: 0, c: 4 }, -1, 1, 5)).toEqual({ r: 0, c: 4 });
+  });
+});
+
+describe('extendTrace', () => {
+  const path: Cell[] = [
+    { r: 0, c: 0 },
+    { r: 0, c: 1 },
+    { r: 0, c: 2 },
+    { r: 1, c: 2 },
+  ];
+
+  it('starts a trace from an empty array', () => {
+    const res = extendTrace([], path[0], path.length);
+    expect(res).toEqual({ type: 'extended', traced: [path[0]] });
+  });
+
+  it('ignores a repeat of the current cell', () => {
+    const res = extendTrace([path[0]], path[0], path.length);
+    expect(res).toEqual({ type: 'ignored' });
+  });
+
+  it('backtracks onto the second-to-last cell', () => {
+    const res = extendTrace([path[0], path[1]], path[0], path.length);
+    expect(res).toEqual({ type: 'backtrack', traced: [path[0]] });
+  });
+
+  it('rejects a diagonal or non-adjacent jump', () => {
+    const res = extendTrace([path[0]], { r: 5, c: 5 }, path.length);
+    expect(res).toEqual({ type: 'illegal' });
+  });
+
+  it('fills a straight run for a multi-cell jump, same as a fast drag', () => {
+    const res = extendTrace([path[0]], path[2], path.length);
+    expect(res).toEqual({ type: 'extended', traced: [path[0], path[1], path[2]] });
+  });
+
+  it('ignores further input once the trace already matches the path length', () => {
+    const res = extendTrace(path, path[path.length - 1], path.length);
+    expect(res).toEqual({ type: 'ignored' });
+  });
+
+  /**
+   * The whole point of keyboard tracing: a player who moves the cursor one
+   * cell at a time and presses Space at every step must end up with the
+   * exact same `traced` array a pointer drag over the same cells would
+   * produce — same shape, same order, scored by the same code either way.
+   */
+  it('produces an identical traced array whether stepped one cell at a time (keyboard) or dragged in one jump (pointer)', () => {
+    // A straight run so a single pointer jump from the first to the last
+    // cell is legal (straightRun only fills colinear gaps).
+    const straightPath: Cell[] = [
+      { r: 3, c: 0 },
+      { r: 3, c: 1 },
+      { r: 3, c: 2 },
+      { r: 3, c: 3 },
+    ];
+
+    let keyboardTraced: Cell[] = [];
+    for (const cell of straightPath) {
+      const step = extendTrace(keyboardTraced, cell, straightPath.length);
+      if (step.type === 'extended' || step.type === 'backtrack') {
+        keyboardTraced = step.traced;
+      }
+    }
+
+    const pointerStep = extendTrace(
+      [straightPath[0]],
+      straightPath[straightPath.length - 1],
+      straightPath.length
+    );
+    expect(pointerStep.type).toBe('extended');
+    const pointerTraced = pointerStep.type === 'extended' ? pointerStep.traced : [];
+
+    expect(keyboardTraced).toEqual(straightPath);
+    expect(pointerTraced).toEqual(straightPath);
+    expect(keyboardTraced).toEqual(pointerTraced);
   });
 });
 

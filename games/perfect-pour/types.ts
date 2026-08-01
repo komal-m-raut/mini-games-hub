@@ -6,6 +6,10 @@ export type PourPhase =
   | 'filling'
   | 'observing'
   | 'pouring'
+  // Releasing the pour no longer scores the round directly (U8) — it drops
+  // into a fine-adjust step with −/+ controls and a "Lock In" action, which
+  // is also the C4 keyboard-play fix (real buttons with aria-labels).
+  | 'adjusting'
   | 'results'
   | 'session-complete'
   | 'challenge-complete';

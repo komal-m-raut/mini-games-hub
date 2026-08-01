@@ -88,7 +88,7 @@ export function MemoryPathGame({ challengeCode }: MemoryPathGameProps = {}) {
         >
           <button
             onClick={isChallenge ? resetToMenu : backToMenu}
-            className="flex items-center gap-1.5 text-white/40 hover:text-white/70 transition-colors text-sm font-mono cursor-pointer"
+            className="flex items-center gap-1.5 -m-3 p-3 min-h-11 text-white/40 hover:text-white/70 transition-colors text-sm font-mono cursor-pointer"
           >
             <ArrowLeft className="w-4 h-4" strokeWidth={1.5} />
             {isChallenge ? 'Restart' : 'Menu'}
@@ -206,9 +206,22 @@ export function MemoryPathGame({ challengeCode }: MemoryPathGameProps = {}) {
               interactive={isTracing}
               fading={state.phase === 'fading'}
               onTraceCell={traceCell}
+              onTraceClear={clearTrace}
             />
 
-            {isTracing ? (
+            {/* Copy only invites tracing once the grid is actually
+                interactive (M8) — during `fading` the path is still
+                dissolving and PathGrid isn't listening yet, so telling the
+                player to go early would drop their first input silently. */}
+            <p className="font-mono text-xs text-white/25 h-9 flex items-center text-center px-2">
+              {isTracing
+                ? 'Drag to retrace it, or use arrow keys + Space'
+                : state.phase === 'fading'
+                  ? 'Get ready…'
+                  : 'Follow the glow'}
+            </p>
+
+            {isTracing && (
               <div className="flex gap-3 w-full max-w-sm">
                 <NeonButton
                   variant="ghost"
@@ -231,10 +244,6 @@ export function MemoryPathGame({ challengeCode }: MemoryPathGameProps = {}) {
                   Submit
                 </NeonButton>
               </div>
-            ) : (
-              <p className="font-mono text-xs text-white/25 h-9 flex items-center">
-                {state.phase === 'fading' ? 'Drag to retrace it…' : 'Follow the glow'}
-              </p>
             )}
           </motion.div>
         )}
@@ -244,6 +253,8 @@ export function MemoryPathGame({ challengeCode }: MemoryPathGameProps = {}) {
           <motion.div
             key={`results-${state.round}`}
             className="glass-card py-8 px-4 sm:px-6"
+            role="status"
+            aria-live="polite"
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0 }}

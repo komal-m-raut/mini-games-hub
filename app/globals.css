@@ -320,6 +320,56 @@ body {
   box-shadow: 0 0 40px rgba(124, 58, 237, 0.12) inset;
 }
 
+.inflate-zone:focus-visible {
+  outline: 2px solid rgba(124, 58, 237, 0.7);
+  outline-offset: 3px;
+}
+
+/* ─────────────────────────────────────────────
+   Fine-adjust step buttons (U8) — Balloon Match size,
+   Perfect Pour water level. Real <button>s at a ≥44px
+   touch target; this is also the C4 keyboard-play fix.
+───────────────────────────────────────────── */
+.step-btn {
+  --step-accent: #7c3aed;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-mono, monospace);
+  font-size: 1.4rem;
+  line-height: 1;
+  color: rgba(255, 255, 255, 0.85);
+  background: color-mix(in srgb, var(--step-accent) 10%, rgba(255, 255, 255, 0.03));
+  border: 1.5px solid color-mix(in srgb, var(--step-accent) 40%, transparent);
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+  transition: transform 0.1s ease, background 0.2s ease, border-color 0.2s ease;
+}
+
+.step-btn:hover {
+  background: color-mix(in srgb, var(--step-accent) 18%, rgba(255, 255, 255, 0.03));
+  border-color: color-mix(in srgb, var(--step-accent) 60%, transparent);
+}
+
+.step-btn:active {
+  transform: scale(0.94);
+}
+
+.step-btn:focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--step-accent) 70%, transparent);
+  outline-offset: 3px;
+}
+
+.step-btn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
 /* ─────────────────────────────────────────────
    Tap lever (Perfect Pour)
 ───────────────────────────────────────────── */

@@ -33,6 +33,22 @@ const TICK_MS = 16; // ~60fps pour updates
 /** How long the automatic target fill animation runs before the countdown. */
 const FILL_ANIMATION_MS = 900;
 
+/**
+ * Fine-adjust step size (U8), keyed by difficulty — Perfect Pour's values
+ * are percentage points, same units as `currentFill`.
+ */
+export const POUR_ADJUST_STEP: Record<Difficulty, number> = {
+  easy: 1,
+  medium: 0.5,
+  hard: 0.25,
+};
+
+/** Pure clamp used by the adjust step — exported so it can be unit tested
+ *  without standing up the whole hook. */
+export function adjustPourFill(current: number, delta: number): number {
+  return Math.min(100, Math.max(0, current + delta));
+}
+
 const INITIAL_STATE: PourGameState = {
   phase: 'selecting-difficulty',
   mode: 'normal',
@@ -218,7 +234,9 @@ export function usePourGame({ challengeCode }: UsePourGameOptions = {}) {
     stop('water');
 
     setState((prev) => {
-      if (prev.phase !== 'pouring') return prev;
+      // Scores from either the pour itself or the fine-adjust step that now
+      // follows every release (U8) — this stays the single scoring path.
+      if (prev.phase !== 'pouring' && prev.phase !== 'adjusting') return prev;
 
       const cfg = POUR_DIFFICULTY[prev.difficulty!];
       const diff = Math.abs(prev.targetFill - prev.currentFill);
@@ -290,9 +308,33 @@ export function usePourGame({ challengeCode }: UsePourGameOptions = {}) {
     }, TICK_MS);
   }, [loop, setFill]);
 
+  // Releasing the pour no longer scores the round directly (U8) — it drops
+  // into the fine-adjust step instead, so the player can nudge before
+  // confirming with `lockIn`. Perfect Pour's pour phase has no time limit
+  // (unlike Balloon Match's inflateSeconds), so there's no countdown to
+  // keep running here — the adjust step is simply untimed at every
+  // difficulty.
   const stopPouring = useCallback(() => {
-    lockIn();
-  }, [lockIn]);
+    if (pourIntervalRef.current) {
+      clearInterval(pourIntervalRef.current);
+      pourIntervalRef.current = null;
+    }
+    stop('water');
+    setState((prev) => {
+      if (prev.phase !== 'pouring') return prev;
+      return { ...prev, phase: 'adjusting', isPouring: false };
+    });
+  }, [stop]);
+
+  /** Fine-adjust step (U8): nudge the poured fill by a difficulty-scaled
+   *  amount, clamped to the same 0–100 range the pour produces. Available
+   *  in every mode, including Daily/Friend challenges — one consistent rule. */
+  const adjustFill = useCallback((delta: number) => {
+    setState((prev) => {
+      if (prev.phase !== 'adjusting') return prev;
+      return { ...prev, currentFill: adjustPourFill(prev.currentFill, delta) };
+    });
+  }, []);
 
   // ── Advance ───────────────────────────────────────────────────────
 
@@ -327,8 +369,10 @@ export function usePourGame({ challengeCode }: UsePourGameOptions = {}) {
 
   // Backgrounding the tab mid-pour must not be exploitable (the pour loop
   // would otherwise resume from wherever it left off once refocused, after
-  // however long the player kept it hidden) — end the pour and lock in the
-  // round, the same path a pointer release takes.
+  // however long the player kept it hidden) — end the pour, the same path a
+  // pointer release takes. That now lands in `adjusting` rather than
+  // scoring immediately, which is safe here since the adjust step is
+  // untimed at every difficulty (no pour countdown to stall past).
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.hidden && stateRef.current.isPouring) {
@@ -356,6 +400,8 @@ export function usePourGame({ challengeCode }: UsePourGameOptions = {}) {
     startChallenge,
     startPouring,
     stopPouring,
+    adjustFill,
+    lockIn,
     nextRound,
     replay,
     resetToMenu,

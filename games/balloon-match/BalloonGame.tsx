@@ -11,13 +11,14 @@ import { ScoreCard } from '@/components/game/ScoreCard';
 import { ChallengeComplete } from '@/components/challenge/ChallengeComplete';
 import { ChallengeIntro } from '@/components/challenge/ChallengeIntro';
 import { challengePath, generateChallengeCode, getDailyChallengeCode } from '@/lib/challenge';
-import { usePressAndHold } from '@/hooks/usePressAndHold';
+import { NeonButton } from '@/components/ui/NeonButton';
+import { usePressAndHold, useHoldRepeat } from '@/hooks/usePressAndHold';
 import { DIFFICULTY_CONFIG, UNIT_TO_PX } from '@/lib/constants';
 import { Difficulty } from '@/types/game';
 import { Balloon } from './BalloonCanvas';
 import { ResultScreen } from './ResultScreen';
 import { SessionComplete } from './SessionComplete';
-import { useBalloonGame } from './useBalloonGame';
+import { BALLOON_ADJUST_STEP, useBalloonGame } from './useBalloonGame';
 
 const GAME_ID = 'balloon-match';
 
@@ -54,6 +55,8 @@ export function BalloonGame({ challengeCode }: BalloonGameProps) {
     startChallenge,
     startInflating,
     stopInflating,
+    adjustUnits,
+    lockIn,
     playAgain,
     resetToMenu,
   } = useBalloonGame({ challengeCode });
@@ -65,6 +68,20 @@ export function BalloonGame({ challengeCode }: BalloonGameProps) {
     onStart: startInflating,
     onEnd: stopInflating,
     disabled: state.phase !== 'inflating',
+  });
+
+  const adjustStep = state.difficulty ? BALLOON_ADJUST_STEP[state.difficulty] : 1;
+  // Match the readout's decimal places to the step size (1 → whole units,
+  // 0.5 → one decimal, 0.25 → two) so it never shows more precision than a
+  // nudge can actually produce.
+  const adjustDecimals = adjustStep >= 1 ? 0 : adjustStep === 0.5 ? 1 : 2;
+  const decHandlers = useHoldRepeat({
+    onStep: () => adjustUnits(-adjustStep),
+    disabled: state.phase !== 'adjusting',
+  });
+  const incHandlers = useHoldRepeat({
+    onStep: () => adjustUnits(adjustStep),
+    disabled: state.phase !== 'adjusting',
   });
 
   const backToMenu = () => {
@@ -93,7 +110,7 @@ export function BalloonGame({ challengeCode }: BalloonGameProps) {
         >
           <button
             onClick={isChallenge ? resetToMenu : backToMenu}
-            className="flex items-center gap-1.5 text-white/40 hover:text-white/70 transition-colors text-sm font-mono cursor-pointer"
+            className="flex items-center gap-1.5 -ml-3 px-3 py-2.5 min-h-11 text-white/40 hover:text-white/70 transition-colors text-sm font-mono cursor-pointer"
           >
             <ArrowLeft className="w-4 h-4" strokeWidth={1.5} />
             {isChallenge ? 'Restart' : 'Menu'}
@@ -135,7 +152,7 @@ export function BalloonGame({ challengeCode }: BalloonGameProps) {
                 <DifficultySelector options={DIFFICULTY_OPTIONS} onSelect={selectDifficulty} />
                 <button
                   onClick={() => setMenuView('mode')}
-                  className="mx-auto flex items-center gap-1.5 text-white/40 hover:text-white/70 transition-colors text-sm font-mono cursor-pointer"
+                  className="mx-auto flex items-center gap-1.5 px-3 py-2.5 min-h-11 text-white/40 hover:text-white/70 transition-colors text-sm font-mono cursor-pointer"
                 >
                   <ArrowLeft className="w-4 h-4" strokeWidth={1.5} />
                   Back
@@ -224,9 +241,19 @@ export function BalloonGame({ challengeCode }: BalloonGameProps) {
               />
             )}
 
-            {/* Inflate zone — balloon is pointer-events:none so it never triggers pointerleave */}
-            <div
+            {/* Inflate zone — a real button so keyboard/switch users can
+                reach it (C4): Space/Enter start and release the hold via
+                usePressAndHold's key handlers. Balloon is pointer-events:none
+                so it never triggers pointerleave. */}
+            <button
+              type="button"
               {...holdHandlers}
+              aria-label={
+                state.isHolding
+                  ? 'Release to stop inflating and adjust the size'
+                  : 'Hold to inflate the balloon'
+              }
+              aria-pressed={state.isHolding}
               className={`inflate-zone ${state.isHolding ? 'inflate-zone-active' : ''}`}
             >
               <div className="pointer-events-none">
@@ -247,7 +274,7 @@ export function BalloonGame({ challengeCode }: BalloonGameProps) {
                   Hold to start
                 </motion.p>
               )}
-            </div>
+            </button>
 
             {/* Progress bar */}
             <div className="w-full max-w-xs">
@@ -271,6 +298,74 @@ export function BalloonGame({ challengeCode }: BalloonGameProps) {
           </motion.div>
         )}
 
+        {/* ── Adjusting: fine-adjust the released size, then confirm (U8) ── */}
+        {state.phase === 'adjusting' && cfg && (
+          <motion.div
+            key={`adjusting-${state.round}`}
+            className="glass-card flex flex-col items-center gap-5 py-8"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+          >
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="text-center"
+            >
+              <p className="font-display text-xl font-bold text-white mb-1">
+                Fine-Tune, Then Lock In
+              </p>
+            </motion.div>
+
+            {/* Same inflate timer, still running — auto-locks at zero even
+                mid-adjust (Easy has no timer, so its adjust step is untimed) */}
+            {cfg.inflateSeconds !== null && (
+              <GameTimer
+                timeLeft={state.inflateTimeLeft}
+                totalSeconds={cfg.inflateSeconds}
+                size="sm"
+              />
+            )}
+
+            <div className="pointer-events-none">
+              <Balloon
+                units={state.currentUnits}
+                color={state.targetColor}
+                id="player"
+                visible
+              />
+            </div>
+
+            {/* Fine-adjust controls: real buttons with descriptive labels —
+                this is what gives keyboard/switch users access to the value. */}
+            <div className="flex items-center gap-4">
+              <button
+                type="button"
+                {...decHandlers}
+                aria-label={`Decrease size by ${adjustStep} unit${adjustStep === 1 ? '' : 's'}`}
+                className="step-btn"
+              >
+                −
+              </button>
+              <span className="font-score text-2xl text-white min-w-[5ch] text-center">
+                {state.currentUnits.toFixed(adjustDecimals)}
+              </span>
+              <button
+                type="button"
+                {...incHandlers}
+                aria-label={`Increase size by ${adjustStep} unit${adjustStep === 1 ? '' : 's'}`}
+                className="step-btn"
+              >
+                +
+              </button>
+            </div>
+
+            <NeonButton variant="primary" size="md" onClick={lockIn} glow="rgba(124, 58, 237, 0.5)">
+              Lock In
+            </NeonButton>
+          </motion.div>
+        )}
+
         {/* ── Results ── */}
         {state.phase === 'results' && state.result && (
           <motion.div
@@ -279,6 +374,8 @@ export function BalloonGame({ challengeCode }: BalloonGameProps) {
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0 }}
+            role="status"
+            aria-live="polite"
           >
             <ResultScreen
               result={state.result}
