@@ -695,6 +695,18 @@ body {
   animation: fade-up-in 0.6s ease-out both;
 }
 
+/* Same rationale as fade-up-in, but for the fixed top nav: it slides down
+   from off-screen rather than rising from below, so it gets its own
+   keyframe instead of being forced through fade-up's translateY(24px). */
+@keyframes slide-down-in {
+  from { transform: translateY(-80px); }
+  to   { transform: translateY(0); }
+}
+
+.slide-down {
+  animation: slide-down-in 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
 /* ─────────────────────────────────────────────
    Particle Floats
 ───────────────────────────────────────────── */

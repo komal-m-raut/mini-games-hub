@@ -2,7 +2,6 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { motion } from 'framer-motion';
 import { Gamepad2, Home } from 'lucide-react';
 
 export function Navigation() {
@@ -10,12 +9,7 @@ export function Navigation() {
   const isGame = pathname !== '/';
 
   return (
-    <motion.nav
-      className="fixed top-0 left-0 right-0 z-50 glass-nav"
-      initial={{ y: -80 }}
-      animate={{ y: 0 }}
-      transition={{ type: 'spring', stiffness: 200, damping: 25 }}
-    >
+    <nav className="fixed top-0 left-0 right-0 z-50 glass-nav slide-down">
       <div className="page-container">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
@@ -47,6 +41,6 @@ export function Navigation() {
           )}
         </div>
       </div>
-    </motion.nav>
+    </nav>
   );
 }
