@@ -54,12 +54,11 @@ export function ModeSelector({
           <motion.button
             key={label}
             onClick={onClick}
-            className="mode-card group"
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay }}
+            className="mode-card group fade-up"
             whileHover={{ y: -3 }}
-            style={{ '--mode-accent': a } as React.CSSProperties}
+            style={
+              { '--mode-accent': a, animationDelay: `${delay}s` } as React.CSSProperties
+            }
           >
             <span className="mode-icon">{icon}</span>
             <span className="font-display font-bold text-white text-lg">{label}</span>

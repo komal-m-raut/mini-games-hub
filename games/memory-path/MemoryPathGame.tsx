@@ -107,10 +107,8 @@ export function MemoryPathGame({ challengeCode }: MemoryPathGameProps = {}) {
         {state.phase === 'selecting-difficulty' && (
           <motion.div
             key={`menu-${menuView}`}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
             exit={{ opacity: 0, y: -20 }}
-            className="flex flex-col gap-6"
+            className="flex flex-col gap-6 fade-up"
           >
             {menuView === 'mode' && (
               <ModeSelector
@@ -143,9 +141,8 @@ export function MemoryPathGame({ challengeCode }: MemoryPathGameProps = {}) {
         {state.phase === 'challenge-intro' && challengeCode && challengeRounds && (
           <motion.div
             key="challenge-intro"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
             exit={{ opacity: 0, y: -20 }}
+            className="fade-up"
           >
             <ChallengeIntro
               gameId={GAME_ID}
