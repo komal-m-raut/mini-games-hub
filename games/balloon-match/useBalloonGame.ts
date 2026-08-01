@@ -8,6 +8,7 @@ import {
   NORMAL_ROUND_COUNT,
   calculateScore,
   getLocalBestSession,
+  round2,
   saveBestSession,
   saveHighScore,
 } from '@/utils/scoring';
@@ -224,9 +225,8 @@ export function useBalloonGame({ challengeCode }: UseBalloonGameOptions = {}) {
       // the single scoring path either way.
       if (prev.phase !== 'inflating' && prev.phase !== 'adjusting') return prev;
 
-      const cfg = DIFFICULTY_CONFIG[prev.difficulty!];
       const accuracy = calculateAccuracy(prev.targetUnits, prev.currentUnits);
-      const rating = getRating(accuracy, cfg.tolerancePercent);
+      const rating = getRating(accuracy);
       const roundScore = calculateScore(accuracy);
       const roundScores = [...prev.roundScores, roundScore];
       const isNewHighScore = prev.mode === 'normal' && saveHighScore(roundScore);
@@ -236,7 +236,7 @@ export function useBalloonGame({ challengeCode }: UseBalloonGameOptions = {}) {
         phase: 'results',
         isHolding: false,
         score: roundScore,
-        totalScore: prev.totalScore + roundScore,
+        totalScore: round2(prev.totalScore + roundScore),
         roundScores,
         isNewHighScore,
         result: {

@@ -7,6 +7,7 @@ import { useSiteStats } from '@/hooks/useSiteStats';
 import { MAX_CHALLENGE_SCORE } from '@/lib/challenge';
 import { usePlayerId } from '@/lib/player';
 import { ScoreEntry } from '@/types/game';
+import { formatScore } from '@/utils/scoring';
 
 const TABS: { id: LeaderboardTab; label: string }[] = [
   { id: 'today', label: "Today's Challenge" },
@@ -63,13 +64,15 @@ function LeaderboardRow({
         {entry.roundScores && (
           <div className="text-right hidden sm:block">
             <p className="text-xs text-white/40 font-mono">Rounds</p>
-            <p className="text-white/70 font-mono text-sm">{entry.roundScores.join(' · ')}</p>
+            <p className="text-white/70 font-mono text-sm">
+              {entry.roundScores.map(formatScore).join(' · ')}
+            </p>
           </div>
         )}
         <div className="text-right">
           <p className="text-xs text-white/40 font-mono">Score</p>
           <p className="font-display font-bold text-brand-purple">
-            {entry.score}
+            {formatScore(entry.score)}
             <span className="text-white/30 text-xs">/{MAX_CHALLENGE_SCORE}</span>
           </p>
         </div>

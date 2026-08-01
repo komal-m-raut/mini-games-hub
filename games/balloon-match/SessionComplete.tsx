@@ -8,7 +8,7 @@ import { ConfettiEffect } from '@/components/ui/ConfettiEffect';
 import { buildSessionShareText } from '@/lib/challenge';
 import { DIFFICULTY_CONFIG } from '@/lib/constants';
 import { Difficulty } from '@/types/game';
-import { MAX_ROUND_SCORE, MAX_SESSION_SCORE } from '@/utils/scoring';
+import { MAX_ROUND_SCORE, MAX_SESSION_SCORE, formatScore, round2 } from '@/utils/scoring';
 
 interface SessionCompleteProps {
   difficulty: Difficulty;
@@ -29,7 +29,7 @@ export function SessionComplete({
   onReplay,
   onMenu,
 }: SessionCompleteProps) {
-  const total = roundScores.reduce((a, b) => a + b, 0);
+  const total = round2(roundScores.reduce((a, b) => a + b, 0));
   const cfg = DIFFICULTY_CONFIG[difficulty];
   const [copied, setCopied] = useState(false);
 
@@ -65,7 +65,7 @@ export function SessionComplete({
           Session Complete · {cfg.label}
         </p>
         <p className="font-display text-6xl font-black text-white mb-1">
-          {total}
+          {formatScore(total)}
           <span className="text-white/30 text-3xl">/{MAX_SESSION_SCORE}</span>
         </p>
         {isNewBestSession ? (
@@ -79,7 +79,7 @@ export function SessionComplete({
           </motion.p>
         ) : (
           <p className="text-white/40 text-sm font-mono">
-            Best: {bestSession}/{MAX_SESSION_SCORE}
+            Best: {formatScore(bestSession)}/{MAX_SESSION_SCORE}
           </p>
         )}
       </motion.div>
@@ -96,7 +96,7 @@ export function SessionComplete({
           >
             <p className="stat-label">R{i + 1}</p>
             <p className="stat-value text-brand-purple">
-              {score}
+              {formatScore(score)}
               <span className="text-white/30 text-sm">/{MAX_ROUND_SCORE}</span>
             </p>
           </motion.div>

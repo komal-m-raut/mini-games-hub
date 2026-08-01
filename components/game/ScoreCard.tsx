@@ -2,7 +2,7 @@
 
 import { motion } from 'framer-motion';
 import { Zap } from 'lucide-react';
-import { MAX_ROUND_SCORE } from '@/utils/scoring';
+import { MAX_ROUND_SCORE, formatScore } from '@/utils/scoring';
 
 interface ScoreCardProps {
   /** Latest round score, out of 10. */
@@ -31,7 +31,7 @@ export function ScoreCard({ score, round, totalRounds, totalScore }: ScoreCardPr
           initial={{ y: -8, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
         >
-          {score}
+          {formatScore(score)}
           <span className="text-white/50 text-sm">/{MAX_ROUND_SCORE}</span>
         </motion.p>
         {/* Total + round, demoted to a single quiet line so the round
@@ -40,7 +40,7 @@ export function ScoreCard({ score, round, totalRounds, totalScore }: ScoreCardPr
           Round {round}
           {totalRounds !== null && <span className="text-white/50">/{totalRounds}</span>}
           {' · '}
-          {totalScore}
+          {formatScore(totalScore)}
           {maxTotal > 0 && <span className="text-white/50">/{maxTotal}</span>}
         </p>
       </div>

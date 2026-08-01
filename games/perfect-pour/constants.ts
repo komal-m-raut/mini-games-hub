@@ -1,4 +1,5 @@
 import { Difficulty, Rating } from '@/types/game';
+import { ratingFromScore } from '@/utils/scoring';
 
 /**
  * Perfect Pour: watch a glass fill to a random level, then recreate that
@@ -62,15 +63,14 @@ export const MIN_TARGET_FILL = 25;
 export const MAX_TARGET_FILL = 85;
 
 /**
- * Rating from the raw fill difference, in percentage points.
- * The difficulty's tolerance *is* the Perfect window, per game design:
- * Easy ±10, Medium ±6, Hard ±3.
+ * Rating for a pour's round score. Derived from the same score curve as
+ * `calculateScore` (H3) — previously this used a separate,
+ * difficulty-tolerance-based formula (diff vs `tolerance`) that could
+ * disagree with the score shown beside it (e.g. Easy rating "Perfect" next
+ * to an 8/10 for a 10-point miss).
  */
-export function getPourRating(diff: number, tolerance: number): Rating {
-  if (diff <= tolerance) return 'Perfect';
-  if (diff <= tolerance * 2) return 'Great';
-  if (diff <= tolerance * 3.5) return 'Good';
-  return 'Try Again';
+export function getPourRating(score: number): Rating {
+  return ratingFromScore(score);
 }
 
 /**

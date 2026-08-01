@@ -15,6 +15,7 @@ import {
   NORMAL_ROUND_COUNT,
   calculateScore,
   getLocalBestSession,
+  round2,
   saveBestSession,
 } from '@/utils/scoring';
 import { PathChallengeRound, getPathChallengeRounds } from './challenge';
@@ -235,15 +236,15 @@ export function useMemoryPathGame({ challengeCode }: UseMemoryPathGameOptions = 
     const traced = [...tracedRef.current];
     const { correct, mistakes, accuracy, marks } = comparePaths(pathRef.current, traced);
     const seconds = Math.round(((performance.now() - traceStartRef.current) / 1000) * 10) / 10;
-    const rating = getPathRating(accuracy, mistakes);
     const score = calculateScore(accuracy);
+    const rating = getPathRating(score, mistakes);
 
     setState((s) => ({
       ...s,
       phase: 'results',
       traced,
       score,
-      totalScore: s.totalScore + score,
+      totalScore: round2(s.totalScore + score),
       roundScores: [...s.roundScores, score],
       result: {
         accuracy,

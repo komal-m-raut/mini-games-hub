@@ -6,7 +6,7 @@ import { GameResult, Rating } from '@/types/game';
 import { NeonButton } from '@/components/ui/NeonButton';
 import { ConfettiEffect } from '@/components/ui/ConfettiEffect';
 import { BalloonComparison } from './BalloonCanvas';
-import { MAX_ROUND_SCORE } from '@/utils/scoring';
+import { MAX_ROUND_SCORE, formatScore } from '@/utils/scoring';
 
 const RATING_META: Record<
   Rating,
@@ -101,7 +101,7 @@ export function ResultScreen({
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
         >
-          {result.score}
+          {formatScore(result.score)}
           <span className="text-white/50 text-lg">/{MAX_ROUND_SCORE}</span>
         </motion.p>
 

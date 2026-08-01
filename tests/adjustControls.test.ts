@@ -3,8 +3,7 @@ import { calculateAccuracy, getRating } from '@/utils/accuracy';
 import { calculateScore } from '@/utils/scoring';
 import { BALLOON_ADJUST_STEP, adjustBalloonUnits } from '@/games/balloon-match/useBalloonGame';
 import { POUR_ADJUST_STEP, adjustPourFill } from '@/games/perfect-pour/usePourGame';
-import { POUR_DIFFICULTY, getPourAccuracy, getPourRating } from '@/games/perfect-pour/constants';
-import { DIFFICULTY_CONFIG } from '@/lib/constants';
+import { getPourAccuracy, getPourRating } from '@/games/perfect-pour/constants';
 
 /**
  * U8 — fine-adjust controllers. `adjustBalloonUnits`/`adjustPourFill` are the
@@ -85,14 +84,10 @@ describe('adjust-then-lock scores identically to holding to that value directly 
     }
     expect(adjusted).toBe(target);
 
-    const cfg = DIFFICULTY_CONFIG.medium;
     const scoreFromAdjust = calculateScore(calculateAccuracy(target, adjusted));
     const scoreFromDirectHold = calculateScore(calculateAccuracy(target, target));
-    const ratingFromAdjust = getRating(calculateAccuracy(target, adjusted), cfg.tolerancePercent);
-    const ratingFromDirectHold = getRating(
-      calculateAccuracy(target, target),
-      cfg.tolerancePercent
-    );
+    const ratingFromAdjust = getRating(calculateAccuracy(target, adjusted));
+    const ratingFromDirectHold = getRating(calculateAccuracy(target, target));
 
     expect(scoreFromAdjust).toBe(scoreFromDirectHold);
     expect(ratingFromAdjust).toBe(ratingFromDirectHold);
@@ -125,14 +120,10 @@ describe('adjust-then-lock scores identically to holding to that value directly 
     }
     expect(adjusted).toBe(target);
 
-    const cfg = POUR_DIFFICULTY.hard;
-    const diffAdjust = Math.abs(target - adjusted);
-    const diffDirect = Math.abs(target - target);
-
     const scoreFromAdjust = calculateScore(getPourAccuracy(target, adjusted));
     const scoreFromDirectPour = calculateScore(getPourAccuracy(target, target));
-    const ratingFromAdjust = getPourRating(diffAdjust, cfg.tolerance);
-    const ratingFromDirectPour = getPourRating(diffDirect, cfg.tolerance);
+    const ratingFromAdjust = getPourRating(scoreFromAdjust);
+    const ratingFromDirectPour = getPourRating(scoreFromDirectPour);
 
     expect(scoreFromAdjust).toBe(scoreFromDirectPour);
     expect(ratingFromAdjust).toBe(ratingFromDirectPour);

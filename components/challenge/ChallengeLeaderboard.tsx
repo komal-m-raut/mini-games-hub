@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { Trophy, RefreshCw } from 'lucide-react';
 import { ScoreEntry } from '@/types/game';
 import { MAX_CHALLENGE_SCORE } from '@/lib/challenge';
+import { formatScore } from '@/utils/scoring';
 
 const RANK_COLORS = ['#EAB308', '#94A3B8', '#D97706'];
 
@@ -119,11 +120,11 @@ export function ChallengeLeaderboard({
                 <div className="flex items-center gap-4 shrink-0">
                   {entry.roundScores && (
                     <p className="font-mono text-xs text-white/40 hidden sm:block">
-                      {entry.roundScores.join(' · ')}
+                      {entry.roundScores.map(formatScore).join(' · ')}
                     </p>
                   )}
                   <p className="font-display font-bold text-brand-purple">
-                    {entry.score}
+                    {formatScore(entry.score)}
                     <span className="text-white/30 text-xs">/{MAX_CHALLENGE_SCORE}</span>
                   </p>
                 </div>

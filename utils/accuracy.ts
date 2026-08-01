@@ -1,4 +1,5 @@
 import { Rating } from '@/types/game';
+import { calculateScore, ratingFromScore } from '@/utils/scoring';
 
 /**
  * Returns accuracy percentage (0–100) comparing actual vs target size.
@@ -12,12 +13,11 @@ export function calculateAccuracy(targetUnits: number, actualUnits: number): num
 }
 
 /**
- * Returns a rating based on accuracy vs the difficulty's tolerance.
+ * Returns a rating for a round's accuracy. Derived from the same score
+ * curve as `calculateScore` (H3) — previously this used a separate,
+ * difficulty-tolerance-based formula that could disagree with the score
+ * shown beside it (e.g. Hard rating "Try Again" next to an 8/10).
  */
-export function getRating(accuracy: number, tolerancePercent: number): Rating {
-  const base = 100 - tolerancePercent;
-  if (accuracy >= base + tolerancePercent * 0.5) return 'Perfect';
-  if (accuracy >= base) return 'Great';
-  if (accuracy >= base - tolerancePercent) return 'Good';
-  return 'Try Again';
+export function getRating(accuracy: number): Rating {
+  return ratingFromScore(calculateScore(accuracy));
 }

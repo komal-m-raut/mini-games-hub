@@ -1,4 +1,5 @@
 import { Difficulty, Rating } from '@/types/game';
+import { ratingFromScore } from '@/utils/scoring';
 
 /**
  * Memory Path difficulty. Bigger grids carry longer paths, revealed faster
@@ -67,12 +68,13 @@ export const PATH_DIFFICULTY: Record<Difficulty, PathDifficultyConfig> = {
 export const PATH_FADE_MS = 700;
 
 /**
- * Rating from the trace comparison. A Perfect needs the whole path back in
- * order with nothing extra; below that it's purely how much was recovered.
+ * Rating for a trace's round score. Derived from the same score curve as
+ * `calculateScore` (H3), so the label can never disagree with the number
+ * shown beside it. A Perfect still needs the whole path back in order with
+ * nothing extra — `mistakes` carries a signal `score` alone can't (a
+ * near-max score with a stray extra cell shouldn't read as flawless).
  */
-export function getPathRating(accuracy: number, mistakes: number): Rating {
-  if (accuracy >= 100 && mistakes === 0) return 'Perfect';
-  if (accuracy >= 80) return 'Great';
-  if (accuracy >= 60) return 'Good';
-  return 'Try Again';
+export function getPathRating(score: number, mistakes: number): Rating {
+  if (mistakes > 0 && score >= 9.5) return 'Great';
+  return ratingFromScore(score);
 }

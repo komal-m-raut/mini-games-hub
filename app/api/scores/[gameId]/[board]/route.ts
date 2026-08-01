@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import { ScoreEntry } from '@/types/game';
 import { CHALLENGE_ROUND_COUNT, MAX_CHALLENGE_SCORE } from '@/lib/challenge';
-import { MAX_ROUND_SCORE } from '@/utils/scoring';
+import { MAX_ROUND_SCORE, round2 } from '@/utils/scoring';
 import { scoreStore, upsertScore } from '@/lib/server/scoreStore';
 import { createRateLimiter, getClientIp, rateLimitResponse } from '@/lib/server/rateLimit';
 import { sanitizeName } from '@/lib/moderation';
@@ -30,6 +30,24 @@ const GAME_RULES: Record<string, GameRules> = {
 };
 
 const BOARD_PATTERN = /^[a-z0-9-]{1,40}$/;
+
+/**
+ * Scores support up to 2 decimal places (R2). A plain `Math.round(s*100) ===
+ * s*100` step check fails for legitimate values (float artefacts like
+ * `7.1 * 100 === 709.9999999999999`), so instead: round `s` to 2dp via the
+ * same float-safe `round2` used everywhere else, and accept it if that's
+ * within float noise of the original — i.e. `s` was already (at most) a 2dp
+ * value, not a 3dp one sneaking past a naive check.
+ */
+function isValidRoundScore(s: unknown, max: number): s is number {
+  return (
+    typeof s === 'number' &&
+    Number.isFinite(s) &&
+    s >= 0 &&
+    s <= max &&
+    Math.abs(s - round2(s)) < 1e-9
+  );
+}
 
 // Scores POST is the more "expensive"/impactful write (feeds public
 // leaderboards); keep it tighter than the events limiter below.
@@ -86,23 +104,18 @@ export async function POST(req: NextRequest, { params }: Params) {
     const valid =
       Array.isArray(roundScores) &&
       roundScores.length === rules.rounds.count &&
-      roundScores.every(
-        (s) => Number.isInteger(s) && s >= 0 && s <= rules.rounds!.maxPerRound
-      );
+      roundScores.every((s) => isValidRoundScore(s, rules.rounds!.maxPerRound));
     if (!valid) {
       return Response.json({ error: 'Invalid round scores' }, { status: 400 });
     }
-    score = roundScores.reduce((a, b) => a + b, 0);
+    score = round2(roundScores.reduce((a, b) => a + b, 0));
   } else {
     score = typeof body.score === 'number' ? body.score : NaN;
   }
 
-  // NOTE: scores are integers-only for now (Number.isInteger below). A later
-  // change allows two decimal places (e.g. 7.46) — when that lands, this
-  // becomes a bounds + step check instead of an integer check. Don't touch
-  // the round-score validation above in the meantime; it has the same
-  // assumption baked in.
-  if (!Number.isInteger(score) || score < 0 || score > rules.maxScore) {
+  // Scores support up to 2 decimal places (R2) — same float-safe bounds +
+  // step check as the per-round validation above, not an integer check.
+  if (!isValidRoundScore(score, rules.maxScore)) {
     return Response.json({ error: 'Invalid score' }, { status: 400 });
   }
 

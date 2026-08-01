@@ -1,7 +1,8 @@
 import { Difficulty } from '@/types/game';
 import { BALLOON_COLORS, DIFFICULTY_CONFIG } from '@/lib/constants';
 import { GAME_REGISTRY } from '@/lib/gameRegistry';
-import { MAX_ROUND_SCORE } from '@/utils/scoring';
+import { MAX_ROUND_SCORE, formatScore, round2 } from '@/utils/scoring';
+import { scoreEmoji } from '@/lib/share';
 
 /**
  * Challenge Mode: a series of 3 seeded rounds (easy → medium → hard).
@@ -130,14 +131,8 @@ export function challengeLabel(code: string): string {
 }
 
 // ── Result sharing (Wordle/dialed.gg-style emoji summary) ───────────
-
-function scoreEmoji(score: number): string {
-  if (score >= 10) return '🎯';
-  if (score >= 8) return '🟢';
-  if (score >= 6) return '🟡';
-  if (score >= 3) return '🟠';
-  return '🔴';
-}
+// `scoreEmoji` used to be duplicated here with its own (already-diverging)
+// thresholds; it now imports the single copy from `lib/share.ts` (L10).
 
 /** Emoji + display name for a game, for share text headers. */
 function gameHeader(gameId: string): string {
@@ -152,11 +147,11 @@ export function buildChallengeShareText(
   roundScores: number[],
   origin: string
 ): string {
-  const total = roundScores.reduce((a, b) => a + b, 0);
+  const total = round2(roundScores.reduce((a, b) => a + b, 0));
   const grid = roundScores.map(scoreEmoji).join(' ');
   return [
     `${gameHeader(gameId)} — ${challengeLabel(code)}`,
-    `${grid}  ${total}/${MAX_CHALLENGE_SCORE}`,
+    `${grid}  ${formatScore(total)}/${MAX_CHALLENGE_SCORE}`,
     `Beat my score: ${origin}${challengePath(gameId, code)}`,
   ].join('\n');
 }
@@ -168,12 +163,12 @@ export function buildSessionShareText(
   roundScores: number[],
   origin: string
 ): string {
-  const total = roundScores.reduce((a, b) => a + b, 0);
+  const total = round2(roundScores.reduce((a, b) => a + b, 0));
   const max = roundScores.length * MAX_ROUND_SCORE;
   const grid = roundScores.map(scoreEmoji).join(' ');
   return [
     `${gameHeader(gameId)} — ${difficultyLabel}`,
-    `${grid}  ${total}/${max}`,
+    `${grid}  ${formatScore(total)}/${max}`,
     `Play: ${origin}/games/${gameId}`,
   ].join('\n');
 }

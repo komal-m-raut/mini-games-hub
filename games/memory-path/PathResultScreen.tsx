@@ -5,7 +5,7 @@ import { Home, RotateCcw } from 'lucide-react';
 import { NeonButton } from '@/components/ui/NeonButton';
 import { ConfettiEffect } from '@/components/ui/ConfettiEffect';
 import { Rating } from '@/types/game';
-import { MAX_ROUND_SCORE } from '@/utils/scoring';
+import { MAX_ROUND_SCORE, formatScore } from '@/utils/scoring';
 import { PathGrid } from './PathGrid';
 import { Cell } from './pathGen';
 import { PathResult } from './types';
@@ -110,7 +110,7 @@ export function PathResultScreen({
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
         >
-          {result.score}
+          {formatScore(result.score)}
           <span className="text-white/50 text-lg">/{MAX_ROUND_SCORE}</span>
         </motion.p>
 

@@ -10,6 +10,7 @@ import {
   straightRun,
 } from '@/games/memory-path/pathGen';
 import { PATH_DIFFICULTY, getPathRating } from '@/games/memory-path/constants';
+import { calculateScore } from '@/utils/scoring';
 
 /** Deterministic RNG so a failing case is reproducible. */
 function seeded(seed: number): () => number {
@@ -276,18 +277,24 @@ describe('extendTrace', () => {
   });
 });
 
-describe('getPathRating', () => {
+describe('getPathRating — derived from the score curve (H3)', () => {
+  // getPathRating now takes a *score* (0–10), not raw accuracy — same
+  // curve as ratingFromScore (Perfect ≥9.5, Great ≥8, Good ≥6, else Try
+  // Again) — so the label can never disagree with the score shown next to
+  // it. `mistakes` still carries a signal score alone can't: a near-max
+  // score with a stray extra cell traced past the end reads as Great, not
+  // a flawless Perfect.
   it('needs a flawless trace for Perfect', () => {
-    expect(getPathRating(100, 0)).toBe('Perfect');
+    expect(getPathRating(calculateScore(100), 0)).toBe('Perfect');
     // Full recall but an extra cell traced past the end isn't Perfect
-    expect(getPathRating(100, 1)).toBe('Great');
+    expect(getPathRating(calculateScore(100), 1)).toBe('Great');
   });
 
-  it('rates by how much of the path came back', () => {
-    expect(getPathRating(80, 1)).toBe('Great');
-    expect(getPathRating(79.9, 1)).toBe('Good');
-    expect(getPathRating(60, 2)).toBe('Good');
-    expect(getPathRating(59.9, 2)).toBe('Try Again');
-    expect(getPathRating(0, 5)).toBe('Try Again');
+  it('rates by how much of the path came back, on the same score bands every game uses', () => {
+    expect(getPathRating(calculateScore(90), 1)).toBe('Great'); // score 8
+    expect(getPathRating(calculateScore(89.9), 1)).toBe('Good'); // score 7.98
+    expect(getPathRating(calculateScore(80), 2)).toBe('Good'); // score 6
+    expect(getPathRating(calculateScore(79.9), 2)).toBe('Try Again'); // score 5.98
+    expect(getPathRating(calculateScore(0), 5)).toBe('Try Again');
   });
 });

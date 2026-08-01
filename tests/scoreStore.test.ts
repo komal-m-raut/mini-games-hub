@@ -64,4 +64,31 @@ describe('scoreStore concurrent upserts (M14)', () => {
     expect(entry).toBeDefined();
     expect(entry!.score).toBe(Math.max(...scores));
   });
+
+  it('orders a fractional-score tie by earliest submission (R2)', async () => {
+    // Two different players land on the exact same 2dp total — the sort
+    // comparator (`b.score - a.score`) must treat them as equal (not drift
+    // apart from float noise) and fall through to the createdAt tiebreak.
+    const earlier: ScoreEntry = {
+      playerId: 'tie-player-a',
+      name: 'player-a',
+      score: 7.46,
+      createdAt: '2026-01-01T00:00:00.000Z',
+    };
+    const later: ScoreEntry = {
+      playerId: 'tie-player-b',
+      name: 'player-b',
+      score: 7.46,
+      createdAt: '2026-01-01T00:00:01.000Z',
+    };
+
+    // Insert out of order so the tiebreak, not insertion order, decides.
+    await upsertScore(GAME_ID, BOARD, later);
+    await upsertScore(GAME_ID, BOARD, earlier);
+
+    const board = await scoreStore.getBoard(GAME_ID, BOARD);
+    const tied = board.filter((e) => e.score === 7.46);
+
+    expect(tied.map((e) => e.playerId)).toEqual(['tie-player-a', 'tie-player-b']);
+  });
 });

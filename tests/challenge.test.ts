@@ -141,6 +141,26 @@ describe('buildChallengeShareText', () => {
     expect(text).toContain('Perfect Pour');
     expect(text).toContain('https://example.com/games/perfect-pour/challenge/abc123');
   });
+
+  it('formats a decimal total with no float noise (R2)', () => {
+    const text = buildChallengeShareText(
+      'balloon-match',
+      'abc123',
+      [7.46, 9.34, 5.98],
+      'https://example.com'
+    );
+    // 7.46 + 9.34 + 5.98 = 22.78 exactly; a naive reduce can leave trailing
+    // float noise (e.g. 22.779999999999998) — that must never reach the text.
+    expect(text).toContain('22.78/30');
+    expect(text).not.toMatch(/\d\.\d{3,}/);
+  });
+
+  it('trims a whole-number decimal total down to a bare integer', () => {
+    // 10 + 10 + 10 → a clean 30, not "30.00".
+    const text = buildChallengeShareText('balloon-match', 'abc123', [10, 10, 10], 'https://example.com');
+    expect(text).toContain('30/30');
+    expect(text).not.toContain('30.00');
+  });
 });
 
 describe('buildSessionShareText', () => {
@@ -150,5 +170,14 @@ describe('buildSessionShareText', () => {
     expect(text).toContain('🎯 🟢 🟡 🟠 🔴');
     expect(text).toContain('28/50');
     expect(text).toContain('https://example.com/games/balloon-match');
+  });
+
+  it('formats a decimal session total with no float noise (R2)', () => {
+    const roundScores = [7.46, 9.34, 5.98, 8.02, 6.5];
+    const text = buildSessionShareText('perfect-pour', 'Medium', roundScores, 'https://example.com');
+    // Sum is 37.3 exactly; formatScore renders 2dp (only a bare .00 gets
+    // trimmed), so this reads "37.30" — guard against trailing float noise.
+    expect(text).toContain('37.30/50');
+    expect(text).not.toMatch(/\d\.\d{3,}/);
   });
 });

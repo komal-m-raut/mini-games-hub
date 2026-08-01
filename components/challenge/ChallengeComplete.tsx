@@ -13,7 +13,7 @@ import {
   challengeLabel,
   challengePath,
 } from '@/lib/challenge';
-import { MAX_ROUND_SCORE } from '@/utils/scoring';
+import { MAX_ROUND_SCORE, formatScore, round2 } from '@/utils/scoring';
 import { setPlayerName, usePlayerId, usePlayerName } from '@/lib/player';
 
 function CopyButton({ getText, label }: { getText: () => string; label: string }) {
@@ -46,7 +46,7 @@ interface ChallengeCompleteProps {
 }
 
 export function ChallengeComplete({ gameId, code, roundScores, onReplay }: ChallengeCompleteProps) {
-  const total = roundScores.reduce((a, b) => a + b, 0);
+  const total = round2(roundScores.reduce((a, b) => a + b, 0));
   const playerId = usePlayerId();
   const storedName = usePlayerName();
   // null = untouched → show the stored nickname; edits take over from there
@@ -102,7 +102,7 @@ export function ChallengeComplete({ gameId, code, roundScores, onReplay }: Chall
           Challenge Complete
         </p>
         <p className="font-display text-6xl font-black text-white mb-1">
-          {total}
+          {formatScore(total)}
           <span className="text-white/30 text-3xl">/{MAX_CHALLENGE_SCORE}</span>
         </p>
         <p className="text-white/40 text-sm font-mono">{challengeLabel(code)}</p>
@@ -120,7 +120,7 @@ export function ChallengeComplete({ gameId, code, roundScores, onReplay }: Chall
           >
             <p className="stat-label">Round {i + 1}</p>
             <p className="stat-value text-brand-purple">
-              {score}
+              {formatScore(score)}
               <span className="text-white/30 text-sm">/{MAX_ROUND_SCORE}</span>
             </p>
           </motion.div>

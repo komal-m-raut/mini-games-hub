@@ -16,6 +16,7 @@ import {
   NORMAL_ROUND_COUNT,
   calculateScore,
   getLocalBestSession,
+  round2,
   saveBestSession,
 } from '@/utils/scoring';
 import { PourChallengeRound, getPourChallengeRounds } from './challenge';
@@ -238,18 +239,17 @@ export function usePourGame({ challengeCode }: UsePourGameOptions = {}) {
       // follows every release (U8) — this stays the single scoring path.
       if (prev.phase !== 'pouring' && prev.phase !== 'adjusting') return prev;
 
-      const cfg = POUR_DIFFICULTY[prev.difficulty!];
       const diff = Math.abs(prev.targetFill - prev.currentFill);
       const accuracy = getPourAccuracy(prev.targetFill, prev.currentFill);
-      const rating = getPourRating(diff, cfg.tolerance);
       const score = calculateScore(accuracy);
+      const rating = getPourRating(score);
 
       return {
         ...prev,
         phase: 'results',
         isPouring: false,
         score,
-        totalScore: prev.totalScore + score,
+        totalScore: round2(prev.totalScore + score),
         roundScores: [...prev.roundScores, score],
         result: {
           targetFill: prev.targetFill,

@@ -6,7 +6,7 @@ import { Check, Home, RotateCcw, Share2 } from 'lucide-react';
 import { NeonButton } from '@/components/ui/NeonButton';
 import { ConfettiEffect } from '@/components/ui/ConfettiEffect';
 import { buildSessionShare } from '@/lib/share';
-import { MAX_ROUND_SCORE } from '@/utils/scoring';
+import { MAX_ROUND_SCORE, formatScore, round2 } from '@/utils/scoring';
 
 interface SessionSummaryProps {
   /** Game identity for the share text. */
@@ -40,7 +40,7 @@ export function SessionSummary({
   onReplay,
   onMenu,
 }: SessionSummaryProps) {
-  const total = roundScores.reduce((a, b) => a + b, 0);
+  const total = round2(roundScores.reduce((a, b) => a + b, 0));
   const max = roundScores.length * MAX_ROUND_SCORE;
   const [copied, setCopied] = useState(false);
 
@@ -83,7 +83,7 @@ export function SessionSummary({
           Session Complete · {subtitle}
         </p>
         <p className="font-display text-6xl font-black text-white mb-1">
-          {total}
+          {formatScore(total)}
           <span className="text-white/30 text-3xl">/{max}</span>
         </p>
         {isNewBest ? (
@@ -97,7 +97,7 @@ export function SessionSummary({
           </motion.p>
         ) : (
           <p className="text-white/40 text-sm font-mono">
-            Best: {bestSession}/{max}
+            Best: {formatScore(bestSession)}/{max}
           </p>
         )}
       </motion.div>
@@ -114,7 +114,7 @@ export function SessionSummary({
           >
             <p className="stat-label">R{i + 1}</p>
             <p className="stat-value text-brand-purple">
-              {score}
+              {formatScore(score)}
               <span className="text-white/30 text-sm">/{MAX_ROUND_SCORE}</span>
             </p>
           </motion.div>
