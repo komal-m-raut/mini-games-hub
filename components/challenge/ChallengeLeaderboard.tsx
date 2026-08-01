@@ -5,9 +5,8 @@ import { motion } from 'framer-motion';
 import { Trophy, RefreshCw } from 'lucide-react';
 import { ScoreEntry } from '@/types/game';
 import { MAX_CHALLENGE_SCORE } from '@/lib/challenge';
+import { RANK_COLORS } from '@/lib/constants';
 import { formatScore } from '@/utils/scoring';
-
-const RANK_COLORS = ['#EAB308', '#94A3B8', '#D97706'];
 
 interface ChallengeLeaderboardProps {
   gameId: string;

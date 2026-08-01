@@ -37,10 +37,7 @@ export default function BalloonMatchPage() {
 
       {/* Leaderboard */}
       <section>
-        <h2 className="font-display font-bold text-xl text-white mb-4">
-          Balloon Match — Leaderboard
-        </h2>
-        <Leaderboard gameId="balloon-match" />
+        <Leaderboard gameId="balloon-match" title="Balloon Match — Leaderboard" />
       </section>
 
       {/* Ad: below leaderboard, well clear of gameplay and the primary action button */}

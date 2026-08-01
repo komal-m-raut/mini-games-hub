@@ -36,10 +36,7 @@ export default function PerfectPourPage() {
 
       {/* Leaderboard */}
       <section>
-        <h2 className="font-display font-bold text-xl text-white mb-4">
-          Perfect Pour — Leaderboard
-        </h2>
-        <Leaderboard gameId="perfect-pour" />
+        <Leaderboard gameId="perfect-pour" title="Perfect Pour — Leaderboard" />
       </section>
 
       {/* Ad: below leaderboard, well clear of gameplay and the primary action button */}

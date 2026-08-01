@@ -5,6 +5,7 @@ import { Trophy, Users, RefreshCw } from 'lucide-react';
 import { useLeaderboard, LeaderboardTab } from '@/hooks/useLeaderboard';
 import { useSiteStats } from '@/hooks/useSiteStats';
 import { MAX_CHALLENGE_SCORE } from '@/lib/challenge';
+import { RANK_COLORS } from '@/lib/constants';
 import { usePlayerId } from '@/lib/player';
 import { ScoreEntry } from '@/types/game';
 import { formatScore } from '@/utils/scoring';
@@ -14,10 +15,10 @@ const TABS: { id: LeaderboardTab; label: string }[] = [
   { id: 'alltime', label: 'All Time' },
 ];
 
-const RANK_COLORS = ['#EAB308', '#94A3B8', '#D97706'];
-
 interface LeaderboardProps {
   gameId: string;
+  /** Heading text for this section. Defaults to "Leaderboard". */
+  title?: string;
 }
 
 function RankBadge({ rank }: { rank: number }) {
@@ -81,7 +82,7 @@ function LeaderboardRow({
   );
 }
 
-export function Leaderboard({ gameId }: LeaderboardProps) {
+export function Leaderboard({ gameId, title = 'Leaderboard' }: LeaderboardProps) {
   const { entries, activeTab, setActiveTab, isLoading, refresh } = useLeaderboard(gameId);
   const stats = useSiteStats();
   const playerId = usePlayerId();
@@ -93,7 +94,7 @@ export function Leaderboard({ gameId }: LeaderboardProps) {
         <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 mb-4">
           <div className="flex items-center gap-2">
             <Trophy className="w-5 h-5 text-brand-yellow" strokeWidth={1.5} />
-            <h3 className="font-display font-bold text-white text-lg sm:text-xl">Leaderboard</h3>
+            <h2 className="font-display font-bold text-white text-lg sm:text-xl">{title}</h2>
           </div>
           <div className="flex items-center gap-3 shrink-0">
             <div className="flex items-center gap-1.5 text-xs text-white/55 font-mono whitespace-nowrap">

@@ -36,10 +36,7 @@ export default function MemoryPathPage() {
 
       {/* Leaderboard */}
       <section>
-        <h2 className="font-display font-bold text-xl text-white mb-4">
-          Memory Path — Leaderboard
-        </h2>
-        <Leaderboard gameId="memory-path" />
+        <Leaderboard gameId="memory-path" title="Memory Path — Leaderboard" />
       </section>
 
       {/* Ad: below leaderboard, well clear of gameplay and the primary action button */}
