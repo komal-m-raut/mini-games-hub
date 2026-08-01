@@ -12,14 +12,13 @@ import { SessionSummary } from '@/components/game/SessionSummary';
 import { ChallengeComplete } from '@/components/challenge/ChallengeComplete';
 import { ChallengeIntro } from '@/components/challenge/ChallengeIntro';
 import { challengePath, generateChallengeCode, getDailyChallengeCode } from '@/lib/challenge';
-import { NeonButton } from '@/components/ui/NeonButton';
 import { SoundToggle } from '@/components/ui/SoundToggle';
-import { usePressAndHold, useHoldRepeat } from '@/hooks/usePressAndHold';
+import { usePressAndHold } from '@/hooks/usePressAndHold';
 import { Difficulty } from '@/types/game';
 import { Glass } from './GlassCanvas';
 import { PourResultScreen } from './PourResultScreen';
 import { POUR_DIFFICULTY } from './constants';
-import { POUR_ADJUST_STEP, usePourGame } from './usePourGame';
+import { usePourGame } from './usePourGame';
 
 const GAME_ID = 'perfect-pour';
 
@@ -56,8 +55,6 @@ export function PerfectPourGame({ challengeCode }: PerfectPourGameProps = {}) {
     startChallenge,
     startPouring,
     stopPouring,
-    adjustFill,
-    lockIn,
     nextRound,
     replay,
     resetToMenu,
@@ -70,19 +67,6 @@ export function PerfectPourGame({ challengeCode }: PerfectPourGameProps = {}) {
     onStart: startPouring,
     onEnd: stopPouring,
     disabled: state.phase !== 'pouring',
-  });
-
-  const adjustStep = state.difficulty ? POUR_ADJUST_STEP[state.difficulty] : 1;
-  // Match the readout's decimal places to the step size (1 → whole points,
-  // 0.5 → one decimal, 0.25 → two).
-  const adjustDecimals = adjustStep >= 1 ? 0 : adjustStep === 0.5 ? 1 : 2;
-  const decHandlers = useHoldRepeat({
-    onStep: () => adjustFill(-adjustStep),
-    disabled: state.phase !== 'adjusting',
-  });
-  const incHandlers = useHoldRepeat({
-    onStep: () => adjustFill(adjustStep),
-    disabled: state.phase !== 'adjusting',
   });
 
   const backToMenu = () => {
@@ -263,55 +247,6 @@ export function PerfectPourGame({ challengeCode }: PerfectPourGameProps = {}) {
                 />
               </div>
             </div>
-          </motion.div>
-        )}
-
-        {/* ── Adjusting: fine-adjust the released fill, then confirm (U8) ── */}
-        {state.phase === 'adjusting' && cfg && (
-          <motion.div
-            key={`adjusting-${state.round}`}
-            className="glass-card flex flex-col items-center gap-5 py-8"
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.9 }}
-          >
-            <p className="font-display text-xl font-bold text-white">Fine-Tune, Then Lock In</p>
-
-            {/* Perfect Pour has no pour timer (unlike Balloon Match's
-                inflateSeconds), so this step is untimed at every difficulty. */}
-            <div className="pointer-events-none">
-              <Glass fill={state.currentFill} color={cfg.liquid} scale={cfg.glassScale} faucet />
-            </div>
-
-            {/* Fine-adjust controls: real buttons with descriptive labels —
-                this is what gives keyboard/switch users access to the value. */}
-            <div className="flex items-center gap-4">
-              <button
-                type="button"
-                {...decHandlers}
-                aria-label={`Decrease water level by ${adjustStep} percentage point${adjustStep === 1 ? '' : 's'}`}
-                className="step-btn"
-                style={{ '--step-accent': cfg.liquid } as React.CSSProperties}
-              >
-                −
-              </button>
-              <span className="font-score text-2xl text-white min-w-[6ch] text-center">
-                {state.currentFill.toFixed(adjustDecimals)}%
-              </span>
-              <button
-                type="button"
-                {...incHandlers}
-                aria-label={`Increase water level by ${adjustStep} percentage point${adjustStep === 1 ? '' : 's'}`}
-                className="step-btn"
-                style={{ '--step-accent': cfg.liquid } as React.CSSProperties}
-              >
-                +
-              </button>
-            </div>
-
-            <NeonButton variant="primary" size="md" onClick={lockIn} glow="rgba(124, 58, 237, 0.5)">
-              Lock In
-            </NeonButton>
           </motion.div>
         )}
 

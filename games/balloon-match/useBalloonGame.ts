@@ -25,23 +25,6 @@ const GAME_ID = 'balloon-match';
 
 const TICK_MS = 16; // ~60fps update interval
 
-/**
- * Fine-adjust step size (U8), keyed by difficulty — scales with the same
- * tolerance ramp as scoring, so a nudge helps without trivialising the
- * harder tiers. Units match `currentUnits` (0–100).
- */
-export const BALLOON_ADJUST_STEP: Record<Difficulty, number> = {
-  easy: 1,
-  medium: 0.5,
-  hard: 0.25,
-};
-
-/** Pure clamp used by the adjust step — exported so it can be unit tested
- *  without standing up the whole hook. */
-export function adjustBalloonUnits(current: number, delta: number): number {
-  return clamp(current + delta, 0, 100);
-}
-
 // useSyncExternalStore plumbing for the localStorage high score:
 // server snapshot is 0, the real value arrives right after hydration.
 const noopSubscribe = () => () => {};
@@ -211,8 +194,7 @@ export function useBalloonGame({ challengeCode }: UseBalloonGameOptions = {}) {
 
   // ---------- Round scoring ----------
 
-  /** Locks in the current size and scores the round. Works whether the
-   *  player released the balloon or the inflate timer ran out. */
+  /** Locks in the current size and scores the round. */
   const lockIn = useCallback(() => {
     if (holdIntervalRef.current) {
       clearInterval(holdIntervalRef.current);
@@ -220,10 +202,7 @@ export function useBalloonGame({ challengeCode }: UseBalloonGameOptions = {}) {
     }
 
     setState((prev) => {
-      // Scores from either the hold itself (timer ran out mid-hold) or the
-      // fine-adjust step that now follows every release (U8) — this stays
-      // the single scoring path either way.
-      if (prev.phase !== 'inflating' && prev.phase !== 'adjusting') return prev;
+      if (prev.phase !== 'inflating') return prev;
 
       const accuracy = calculateAccuracy(prev.targetUnits, prev.currentUnits);
       const rating = getRating(accuracy);
@@ -261,19 +240,11 @@ export function useBalloonGame({ challengeCode }: UseBalloonGameOptions = {}) {
     }).catch(() => {});
   }, [state.phase]);
 
-  // Inflate countdown — same time pressure in Normal and Challenge mode.
-  // When it hits zero the current size is locked in automatically. This now
-  // spans both `inflating` and `adjusting` (U8): the timer keeps running
-  // through the fine-adjust step and still auto-locks at zero, so Medium's
-  // 5s / Hard's 3s pressure isn't silently deleted by adding a nudge step.
-  // Difficulties with inflateSeconds: null (Easy) have no time limit, so
-  // Easy's adjust step is untimed.
-  // `inTimedPhase` (not `state.phase` itself) drives the deps so the effect
-  // does NOT re-run — and doesn't reset the deadline — on the
-  // inflating → adjusting transition; only entering/leaving the pair does.
-  const inTimedPhase = state.phase === 'inflating' || state.phase === 'adjusting';
+  // Inflate countdown — when it hits zero the current size is locked in
+  // automatically. Difficulties with inflateSeconds: null (Easy) have no
+  // time limit.
   useEffect(() => {
-    if (!inTimedPhase) return;
+    if (state.phase !== 'inflating') return;
     const inflateSeconds = DIFFICULTY_CONFIG[state.difficulty!].inflateSeconds;
     if (inflateSeconds === null) return;
 
@@ -281,7 +252,7 @@ export function useBalloonGame({ challengeCode }: UseBalloonGameOptions = {}) {
 
     const id = setInterval(() => {
       const s = stateRef.current;
-      if (s.phase !== 'inflating' && s.phase !== 'adjusting') return;
+      if (s.phase !== 'inflating') return;
       const remaining = Math.ceil((inflateDeadlineRef.current - performance.now()) / 1000);
       if (remaining <= 0) {
         clearInterval(id);
@@ -295,7 +266,7 @@ export function useBalloonGame({ challengeCode }: UseBalloonGameOptions = {}) {
     }, 1000);
 
     return () => clearInterval(id);
-  }, [inTimedPhase, state.difficulty, lockIn]);
+  }, [state.phase, state.difficulty, lockIn]);
 
   // ---------- Inflation hold mechanics ----------
 
@@ -331,11 +302,6 @@ export function useBalloonGame({ challengeCode }: UseBalloonGameOptions = {}) {
     }, TICK_MS);
   }, []);
 
-  // Releasing the hold no longer scores the round directly (U8) — it drops
-  // into the fine-adjust step instead, so the player can nudge before
-  // confirming with `lockIn`. Also stops the growth interval immediately
-  // rather than leaving it running no-ops until its own dt tick notices
-  // isHolding went false.
   const stopInflating = useCallback(() => {
     if (holdIntervalRef.current) {
       clearInterval(holdIntervalRef.current);
@@ -343,19 +309,10 @@ export function useBalloonGame({ challengeCode }: UseBalloonGameOptions = {}) {
     }
     setState((prev) => {
       if (prev.phase !== 'inflating') return prev;
-      return { ...prev, phase: 'adjusting', isHolding: false };
+      return { ...prev, isHolding: false };
     });
-  }, []);
-
-  /** Fine-adjust step (U8): nudge the current size by a difficulty-scaled
-   *  amount, clamped to the same 0–100 range the hold produces. Available
-   *  in every mode, including Daily/Friend challenges — one consistent rule. */
-  const adjustUnits = useCallback((delta: number) => {
-    setState((prev) => {
-      if (prev.phase !== 'adjusting') return prev;
-      return { ...prev, currentUnits: adjustBalloonUnits(prev.currentUnits, delta) };
-    });
-  }, []);
+    lockIn();
+  }, [lockIn]);
 
   // Guards against double-calls during animation transitions
   const transitioningRef = useRef(false);
@@ -386,15 +343,8 @@ export function useBalloonGame({ challengeCode }: UseBalloonGameOptions = {}) {
     setTimeout(() => { transitioningRef.current = false; }, 500);
   }, [startObserving, challengeRounds]);
 
-  // Backgrounding the tab mid-hold must not be exploitable (the growth loop
-  // would otherwise resume from wherever it left off once refocused, after
-  // however long the player kept it hidden) — end the hold, the same path a
-  // pointer release takes. That now lands in `adjusting` rather than
-  // scoring immediately, which is still safe: Easy's adjust step is
-  // untimed anyway, and Medium/Hard's inflate timer keeps running off its
-  // deadline (see `inTimedPhase` above) regardless of tab visibility, so a
-  // hidden tab can't stall past the deadline either — it auto-locks same
-  // as if the tab had stayed open.
+  // Backgrounding the tab mid-hold must not be exploitable — end the hold
+  // and lock in immediately, same as a pointer release.
   useEffect(() => {
     const handleVisibilityChange = () => {
       if (document.hidden && stateRef.current.isHolding) {
@@ -416,7 +366,6 @@ export function useBalloonGame({ challengeCode }: UseBalloonGameOptions = {}) {
     startChallenge,
     startInflating,
     stopInflating,
-    adjustUnits,
     lockIn,
     playAgain,
     resetToMenu,

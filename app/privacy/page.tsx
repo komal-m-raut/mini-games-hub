@@ -96,10 +96,10 @@ export default function PrivacyPage() {
             <p>
               Questions? Just email us at{' '}
               <a
-                href="mailto:komalraut4762@gmail.com"
+                href="mailto:hello@tinyarcadium.com"
                 className="text-brand-violet hover:text-brand-cyan underline underline-offset-2 transition-colors"
               >
-                komalraut4762@gmail.com
+                hello@tinyarcadium.com
               </a>
               .
             </p>
