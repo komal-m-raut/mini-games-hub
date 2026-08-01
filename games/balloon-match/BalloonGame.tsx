@@ -13,11 +13,11 @@ import { ChallengeIntro } from '@/components/challenge/ChallengeIntro';
 import { challengePath, generateChallengeCode, getDailyChallengeCode } from '@/lib/challenge';
 import { NeonButton } from '@/components/ui/NeonButton';
 import { usePressAndHold, useHoldRepeat } from '@/hooks/usePressAndHold';
+import { SessionSummary } from '@/components/game/SessionSummary';
 import { DIFFICULTY_CONFIG, UNIT_TO_PX } from '@/lib/constants';
 import { Difficulty } from '@/types/game';
 import { Balloon } from './BalloonCanvas';
 import { ResultScreen } from './ResultScreen';
-import { SessionComplete } from './SessionComplete';
 import { BALLOON_ADJUST_STEP, useBalloonGame } from './useBalloonGame';
 
 const GAME_ID = 'balloon-match';
@@ -389,17 +389,21 @@ export function BalloonGame({ challengeCode }: BalloonGameProps) {
         )}
 
         {/* ── Session complete (normal mode): total, share, replay ── */}
-        {state.phase === 'session-complete' && state.difficulty && (
+        {state.phase === 'session-complete' && state.difficulty && cfg && (
           <motion.div
             key="session-complete"
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0 }}
           >
-            <SessionComplete
-              difficulty={state.difficulty}
+            <SessionSummary
+              emoji="🎈"
+              gameName="Balloon Match"
+              gamePath="/games/balloon-match"
+              subtitle={cfg.label}
+              accent={cfg.color}
               roundScores={state.roundScores}
-              isNewBestSession={state.isNewBestSession}
+              isNewBest={state.isNewBestSession}
               bestSession={bestSession}
               onReplay={() => selectDifficulty(state.difficulty!)}
               onMenu={resetToMenu}

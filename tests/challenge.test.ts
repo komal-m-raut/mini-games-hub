@@ -4,7 +4,6 @@ import {
   CHALLENGE_ROUND_COUNT,
   MAX_CHALLENGE_SCORE,
   buildChallengeShareText,
-  buildSessionShareText,
   challengeLabel,
   challengePath,
   generateChallengeCode,
@@ -160,24 +159,5 @@ describe('buildChallengeShareText', () => {
     const text = buildChallengeShareText('balloon-match', 'abc123', [10, 10, 10], 'https://example.com');
     expect(text).toContain('30/30');
     expect(text).not.toContain('30.00');
-  });
-});
-
-describe('buildSessionShareText', () => {
-  it('summarizes a 5-round free-play session out of 50', () => {
-    const text = buildSessionShareText('balloon-match', 'Easy', [10, 8, 6, 3, 1], 'https://example.com');
-    expect(text).toContain('Easy');
-    expect(text).toContain('🎯 🟢 🟡 🟠 🔴');
-    expect(text).toContain('28/50');
-    expect(text).toContain('https://example.com/games/balloon-match');
-  });
-
-  it('formats a decimal session total with no float noise (R2)', () => {
-    const roundScores = [7.46, 9.34, 5.98, 8.02, 6.5];
-    const text = buildSessionShareText('perfect-pour', 'Medium', roundScores, 'https://example.com');
-    // Sum is 37.3 exactly; formatScore renders 2dp (only a bare .00 gets
-    // trimmed), so this reads "37.30" — guard against trailing float noise.
-    expect(text).toContain('37.30/50');
-    expect(text).not.toMatch(/\d\.\d{3,}/);
   });
 });

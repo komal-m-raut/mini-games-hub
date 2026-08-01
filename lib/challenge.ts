@@ -17,9 +17,9 @@ export const MAX_CHALLENGE_SCORE = CHALLENGE_ROUND_COUNT * MAX_ROUND_SCORE;
 
 /** Shared difficulty accents for the generic challenge screens. */
 export const DIFFICULTY_ACCENT: Record<Difficulty, string> = {
-  easy: '#22C55E',
-  medium: '#F97316',
-  hard: '#EF4444',
+  easy: DIFFICULTY_CONFIG.easy.color,
+  medium: DIFFICULTY_CONFIG.medium.color,
+  hard: DIFFICULTY_CONFIG.hard.color,
 };
 
 export interface ChallengeRound {
@@ -153,22 +153,5 @@ export function buildChallengeShareText(
     `${gameHeader(gameId)} — ${challengeLabel(code)}`,
     `${grid}  ${formatScore(total)}/${MAX_CHALLENGE_SCORE}`,
     `Beat my score: ${origin}${challengePath(gameId, code)}`,
-  ].join('\n');
-}
-
-/** Share text for a completed free-play session (5 rounds, /50). */
-export function buildSessionShareText(
-  gameId: string,
-  difficultyLabel: string,
-  roundScores: number[],
-  origin: string
-): string {
-  const total = round2(roundScores.reduce((a, b) => a + b, 0));
-  const max = roundScores.length * MAX_ROUND_SCORE;
-  const grid = roundScores.map(scoreEmoji).join(' ');
-  return [
-    `${gameHeader(gameId)} — ${difficultyLabel}`,
-    `${grid}  ${formatScore(total)}/${max}`,
-    `Play: ${origin}/games/${gameId}`,
   ].join('\n');
 }

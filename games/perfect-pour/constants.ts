@@ -8,13 +8,10 @@ import { ratingFromScore } from '@/utils/scoring';
  */
 export interface PourDifficultyConfig {
   label: string;
-  description: string;
   /** Glass render scale — Easy pours into a big forgiving glass. */
   glassScale: number;
   /** Fill percentage gained per second while holding. */
   pourSpeed: number;
-  /** Within this many percentage points of the target counts as Perfect. */
-  tolerance: number;
   observeSeconds: number;
   color: string;
   glow: string;
@@ -25,10 +22,8 @@ export interface PourDifficultyConfig {
 export const POUR_DIFFICULTY: Record<Difficulty, PourDifficultyConfig> = {
   easy: {
     label: 'Easy',
-    description: 'Large glass · Slow pour',
     glassScale: 1.15,
     pourSpeed: 20,
-    tolerance: 10,
     observeSeconds: 3,
     color: '#22C55E',
     glow: 'rgba(34, 197, 94, 0.4)',
@@ -36,10 +31,8 @@ export const POUR_DIFFICULTY: Record<Difficulty, PourDifficultyConfig> = {
   },
   medium: {
     label: 'Medium',
-    description: 'Medium glass · Faster pour',
     glassScale: 1,
     pourSpeed: 34,
-    tolerance: 6,
     observeSeconds: 3,
     color: '#F97316',
     glow: 'rgba(249, 115, 22, 0.4)',
@@ -47,10 +40,8 @@ export const POUR_DIFFICULTY: Record<Difficulty, PourDifficultyConfig> = {
   },
   hard: {
     label: 'Hard',
-    description: 'Small glass · Fast pour',
     glassScale: 0.85,
     pourSpeed: 52,
-    tolerance: 3,
     observeSeconds: 3,
     color: '#EF4444',
     glow: 'rgba(239, 68, 68, 0.4)',

@@ -8,7 +8,6 @@ import { ratingFromScore } from '@/utils/scoring';
  */
 export interface PathDifficultyConfig {
   label: string;
-  description: string;
   /** Grid is size × size. */
   size: number;
   /** Cells in the path. */
@@ -28,7 +27,6 @@ export interface PathDifficultyConfig {
 export const PATH_DIFFICULTY: Record<Difficulty, PathDifficultyConfig> = {
   easy: {
     label: 'Easy',
-    description: '9×9 grid · Short path',
     size: 9,
     pathLength: 6,
     revealMs: 520,
@@ -40,7 +38,6 @@ export const PATH_DIFFICULTY: Record<Difficulty, PathDifficultyConfig> = {
   },
   medium: {
     label: 'Medium',
-    description: '12×12 grid · Longer path',
     size: 12,
     pathLength: 8,
     revealMs: 440,
@@ -52,7 +49,6 @@ export const PATH_DIFFICULTY: Record<Difficulty, PathDifficultyConfig> = {
   },
   hard: {
     label: 'Hard',
-    description: '16×16 grid · Fast reveal, hard recall',
     size: 16,
     pathLength: 11,
     revealMs: 320,
