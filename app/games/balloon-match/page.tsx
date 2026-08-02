@@ -2,8 +2,17 @@ import type { Metadata } from 'next';
 import { BalloonGame } from '@/games/balloon-match/BalloonGame';
 import { AdBanner } from '@/components/ads/AdBanner';
 import { GameBackLink } from '@/components/game/GameBackLink';
+import { HowToPlay } from '@/components/game/HowToPlay';
 import { Leaderboard } from '@/components/leaderboard/Leaderboard';
 import { SITE_URL } from '@/lib/constants';
+
+const HOW_TO_PLAY_STEPS = [
+  'Memorize the balloon. Each round opens with a target balloon on screen for a few seconds — take in its size and color before it disappears.',
+  'Pick a difficulty. Easy gives you as long as you like to inflate; Medium and Hard add a countdown, so you have to lock in fast.',
+  'Hold to inflate. Press and hold the balloon to grow your own, then release the moment you think it matches the size you just saw.',
+  "Get scored. Your accuracy — how close your final size lands to the target — earns a score out of 10, rated from Try Again up to Perfect.",
+  'Play a session or a challenge. A solo session is five rounds at your chosen difficulty; a Daily or Friend challenge is a fixed set of three seeded rounds (Easy, Medium, Hard) so everyone plays identical targets and scores are directly comparable.',
+];
 
 // Kept under ~160 chars so search results show it without truncation; the
 // fuller copy below feeds structured data, where length isn't penalised.
@@ -67,6 +76,9 @@ export default function BalloonMatchPage() {
         </h1>
         <BalloonGame />
       </div>
+
+      {/* How to Play */}
+      <HowToPlay title="How to Play Balloon Match" steps={HOW_TO_PLAY_STEPS} />
 
       {/* Leaderboard */}
       <section>

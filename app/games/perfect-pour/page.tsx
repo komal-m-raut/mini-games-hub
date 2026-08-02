@@ -2,8 +2,17 @@ import type { Metadata } from 'next';
 import { PerfectPourGame } from '@/games/perfect-pour/PerfectPourGame';
 import { AdBanner } from '@/components/ads/AdBanner';
 import { GameBackLink } from '@/components/game/GameBackLink';
+import { HowToPlay } from '@/components/game/HowToPlay';
 import { Leaderboard } from '@/components/leaderboard/Leaderboard';
 import { SITE_URL } from '@/lib/constants';
+
+const HOW_TO_PLAY_STEPS = [
+  'Watch the glass fill. Each round starts with your glass automatically filling to a target level, held on screen for a few seconds so you can study it before it drains.',
+  "Choose a difficulty. Easy pours into a big, forgiving glass; Hard pours into a small glass that fills faster, so overshooting costs you.",
+  "Hold the tap to pour. Press and hold to pour water back in, then release the moment you think you've matched the level you saw.",
+  'Get scored. Your accuracy — how close your final fill level is to the target, in percentage points — earns a score out of 10 with a matching rating.',
+  'Play a session or a challenge. A solo session is five rounds at your chosen difficulty; a Daily or Friend challenge is a fixed set of three seeded rounds (Easy, Medium, Hard) so every player pours to identical targets.',
+];
 
 // Kept under ~160 chars so search results show it without truncation; the
 // fuller copy below feeds structured data, where length isn't penalised.
@@ -66,6 +75,9 @@ export default function PerfectPourPage() {
         </h1>
         <PerfectPourGame />
       </div>
+
+      {/* How to Play */}
+      <HowToPlay title="How to Play Perfect Pour" steps={HOW_TO_PLAY_STEPS} />
 
       {/* Leaderboard */}
       <section>

@@ -2,8 +2,17 @@ import type { Metadata } from 'next';
 import { MemoryPathGame } from '@/games/memory-path/MemoryPathGame';
 import { AdBanner } from '@/components/ads/AdBanner';
 import { GameBackLink } from '@/components/game/GameBackLink';
+import { HowToPlay } from '@/components/game/HowToPlay';
 import { Leaderboard } from '@/components/leaderboard/Leaderboard';
 import { SITE_URL } from '@/lib/constants';
+
+const HOW_TO_PLAY_STEPS = [
+  'Watch the path light up. A sequence of cells glows across the grid one at a time — memorize the order before it fades.',
+  'Trace it back. Once the path fades, drag across the grid (or use the arrow keys plus Space) to retrace the same cells in the same order.',
+  'Choose your grid. Easy is a smaller grid with a shorter path and a start-cell hint; Medium and Hard scale up the grid size and path length with no hint.',
+  'Get scored. Your accuracy — how many cells you traced correctly, in order — earns a score out of 10; a Perfect needs the whole path back with no extra or missed cells.',
+  'Play a session or a challenge. A solo session is five rounds at your chosen difficulty; a Daily or Friend challenge is a fixed set of three seeded rounds (Easy, Medium, Hard) so everyone traces the same paths.',
+];
 
 // Kept under ~160 chars so search results show it without truncation; the
 // fuller copy below feeds structured data, where length isn't penalised.
@@ -66,6 +75,9 @@ export default function MemoryPathPage() {
         </h1>
         <MemoryPathGame />
       </div>
+
+      {/* How to Play */}
+      <HowToPlay title="How to Play Memory Path" steps={HOW_TO_PLAY_STEPS} />
 
       {/* Leaderboard */}
       <section>

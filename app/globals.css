@@ -529,6 +529,72 @@ body {
 }
 
 /* ─────────────────────────────────────────────
+   How to Play (collapsible, native <details>)
+───────────────────────────────────────────── */
+.how-to-play {
+  padding: 1.1rem 1.25rem;
+}
+
+.how-to-play-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  cursor: pointer;
+  list-style: none;
+}
+
+/* Default marker/triangle varies by browser (Chrome draws its own,
+   Firefox/Safari differ) — hide it everywhere and drive the affordance off
+   a single lucide chevron instead so all three games look identical. */
+.how-to-play-summary::-webkit-details-marker {
+  display: none;
+}
+
+.how-to-play-chevron {
+  color: rgba(255, 255, 255, 0.4);
+  transition: transform 0.2s ease;
+}
+
+.how-to-play[open] .how-to-play-chevron {
+  transform: rotate(180deg);
+}
+
+.how-to-play-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  list-style: none;
+  counter-reset: how-to-play-step;
+}
+
+.how-to-play-steps > li {
+  counter-increment: how-to-play-step;
+  padding-left: 1.75rem;
+  position: relative;
+  line-height: 1.6;
+}
+
+.how-to-play-steps > li::before {
+  content: counter(how-to-play-step);
+  position: absolute;
+  left: 0;
+  top: 0.1rem;
+  width: 1.25rem;
+  height: 1.25rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.7rem;
+}
+
+/* ─────────────────────────────────────────────
    Memory Path grid
 ───────────────────────────────────────────── */
 /* Zero gap on the grid itself: cell centers land exactly on (c+0.5)/N, so
