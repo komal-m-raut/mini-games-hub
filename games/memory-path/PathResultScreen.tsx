@@ -15,7 +15,6 @@ const RATING_META: Record<
   {
     emoji: string;
     color: string;
-    glow: string;
     message: string;
     confetti: 'perfect' | 'great' | 'good' | null;
   }
@@ -23,28 +22,24 @@ const RATING_META: Record<
   Perfect: {
     emoji: '🏆',
     color: '#EAB308',
-    glow: 'rgba(234, 179, 8, 0.5)',
     message: 'Every step, exactly right.',
     confetti: 'perfect',
   },
   Great: {
     emoji: '✨',
     color: '#06B6D4',
-    glow: 'rgba(6, 182, 212, 0.5)',
     message: 'Almost the whole path.',
     confetti: 'great',
   },
   Good: {
     emoji: '👍',
     color: '#A78BFA',
-    glow: 'rgba(167, 139, 250, 0.4)',
     message: 'Solid recall.',
     confetti: 'good',
   },
   'Try Again': {
     emoji: '🧭',
     color: '#94A3B8',
-    glow: 'rgba(148, 163, 184, 0.3)',
     message: 'Follow the glow a little longer.',
     confetti: null,
   },
@@ -92,8 +87,8 @@ export function PathResultScreen({
       >
         <span className="text-5xl">{meta.emoji}</span>
         <h2
-          className="font-display text-4xl sm:text-5xl font-bold"
-          style={{ color: meta.color, textShadow: `0 0 32px ${meta.glow}` }}
+          className="neon-text font-display text-4xl sm:text-5xl font-bold"
+          style={{ color: meta.color, '--neon': meta.color } as React.CSSProperties}
         >
           {result.rating}
         </h2>

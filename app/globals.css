@@ -829,14 +829,27 @@ body {
 /* ─────────────────────────────────────────────
    Neon text glow utility
 ───────────────────────────────────────────── */
+/* One glow recipe, shared by every neon headline — the hero wordmark, the
+   difficulty cards and the result ratings. These used to carry three
+   different hand-tuned text-shadows, so the effect drifted between screens;
+   keeping the declaration in a single rule is what stops that recurring.
+   Callers set `--neon` to the glow colour (defaults to the text colour). */
+.neon-text,
+.neon-text-purple,
+.neon-text-cyan {
+  text-shadow:
+    0 0 12px color-mix(in srgb, var(--neon, currentColor) 45%, transparent),
+    0 0 26px color-mix(in srgb, var(--neon, currentColor) 20%, transparent);
+}
+
 .neon-text-purple {
   color: #A78BFA;
-  text-shadow: 0 0 20px rgba(167, 139, 250, 0.7), 0 0 40px rgba(124, 58, 237, 0.4);
+  --neon: #A78BFA;
 }
 
 .neon-text-cyan {
   color: #06B6D4;
-  text-shadow: 0 0 20px rgba(6, 182, 212, 0.7), 0 0 40px rgba(6, 182, 212, 0.4);
+  --neon: #06B6D4;
 }
 
 /* ─────────────────────────────────────────────
