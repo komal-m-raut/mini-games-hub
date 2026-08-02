@@ -26,7 +26,7 @@ export default function PrivacyPage() {
         <h1 className="font-display font-black text-3xl sm:text-4xl text-white mb-2">
           Privacy Policy
         </h1>
-        <p className="text-white/55 text-sm mb-10">Last updated: July 2026</p>
+        <p className="text-white/55 text-sm mb-10">Last updated: August 2026</p>
 
         <div className="space-y-10 text-white/70 leading-relaxed">
 
@@ -47,6 +47,43 @@ export default function PrivacyPage() {
             <p>
               To keep your scores linked across visits without a login, we save a random ID in
               your browser. It’s just a number — it doesn’t identify you as a person.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="font-display font-bold text-xl text-white mb-3">Cookies &amp; local storage</h2>
+            <p className="mb-3">
+              Tiny Arcadium itself doesn’t set any cookies. Instead we use your browser’s local
+              storage — data that stays on your device — for a few small things: a random ID so
+              we can recognize you across visits without a login, the nickname you choose for the
+              leaderboard, and your sound on/off preference. If you’ve set a local high score in a
+              game, that’s stored the same way. None of it identifies you personally.
+            </p>
+            <p className="mb-3">
+              When you submit a score, your nickname, score and that random ID are sent to us —
+              the ID is how we keep an entry yours across visits and stop one player filling the
+              board. Your sound preference and local high scores never leave your browser.
+            </p>
+            <p>
+              Google, which serves our ads, sets its own cookies in your browser to show and
+              measure ads — those are Google’s, not ours, and Google’s policies govern them. See
+              the Ads section below for how to adjust that.
+            </p>
+          </section>
+
+          <section>
+            <h2 className="font-display font-bold text-xl text-white mb-3">Data retention</h2>
+            <p className="mb-3">
+              Leaderboard scores are kept indefinitely so the boards stay meaningful over time —
+              we don’t automatically delete or expire entries. If you’d like a score removed,
+              email us and we’ll take care of it.
+            </p>
+            <p>
+              Anything stored in your browser — your player ID, nickname, sound preference and
+              local high scores — stays there until you clear your browser’s site data. Your
+              sound preference and local high scores stay on your device entirely; the player ID
+              and nickname are only copied to us as part of a leaderboard entry you chose to
+              submit.
             </p>
           </section>
 
