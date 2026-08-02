@@ -23,8 +23,14 @@ export function Footer() {
               the visible line height — these anchors have no background/
               border, so the extra padding renders invisibly (M6). */}
           <div className="flex items-center gap-6 text-sm text-white/55">
+            <Link href="/about" className="-my-3 py-3 hover:text-white/80 transition-colors">
+              About
+            </Link>
             <Link href="/privacy" className="-my-3 py-3 hover:text-white/80 transition-colors">
               Privacy Policy
+            </Link>
+            <Link href="/terms" className="-my-3 py-3 hover:text-white/80 transition-colors">
+              Terms
             </Link>
             <a href="/privacy#contact" className="-my-3 py-3 hover:text-white/80 transition-colors">
               Contact
