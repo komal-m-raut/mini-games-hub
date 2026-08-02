@@ -15,7 +15,7 @@ export function Footer() {
           <div className="flex items-center gap-2">
             <Gamepad2 className="w-5 h-5 text-brand-purple" strokeWidth={1.5} />
             <span className="font-display text-sm text-white/60">
-              Mini Games Hub · Stress relief, one game at a time
+              Tiny Arcadium · Stress relief, one game at a time
             </span>
           </div>
 
@@ -33,7 +33,7 @@ export function Footer() {
         </div>
 
         <p className="mt-4 text-center text-xs text-white/55">
-          © {new Date().getFullYear()} Mini Games Hub. All rights reserved.
+          © {new Date().getFullYear()} Tiny Arcadium. All rights reserved.
         </p>
       </div>
     </footer>

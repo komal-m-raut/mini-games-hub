@@ -95,9 +95,8 @@ function HeroSection() {
         className="fade-up font-display font-black text-4xl sm:text-6xl lg:text-7xl text-white leading-tight mb-4"
         style={{ animationDelay: '0.15s' }}
       >
-        <span className="neon-text-purple">Mini</span>{' '}
-        <span className="text-white">Games</span>{' '}
-        <span className="neon-text-cyan">Hub</span>
+        <span className="neon-text-purple">Tiny</span>{' '}
+        <span className="neon-text-cyan">Arcadium</span>
       </h1>
 
       <p

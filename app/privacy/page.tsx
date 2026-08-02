@@ -3,11 +3,11 @@ import Link from 'next/link';
 
 export const metadata: Metadata = {
   title: 'Privacy Policy',
-  description: 'Privacy Policy for Mini Games Hub — how we handle data, ads, and tracking.',
+  description: 'Privacy Policy for Tiny Arcadium — how we handle data, ads, and tracking.',
   alternates: { canonical: '/privacy' },
   openGraph: {
     title: 'Privacy Policy',
-    description: 'Privacy Policy for Mini Games Hub — how we handle data, ads, and tracking.',
+    description: 'Privacy Policy for Tiny Arcadium — how we handle data, ads, and tracking.',
     url: '/privacy',
   },
 };
@@ -33,7 +33,7 @@ export default function PrivacyPage() {
           <section>
             <h2 className="font-display font-bold text-xl text-white mb-3">The short version</h2>
             <p>
-              Mini Games Hub is free to play — no sign-up, no login, no personal information
+              Tiny Arcadium is free to play — no sign-up, no login, no personal information
               collected. We just want you to have fun.
             </p>
           </section>
@@ -78,7 +78,7 @@ export default function PrivacyPage() {
           <section>
             <h2 className="font-display font-bold text-xl text-white mb-3">Kids</h2>
             <p>
-              Mini Games Hub is suitable for general audiences. We don’t knowingly collect any
+              Tiny Arcadium is suitable for general audiences. We don’t knowingly collect any
               information from children. If you have concerns, feel free to reach out.
             </p>
           </section>

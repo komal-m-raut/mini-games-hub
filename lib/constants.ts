@@ -1,7 +1,8 @@
 import { Difficulty } from '@/types/game';
 
-export const SITE_NAME = 'Mini Games Hub';
-export const SITE_DESCRIPTION = 'Stress-buster mini games to relax and sharpen your mind.';
+export const SITE_NAME = 'Tiny Arcadium';
+export const SITE_DESCRIPTION =
+  'Free browser games — memory, precision, and reflex challenges you can play instantly. No download, no signup.';
 
 // Canonical origin for SEO (sitemap, canonical URLs, OG). Set
 // NEXT_PUBLIC_SITE_URL to the real domain in production; falls back to the
