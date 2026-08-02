@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Home, RotateCcw } from 'lucide-react';
+import { Home } from 'lucide-react';
 import { NeonButton } from '@/components/ui/NeonButton';
 import { ConfettiEffect } from '@/components/ui/ConfettiEffect';
 import { Rating } from '@/types/game';
@@ -135,7 +135,6 @@ export function PourResultScreen({
           className="flex-1 min-w-0 flex items-center justify-center gap-2 whitespace-nowrap"
           glow="rgba(124, 58, 237, 0.5)"
         >
-          <RotateCcw className="w-4 h-4 shrink-0 hidden sm:block" strokeWidth={1.5} />
           {nextLabel}
         </NeonButton>
       </motion.div>
