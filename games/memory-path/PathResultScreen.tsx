@@ -1,7 +1,7 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { Home, RotateCcw } from 'lucide-react';
+import { Home } from 'lucide-react';
 import { NeonButton } from '@/components/ui/NeonButton';
 import { ConfettiEffect } from '@/components/ui/ConfettiEffect';
 import { Rating } from '@/types/game';
@@ -15,7 +15,6 @@ const RATING_META: Record<
   {
     emoji: string;
     color: string;
-    glow: string;
     message: string;
     confetti: 'perfect' | 'great' | 'good' | null;
   }
@@ -23,28 +22,24 @@ const RATING_META: Record<
   Perfect: {
     emoji: '🏆',
     color: '#EAB308',
-    glow: 'rgba(234, 179, 8, 0.5)',
     message: 'Every step, exactly right.',
     confetti: 'perfect',
   },
   Great: {
     emoji: '✨',
     color: '#06B6D4',
-    glow: 'rgba(6, 182, 212, 0.5)',
     message: 'Almost the whole path.',
     confetti: 'great',
   },
   Good: {
     emoji: '👍',
     color: '#A78BFA',
-    glow: 'rgba(167, 139, 250, 0.4)',
     message: 'Solid recall.',
     confetti: 'good',
   },
   'Try Again': {
     emoji: '🧭',
     color: '#94A3B8',
-    glow: 'rgba(148, 163, 184, 0.3)',
     message: 'Follow the glow a little longer.',
     confetti: null,
   },
@@ -92,8 +87,8 @@ export function PathResultScreen({
       >
         <span className="text-5xl">{meta.emoji}</span>
         <h2
-          className="font-display text-4xl sm:text-5xl font-bold"
-          style={{ color: meta.color, textShadow: `0 0 32px ${meta.glow}` }}
+          className="neon-text font-display text-4xl sm:text-5xl font-bold"
+          style={{ color: meta.color, '--neon': meta.color } as React.CSSProperties}
         >
           {result.rating}
         </h2>
@@ -174,7 +169,6 @@ export function PathResultScreen({
           className="flex-1 min-w-0 flex items-center justify-center gap-2 whitespace-nowrap"
           glow="rgba(124, 58, 237, 0.5)"
         >
-          <RotateCcw className="w-4 h-4 shrink-0 hidden sm:block" strokeWidth={1.5} />
           {nextLabel}
         </NeonButton>
       </motion.div>

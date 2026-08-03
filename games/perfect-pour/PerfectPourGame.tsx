@@ -115,7 +115,10 @@ export function PerfectPourGame({ challengeCode }: PerfectPourGameProps = {}) {
           >
             {menuView === 'mode' && (
               <ModeSelector
-                accent="#06B6D4"
+                // Not the game's cyan: Daily Challenge hardcodes #06B6D4, so a
+                // cyan accent here made the two cards indistinguishable. Rose is
+                // already in Perfect Pour's palette (its Hard liquid).
+                accent="#F43F5E"
                 onSolo={() => setMenuView('solo')}
                 onDailyChallenge={() =>
                   router.push(challengePath(GAME_ID, getDailyChallengeCode()))

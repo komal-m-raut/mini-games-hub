@@ -72,8 +72,8 @@ export function DifficultySelector({
 
             <div className="px-5 py-3.5 flex items-center justify-between gap-3 sm:block sm:py-4">
               <p
-                className="font-display text-xl sm:text-2xl font-bold"
-                style={{ color: opt.color, textShadow: `0 0 16px ${opt.color}80` }}
+                className="neon-text font-display text-xl sm:text-2xl font-bold"
+                style={{ color: opt.color, '--neon': opt.color } as React.CSSProperties}
               >
                 {opt.label}
               </p>

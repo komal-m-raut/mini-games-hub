@@ -5,7 +5,7 @@ export const GAME_REGISTRY: GameMeta[] = [
     id: 'balloon-match',
     title: 'Balloon Match',
     description:
-      'Watch a balloon, then recreate it from memory by pressing and holding. How accurate can you be?',
+      'A free memory and precision game: watch a balloon inflate, then recreate its size from memory by pressing and holding. How accurate can you be?',
     emoji: '🎈',
     gradientFrom: '#A855F7',
     gradientTo: '#EC4899',
@@ -18,7 +18,7 @@ export const GAME_REGISTRY: GameMeta[] = [
     id: 'perfect-pour',
     title: 'Perfect Pour',
     description:
-      'Watch a glass fill, then pour it back from memory. A calm test of timing and touch.',
+      'A free precision game: watch a glass fill, then pour it back from memory. A calm, relaxing test of timing and touch.',
     emoji: '🥤',
     gradientFrom: '#06B6D4',
     gradientTo: '#3B82F6',
@@ -31,7 +31,7 @@ export const GAME_REGISTRY: GameMeta[] = [
     id: 'memory-path',
     title: 'Memory Path',
     description:
-      'A neon path lights up across the grid. Memorize it, then trace it back from memory.',
+      'A free brain memory game: a neon path lights up across the grid. Memorize it, then trace it back to train your focus and recall.',
     emoji: '🧠',
     gradientFrom: '#A855F7',
     gradientTo: '#06B6D4',

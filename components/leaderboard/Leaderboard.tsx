@@ -136,7 +136,8 @@ export function Leaderboard({ gameId, title = 'Leaderboard' }: LeaderboardProps)
           </div>
         ) : entries && entries.length === 0 ? (
           <div className="flex flex-col items-center justify-center py-12 gap-2 text-center">
-            <p className="text-white/55">No scores yet — play a challenge to get on the board!</p>
+            <p className="text-white/55">No scores yet — be the first to play and claim the top spot!</p>
+            <p className="text-white/35 text-sm">Finish a challenge and your score lands right here.</p>
           </div>
         ) : (
           <AnimatePresence mode="wait">

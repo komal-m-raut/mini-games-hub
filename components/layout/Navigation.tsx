@@ -23,9 +23,9 @@ export function Navigation() {
             </div>
             <span className="font-display text-sm sm:text-lg font-bold tracking-wide whitespace-nowrap">
               <span className="text-brand-purple group-hover:text-brand-cyan transition-colors duration-300">
-                Mini
+                Tiny
               </span>
-              <span className="text-white ml-1">Games Hub</span>
+              <span className="text-white ml-1">Arcadium</span>
             </span>
           </Link>
 

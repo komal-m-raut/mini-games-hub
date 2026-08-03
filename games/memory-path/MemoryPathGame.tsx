@@ -112,7 +112,9 @@ export function MemoryPathGame({ challengeCode }: MemoryPathGameProps = {}) {
           >
             {menuView === 'mode' && (
               <ModeSelector
-                accent="#A855F7"
+                // Not the game's purple: Solo hardcodes #8B5CF6, and #A855F7 sat
+                // close enough to it that the two cards read as the same colour.
+                accent="#EC4899"
                 onSolo={() => setMenuView('solo')}
                 onDailyChallenge={() =>
                   router.push(challengePath(GAME_ID, getDailyChallengeCode()))

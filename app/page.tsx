@@ -17,6 +17,11 @@ function GameCard({ game }: { game: GameMeta }) {
       href={game.isAvailable ? game.href : undefined}
       className={`game-card group ${!game.isAvailable ? 'game-card-unavailable' : ''}`}
       aria-disabled={!game.isAvailable}
+      // Only the Link case needs a label — it's the only case with an
+      // otherwise-ambiguous accessible name. The unavailable `div` case has
+      // no implicit link semantics, so it just reads its own content
+      // (title, description, "Coming Soon") without one.
+      aria-label={game.isAvailable ? `Play ${game.title}` : undefined}
     >
       {/* Gradient banner */}
       <div
@@ -95,9 +100,8 @@ function HeroSection() {
         className="fade-up font-display font-black text-4xl sm:text-6xl lg:text-7xl text-white leading-tight mb-4"
         style={{ animationDelay: '0.15s' }}
       >
-        <span className="neon-text-purple">Mini</span>{' '}
-        <span className="text-white">Games</span>{' '}
-        <span className="neon-text-cyan">Hub</span>
+        <span className="neon-text-purple">Tiny</span>{' '}
+        <span className="neon-text-cyan">Arcadium</span>
       </h1>
 
       <p

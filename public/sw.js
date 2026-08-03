@@ -1,8 +1,8 @@
-// Mini Games Hub service worker — offline-first shell caching.
+// Tiny Arcadium service worker — offline-first shell caching.
 // CACHE_VERSION MUST be bumped on every deploy that changes any cached
 // asset (pages, styles, scripts) — otherwise clients keep serving stale
 // content indefinitely, since nothing else invalidates the cache.
-const CACHE_VERSION = 'mgh-v2';
+const CACHE_VERSION = 'ta-v1';
 const CORE_ASSETS = ['/', '/games/balloon-match', '/games/perfect-pour', '/games/memory-path'];
 
 self.addEventListener('install', (event) => {

@@ -8,7 +8,7 @@ import { RouteFocusManager } from '@/components/layout/RouteFocusManager';
 import { ParticleBackground } from '@/components/ui/ParticleBackground';
 import { MotionProvider } from '@/components/ui/MotionProvider';
 import { ServiceWorkerRegister } from '@/components/pwa/ServiceWorkerRegister';
-import { SITE_URL } from '@/lib/constants';
+import { SITE_URL, SITE_NAME, SITE_DESCRIPTION } from '@/lib/constants';
 import './globals.css';
 
 const orbitron = Orbitron({
@@ -35,31 +35,46 @@ const jetbrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: 'Mini Games Hub — Stress-Buster Games',
-    template: '%s · Mini Games Hub',
+    default: 'Tiny Arcadium — Free Mini Games You Can Play Instantly',
+    template: '%s · Tiny Arcadium',
   },
   description:
-    'A collection of quick, relaxing mini-games to relieve stress and sharpen your mind. Play Balloon Match and more!',
-  keywords: ['mini games', 'stress relief', 'balloon match', 'casual games', 'browser games'],
+    'Play free browser games instantly — no download, no signup. Tiny Arcadium collects quick memory, precision, and reflex games to relax and sharpen your mind.',
+  keywords: [
+    'free online games',
+    'browser games no download',
+    'mini games',
+    'memory games',
+    'quick games',
+    'casual browser games',
+    'brain games',
+    'no signup games',
+    'stress relief games',
+    'balloon match',
+    'reflex games',
+    'precision games',
+  ],
   alternates: { canonical: '/' },
   openGraph: {
-    siteName: 'Mini Games Hub',
-    title: 'Mini Games Hub',
-    description: 'Stress-buster mini games — instantly playable in your browser.',
+    siteName: 'Tiny Arcadium',
+    title: 'Tiny Arcadium — Free Mini Games You Can Play Instantly',
+    description:
+      'Free browser games — memory, precision, and reflex challenges you can play instantly. No download, no signup.',
     type: 'website',
     url: '/',
-    images: [{ url: '/og.png', width: 1200, height: 630, alt: 'Mini Games Hub' }],
+    images: [{ url: '/og.png', width: 1200, height: 630, alt: 'Tiny Arcadium' }],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Mini Games Hub',
-    description: 'Stress-buster mini games — instantly playable in your browser.',
+    title: 'Tiny Arcadium — Free Mini Games You Can Play Instantly',
+    description:
+      'Free browser games — memory, precision, and reflex challenges you can play instantly. No download, no signup.',
     images: ['/og.png'],
   },
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
-    title: 'MiniGames',
+    title: 'Tiny Arcadium',
   },
   icons: {
     icon: [
@@ -82,6 +97,19 @@ export const viewport: Viewport = {
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: SITE_NAME,
+    url: SITE_URL,
+    description: SITE_DESCRIPTION,
+    publisher: {
+      '@type': 'Organization',
+      name: SITE_NAME,
+      url: SITE_URL,
+    },
+  };
+
   return (
     <html
       lang="en"
@@ -89,6 +117,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       className={`${orbitron.variable} ${spaceGrotesk.variable} ${jetbrainsMono.variable}`}
     >
       <head>
+        {/* Site-wide structured data so search engines understand what
+            Tiny Arcadium is beyond the page copy. */}
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }}
+        />
         {process.env.NEXT_PUBLIC_ADSENSE_PUBLISHER_ID && (
           <Script
             async
