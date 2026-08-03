@@ -8,6 +8,7 @@ import {
   isMuted,
   loadMutePreference,
   playSound,
+  setSweepPosition,
   setWaterFill,
   startLoop,
   stopAllLoops,
@@ -40,6 +41,7 @@ export function useSound() {
   const loop = useCallback((name: LoopName) => startLoop(name), []);
   const stop = useCallback((name: LoopName) => stopLoop(name), []);
   const setFill = useCallback((percent: number) => setWaterFill(percent), []);
+  const setSweep = useCallback((percent: number) => setSweepPosition(percent), []);
 
-  return { muted, play, loop, stop, setFill, toggle: toggleMuted };
+  return { muted, play, loop, stop, setFill, setSweep, toggle: toggleMuted };
 }

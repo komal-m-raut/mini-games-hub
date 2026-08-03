@@ -27,6 +27,7 @@ const GAME_RULES: Record<string, GameRules> = {
   'balloon-match': CHALLENGE_RULES,
   'perfect-pour': CHALLENGE_RULES,
   'memory-path': CHALLENGE_RULES,
+  'timing-tap': CHALLENGE_RULES,
 };
 
 const BOARD_PATTERN = /^[a-z0-9-]{1,40}$/;

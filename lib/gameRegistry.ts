@@ -40,4 +40,17 @@ export const GAME_REGISTRY: GameMeta[] = [
     href: '/games/memory-path',
     tags: ['memory', 'focus', 'neon'],
   },
+  {
+    id: 'timing-tap',
+    title: 'Timing Tap',
+    description:
+      'A free reflex and timing game: a glowing indicator sweeps a neon bar. Tap the instant it crosses the Perfect Zone at the centre for a top score.',
+    emoji: '🎯',
+    gradientFrom: '#F97316',
+    gradientTo: '#EAB308',
+    glowColor: 'rgba(249, 115, 22, 0.5)',
+    isAvailable: true,
+    href: '/games/timing-tap',
+    tags: ['reflex', 'timing', 'arcade'],
+  },
 ];
