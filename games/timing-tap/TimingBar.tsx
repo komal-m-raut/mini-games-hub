@@ -39,9 +39,7 @@ export function TimingBar({
   const left = useTransform(position, (p) => `${p}%`);
   // Same trick for the "beam is inside the zone right now" cue: derived on
   // the MotionValue, so the live highlight costs zero React renders.
-  const inZone = useTransform(position, (p) =>
-    !frozen && Math.abs(p - 50) <= zoneHalfWidth ? 1 : 0
-  );
+  const inZone = useTransform(position, (p) => (Math.abs(p - 50) <= zoneHalfWidth ? 1 : 0));
 
   return (
     <div className="timing-stage" style={{ '--beam': beam } as React.CSSProperties}>
@@ -72,16 +70,20 @@ export function TimingBar({
           }}
         />
 
-        <motion.div
-          aria-hidden
-          className="timing-zone-flare"
-          style={{
-            left: `${50 - zoneHalfWidth}%`,
-            width: `${zoneHalfWidth * 2}%`,
-            opacity: inZone,
-          }}
-          transition={{ duration: 0.08 }}
-        />
+        {/* Unmounted rather than faded out once the round ends: gating this
+            inside the transform would bake `frozen` into a closure the
+            MotionValue subscription doesn't necessarily re-read. */}
+        {!frozen && (
+          <motion.div
+            aria-hidden
+            className="timing-zone-flare"
+            style={{
+              left: `${50 - zoneHalfWidth}%`,
+              width: `${zoneHalfWidth * 2}%`,
+              opacity: inZone,
+            }}
+          />
+        )}
 
         <span className="timing-centerline" />
 

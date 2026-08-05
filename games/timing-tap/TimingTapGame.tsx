@@ -52,6 +52,16 @@ interface Ripple {
   y: number;
 }
 
+/**
+ * `mode="wait"` runs the outgoing card's exit to completion before the next
+ * one mounts, so the exit duration *is* the blank gap between phases —
+ * Framer's 0.3s default left the stage empty for a beat right after a tap,
+ * which is the worst possible moment to show nothing. Exits run at roughly
+ * 40% of the enter, per the usual enter-slow/exit-fast rule.
+ */
+const CARD_ENTER = { type: 'spring', stiffness: 280, damping: 28 } as const;
+const CARD_EXIT = { duration: 0.16, ease: 'easeIn' } as const;
+
 export function TimingTapGame({ challengeCode }: TimingTapGameProps = {}) {
   const {
     state,
@@ -209,13 +219,13 @@ export function TimingTapGame({ challengeCode }: TimingTapGameProps = {}) {
       {/* Countdown, running and results swap inside a floor-height stage:
           without it each phase sized itself and the whole page jumped a
           couple of hundred pixels between the sweep and the result. */}
-      <div className={isMenu || isEnd ? undefined : 'min-h-[26rem] sm:min-h-[27rem]'}>
+      <div className={isMenu || isEnd ? undefined : 'min-h-[23rem] sm:min-h-[27rem]'}>
         <AnimatePresence mode="wait">
         {/* ── Free-play menu: mode picker → solo or multiplayer ── */}
         {state.phase === 'selecting-difficulty' && (
           <motion.div
             key={`menu-${menuView}`}
-            exit={{ opacity: 0, y: -20 }}
+            exit={{ opacity: 0, y: -12, transition: CARD_EXIT }}
             className="flex flex-col gap-6 fade-up"
           >
             {menuView === 'mode' && (
@@ -247,7 +257,7 @@ export function TimingTapGame({ challengeCode }: TimingTapGameProps = {}) {
 
         {/* ── Challenge intro ── */}
         {state.phase === 'challenge-intro' && challengeCode && challengeRounds && (
-          <motion.div key="challenge-intro" exit={{ opacity: 0, y: -20 }} className="fade-up">
+          <motion.div key="challenge-intro" exit={{ opacity: 0, y: -12, transition: CARD_EXIT }} className="fade-up">
             <ChallengeIntro
               gameId={GAME_ID}
               code={challengeCode}
@@ -262,9 +272,10 @@ export function TimingTapGame({ challengeCode }: TimingTapGameProps = {}) {
           <motion.div
             key={`countdown-${state.round}`}
             className="glass-card flex flex-col items-center justify-center gap-6 py-8 min-h-[inherit]"
-            initial={{ opacity: 0, scale: 0.95 }}
+            initial={{ opacity: 0, scale: 0.96 }}
             animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.9 }}
+            exit={{ opacity: 0, scale: 0.97, transition: CARD_EXIT }}
+            transition={CARD_ENTER}
           >
             <div className="flex flex-col items-center gap-1.5">
               <p className="tap-eyebrow">Round {state.round}</p>
@@ -303,9 +314,10 @@ export function TimingTapGame({ challengeCode }: TimingTapGameProps = {}) {
           <motion.div
             key={`running-${state.round}`}
             className="glass-card flex flex-col items-center justify-center gap-5 py-8 min-h-[inherit]"
-            initial={{ opacity: 0, scale: 0.95 }}
+            initial={{ opacity: 0, scale: 0.96 }}
             animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.9 }}
+            exit={{ opacity: 0, scale: 0.97, transition: CARD_EXIT }}
+            transition={CARD_ENTER}
           >
             <div className="flex flex-col items-center gap-1.5">
               <p className="tap-eyebrow">Round {state.round}</p>
@@ -344,7 +356,7 @@ export function TimingTapGame({ challengeCode }: TimingTapGameProps = {}) {
             </button>
 
             <p className="tap-hint">
-              Tap anywhere above, or press <kbd className="tap-key">Space</kbd>
+              Tap anywhere, or press <kbd className="tap-key">Space</kbd>
             </p>
           </motion.div>
         )}
@@ -354,9 +366,10 @@ export function TimingTapGame({ challengeCode }: TimingTapGameProps = {}) {
           <motion.div
             key={`results-${state.round}`}
             className="glass-card flex flex-col justify-center py-8 min-h-[inherit]"
-            initial={{ opacity: 0, scale: 0.95 }}
+            initial={{ opacity: 0, scale: 0.96 }}
             animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0 }}
+            exit={{ opacity: 0, transition: CARD_EXIT }}
+            transition={CARD_ENTER}
             role="status"
             aria-live="polite"
           >
@@ -373,9 +386,10 @@ export function TimingTapGame({ challengeCode }: TimingTapGameProps = {}) {
         {state.phase === 'session-complete' && cfg && (
           <motion.div
             key="session-complete"
-            initial={{ opacity: 0, scale: 0.95 }}
+            initial={{ opacity: 0, scale: 0.96 }}
             animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0 }}
+            exit={{ opacity: 0, transition: CARD_EXIT }}
+            transition={CARD_ENTER}
           >
             <SessionSummary
               emoji="🎯"
@@ -396,9 +410,10 @@ export function TimingTapGame({ challengeCode }: TimingTapGameProps = {}) {
         {state.phase === 'challenge-complete' && challengeCode && (
           <motion.div
             key="challenge-complete"
-            initial={{ opacity: 0, scale: 0.95 }}
+            initial={{ opacity: 0, scale: 0.96 }}
             animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0 }}
+            exit={{ opacity: 0, transition: CARD_EXIT }}
+            transition={CARD_ENTER}
           >
             <ChallengeComplete
               gameId={GAME_ID}
