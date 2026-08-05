@@ -6,42 +6,15 @@ import { Home } from 'lucide-react';
 import { NeonButton } from '@/components/ui/NeonButton';
 import { ConfettiEffect } from '@/components/ui/ConfettiEffect';
 import { MAX_ROUND_SCORE, formatScore } from '@/utils/scoring';
+import { TAP_RATING_META } from './ratings';
 import { TapRating, TapResult } from './types';
 
-const RATING_META: Record<
-  TapRating,
-  { emoji: string; color: string; message: string; confetti: 'perfect' | 'great' | 'good' | null }
-> = {
-  Perfect: {
-    emoji: '🎯',
-    color: '#EAB308',
-    message: 'Dead centre — flawless timing!',
-    confetti: 'perfect',
-  },
-  Amazing: {
-    emoji: '⚡',
-    color: '#F97316',
-    message: 'Lightning-fast reflexes.',
-    confetti: 'great',
-  },
-  Great: {
-    emoji: '✨',
-    color: '#06B6D4',
-    message: 'Sharp timing.',
-    confetti: 'good',
-  },
-  Good: {
-    emoji: '👍',
-    color: '#A78BFA',
-    message: 'Decent tap.',
-    confetti: null,
-  },
-  'Try Again': {
-    emoji: '🔁',
-    color: '#94A3B8',
-    message: 'Watch the sweep and try again.',
-    confetti: null,
-  },
+const RATING_EMOJI: Record<TapRating, string> = {
+  Perfect: '🎯',
+  Amazing: '⚡',
+  Great: '✨',
+  Good: '👍',
+  'Try Again': '🔁',
 };
 
 export interface TapResultScreenProps {
@@ -78,7 +51,7 @@ function useCountUp(target: number, skip: boolean, delayMs = 250, durationMs = 6
 }
 
 export function TapResultScreen({ result, beam, nextLabel, onNext, onMenu }: TapResultScreenProps) {
-  const meta = RATING_META[result.rating];
+  const meta = TAP_RATING_META[result.rating];
   const reducedMotion = useReducedMotion();
   const displayScore = useCountUp(result.score, Boolean(reducedMotion));
 
@@ -98,7 +71,7 @@ export function TapResultScreen({ result, beam, nextLabel, onNext, onMenu }: Tap
         animate={{ scale: 1 }}
         transition={{ type: 'spring', stiffness: 250, damping: 18, delay: 0.1 }}
       >
-        <span className="text-5xl">{meta.emoji}</span>
+        <span className="text-5xl">{RATING_EMOJI[result.rating]}</span>
         <h2
           className="neon-text font-display text-4xl sm:text-5xl font-bold"
           style={{ color: meta.color, '--neon': meta.color } as React.CSSProperties}

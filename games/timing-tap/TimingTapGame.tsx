@@ -16,6 +16,7 @@ import { Difficulty } from '@/types/game';
 import { TapResultScreen } from './TapResultScreen';
 import { TimingBar } from './TimingBar';
 import { TAP_DIFFICULTY } from './constants';
+import { TAP_RATING_META } from './ratings';
 import { useTimingTapGame } from './useTimingTapGame';
 
 const GAME_ID = 'timing-tap';
@@ -316,6 +317,9 @@ export function TimingTapGame({ challengeCode }: TimingTapGameProps = {}) {
                 frozen={Boolean(state.result)}
                 slowMotion={state.isSlowMotion}
                 markerPosition={state.result ? state.result.position : null}
+                markerTone={
+                  state.result ? TAP_RATING_META[state.result.rating].color : undefined
+                }
               />
               {ripples.map((r) => (
                 <span
