@@ -1,3 +1,4 @@
+import { getTapRating } from './constants';
 import { TapRating } from './types';
 
 export interface TapRatingMeta {
@@ -40,3 +41,14 @@ export const TAP_RATING_META: Record<TapRating, TapRatingMeta> = {
     confetti: null,
   },
 };
+
+/**
+ * Recovers the rating for a finished round from its score alone — the
+ * session only keeps `roundScores`, but `calculateScore` is
+ * `(accuracy - 50) / 5`, so inverting it hands the real accuracy back to
+ * the same thresholds the live result used. Deriving it beats storing a
+ * parallel list of ratings that could fall out of step.
+ */
+export function tapRatingFromScore(score: number): TapRating {
+  return getTapRating(score * 5 + 50);
+}

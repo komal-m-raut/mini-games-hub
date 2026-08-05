@@ -631,6 +631,90 @@ body {
 }
 
 /* ─────────────────────────────────────────────
+   Timing Tap round shell
+───────────────────────────────────────────── */
+.tap-eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: rgba(255, 255, 255, 0.38);
+  line-height: 1;
+}
+
+/* The whole card area above the bar is tappable, not just the bar itself —
+   a timing game shouldn't ask for aim on the input as well as the timing. */
+.tap-surface {
+  position: relative;
+  width: 100%;
+  padding: 26px 0;
+  border-radius: var(--radius-lg);
+  cursor: pointer;
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.2s ease;
+}
+
+.tap-surface:hover {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.tap-hint {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  justify-content: center;
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  color: rgba(255, 255, 255, 0.45);
+  text-align: center;
+}
+
+.tap-key {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  padding: 2px 8px;
+  border-radius: 6px;
+  color: rgba(255, 255, 255, 0.75);
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.06) inset;
+}
+
+/* Round progress: one segment per round, tinted by that round's rating. */
+.round-strip {
+  display: flex;
+  gap: 6px;
+  width: 100%;
+}
+
+.round-pip {
+  flex: 1;
+  height: 5px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  transition: background 0.3s ease, box-shadow 0.3s ease;
+}
+
+.round-pip[data-state='done'] {
+  background: var(--tone);
+  box-shadow: 0 0 10px color-mix(in srgb, var(--tone) 55%, transparent);
+}
+
+.round-pip[data-state='current'] {
+  background: rgba(255, 255, 255, 0.28);
+  animation: round-pip-pulse 1.8s ease-in-out infinite;
+}
+
+@keyframes round-pip-pulse {
+  0%, 100% { opacity: 0.5; }
+  50%      { opacity: 1; }
+}
+
+/* ─────────────────────────────────────────────
    Timing Tap bar
    Per-difficulty colour is threaded through one custom property (--beam,
    set inline by the component) so the rules below never need

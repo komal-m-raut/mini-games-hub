@@ -16,6 +16,7 @@ import { Difficulty } from '@/types/game';
 import { TapResultScreen } from './TapResultScreen';
 import { TimingBar } from './TimingBar';
 import { TAP_DIFFICULTY } from './constants';
+import { RoundStrip } from './RoundStrip';
 import { TAP_RATING_META } from './ratings';
 import { useTimingTapGame } from './useTimingTapGame';
 
@@ -182,27 +183,34 @@ export function TimingTapGame({ challengeCode }: TimingTapGameProps = {}) {
       {/* Top bar */}
       {!isMenu && !isEnd && (
         <motion.div
-          className="flex items-center justify-between"
+          className="flex flex-col gap-3"
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
         >
-          <button
-            onClick={isChallenge ? resetToMenu : backToMenu}
-            className="flex items-center gap-1.5 -ml-3 px-3 py-2.5 min-h-11 text-white/40 hover:text-white/70 transition-colors text-sm font-mono cursor-pointer"
-          >
-            <ArrowLeft className="w-4 h-4" strokeWidth={1.5} />
-            {isChallenge ? 'Restart' : 'Menu'}
-          </button>
-          <ScoreCard
-            score={state.score}
-            round={state.round}
-            totalRounds={state.totalRounds}
-            totalScore={state.totalScore}
-          />
+          <div className="flex items-center justify-between gap-3">
+            <button
+              onClick={isChallenge ? resetToMenu : backToMenu}
+              className="flex items-center gap-1.5 -ml-3 px-3 py-2.5 min-h-11 text-white/40 hover:text-white/70 transition-colors text-sm font-mono cursor-pointer"
+            >
+              <ArrowLeft className="w-4 h-4" strokeWidth={1.5} />
+              {isChallenge ? 'Restart' : 'Menu'}
+            </button>
+            <ScoreCard
+              score={state.score}
+              round={state.round}
+              totalRounds={state.totalRounds}
+              totalScore={state.totalScore}
+            />
+          </div>
+          <RoundStrip totalRounds={state.totalRounds} roundScores={state.roundScores} />
         </motion.div>
       )}
 
-      <AnimatePresence mode="wait">
+      {/* Countdown, running and results swap inside a floor-height stage:
+          without it each phase sized itself and the whole page jumped a
+          couple of hundred pixels between the sweep and the result. */}
+      <div className={isMenu || isEnd ? undefined : 'min-h-[26rem] sm:min-h-[27rem]'}>
+        <AnimatePresence mode="wait">
         {/* ── Free-play menu: mode picker → solo or multiplayer ── */}
         {state.phase === 'selecting-difficulty' && (
           <motion.div
@@ -253,12 +261,15 @@ export function TimingTapGame({ challengeCode }: TimingTapGameProps = {}) {
         {state.phase === 'countdown' && cfg && (
           <motion.div
             key={`countdown-${state.round}`}
-            className="glass-card flex flex-col items-center gap-6 py-8"
+            className="glass-card flex flex-col items-center justify-center gap-6 py-8 min-h-[inherit]"
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
           >
-            <p className="font-display text-xl font-bold text-white">Get Ready…</p>
+            <div className="flex flex-col items-center gap-1.5">
+              <p className="tap-eyebrow">Round {state.round}</p>
+              <p className="font-display text-xl sm:text-2xl font-bold text-white">Get Ready…</p>
+            </div>
             <div className="relative w-full">
               <TimingBar
                 position={position}
@@ -291,15 +302,17 @@ export function TimingTapGame({ challengeCode }: TimingTapGameProps = {}) {
         {state.phase === 'running' && cfg && (
           <motion.div
             key={`running-${state.round}`}
-            className="glass-card flex flex-col items-center gap-5 py-8"
+            className="glass-card flex flex-col items-center justify-center gap-5 py-8 min-h-[inherit]"
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
           >
-            <p className="font-display text-xl font-bold text-white">Tap in the Zone!</p>
-            <p className="text-white/50 text-sm font-mono text-center px-2">
-              Tap, click, or press Space/Enter as the beam crosses the glowing zone.
-            </p>
+            <div className="flex flex-col items-center gap-1.5">
+              <p className="tap-eyebrow">Round {state.round}</p>
+              <p className="font-display text-xl sm:text-2xl font-bold text-white">
+                Stop the beam
+              </p>
+            </div>
 
             <button
               ref={surfaceRef}
@@ -307,7 +320,7 @@ export function TimingTapGame({ challengeCode }: TimingTapGameProps = {}) {
               onPointerDown={handlePointerDown}
               onKeyDown={handleKeyDown}
               aria-label="Tap to stop the indicator inside the Perfect Zone"
-              className="relative w-full touch-none select-none cursor-pointer rounded-2xl py-6"
+              className="tap-surface"
               style={{ '--beam': cfg.beam } as React.CSSProperties}
             >
               <TimingBar
@@ -329,6 +342,10 @@ export function TimingTapGame({ challengeCode }: TimingTapGameProps = {}) {
                 />
               ))}
             </button>
+
+            <p className="tap-hint">
+              Tap anywhere above, or press <kbd className="tap-key">Space</kbd>
+            </p>
           </motion.div>
         )}
 
@@ -336,7 +353,7 @@ export function TimingTapGame({ challengeCode }: TimingTapGameProps = {}) {
         {state.phase === 'results' && state.result && cfg && (
           <motion.div
             key={`results-${state.round}`}
-            className="glass-card py-8"
+            className="glass-card flex flex-col justify-center py-8 min-h-[inherit]"
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0 }}
@@ -391,8 +408,9 @@ export function TimingTapGame({ challengeCode }: TimingTapGameProps = {}) {
               onReplay={resetToMenu}
             />
           </motion.div>
-        )}
-      </AnimatePresence>
+          )}
+        </AnimatePresence>
+      </div>
 
       {/* Footer: difficulty badge + sound */}
       <div className="flex justify-center items-center gap-3">
