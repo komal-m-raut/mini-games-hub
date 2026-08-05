@@ -103,18 +103,20 @@ export function TimingBar({
               animate={{ width: `${Math.abs(50 - markerPosition)}%` }}
               transition={{ duration: reducedMotion ? 0 : 0.35, ease: 'easeOut' }}
             />
-            <motion.div
-              className="timing-marker"
-              // x lives here, not in CSS: animating `y` makes Framer own the
-              // whole transform, so a class-level translateX(-50%) would be
-              // silently dropped and the caret would sit half a width off.
-              style={
-                { left: `${markerPosition}%`, x: '-50%', '--tone': markerTone } as never
-              }
-              initial={reducedMotion ? false : { opacity: 0, y: -8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ type: 'spring', stiffness: 420, damping: 22 }}
-            />
+            {/* The anchor owns the horizontal centring so the caret inside
+                it is free to animate `y` — Framer takes over the whole
+                transform on whatever it animates, which would otherwise
+                drop a class-level translateX(-50%) and leave the caret
+                half its width off the mark. */}
+            <span className="timing-marker-anchor" style={{ left: `${markerPosition}%` }}>
+              <motion.span
+                className="timing-marker"
+                style={{ '--tone': markerTone } as React.CSSProperties}
+                initial={reducedMotion ? false : { opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ type: 'spring', stiffness: 420, damping: 22 }}
+              />
+            </span>
           </>
         )}
 

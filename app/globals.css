@@ -972,9 +972,14 @@ body {
    needle only muddied it — the caret points at the same spot while carrying
    the outcome colour (--tone), so a Perfect and a miss differ by hue and
    not by position alone. */
-.timing-marker {
+.timing-marker-anchor {
   position: absolute;
   top: -22px;
+  transform: translateX(-50%);
+}
+
+.timing-marker {
+  display: block;
   width: 0;
   height: 0;
   border-left: 7px solid transparent;
