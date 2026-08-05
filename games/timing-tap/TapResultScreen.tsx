@@ -2,24 +2,32 @@
 
 import { useEffect, useState } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
-import { Home } from 'lucide-react';
+import { Home, LucideIcon, RotateCcw, Sparkles, Target, ThumbsUp, Zap } from 'lucide-react';
 import { NeonButton } from '@/components/ui/NeonButton';
 import { ConfettiEffect } from '@/components/ui/ConfettiEffect';
 import { MAX_ROUND_SCORE, formatScore } from '@/utils/scoring';
 import { TAP_RATING_META } from './ratings';
 import { TapRating, TapResult } from './types';
 
-const RATING_EMOJI: Record<TapRating, string> = {
-  Perfect: '🎯',
-  Amazing: '⚡',
-  Great: '✨',
-  Good: '👍',
-  'Try Again': '🔁',
+/** One icon family (Lucide) across the app — emoji render differently on
+ *  every platform and can't take the rating's colour. */
+const RATING_ICON: Record<TapRating, LucideIcon> = {
+  Perfect: Target,
+  Amazing: Zap,
+  Great: Sparkles,
+  Good: ThumbsUp,
+  'Try Again': RotateCcw,
 };
+
+/**
+ * Accuracy is defined so that the edge of the Perfect Zone always scores
+ * exactly 90, whatever the difficulty's zone width — so a single tick at
+ * 90% marks "inside the zone" on every board.
+ */
+const ZONE_EDGE_ACCURACY = 90;
 
 export interface TapResultScreenProps {
   result: TapResult;
-  beam: string;
   nextLabel: string;
   onNext: () => void;
   onMenu: () => void;
@@ -50,68 +58,79 @@ function useCountUp(target: number, skip: boolean, delayMs = 250, durationMs = 6
   return value;
 }
 
-export function TapResultScreen({ result, beam, nextLabel, onNext, onMenu }: TapResultScreenProps) {
+export function TapResultScreen({ result, nextLabel, onNext, onMenu }: TapResultScreenProps) {
   const meta = TAP_RATING_META[result.rating];
+  const Icon = RATING_ICON[result.rating];
   const reducedMotion = useReducedMotion();
   const displayScore = useCountUp(result.score, Boolean(reducedMotion));
+  const tone = { '--tone': meta.color } as React.CSSProperties;
 
   return (
     <motion.div
-      className="flex flex-col items-center gap-6 w-full"
-      initial={{ opacity: 0, y: 30 }}
+      className="flex flex-col items-center gap-5 w-full"
+      initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ type: 'spring', stiffness: 150, damping: 20 }}
+      transition={{ type: 'spring', stiffness: 180, damping: 22 }}
     >
       {meta.confetti && <ConfettiEffect trigger preset={meta.confetti} />}
 
       {/* Rating */}
       <motion.div
-        className="flex flex-col items-center gap-1"
-        initial={{ scale: 0.5 }}
+        className="flex flex-col items-center gap-2"
+        initial={{ scale: 0.6 }}
         animate={{ scale: 1 }}
-        transition={{ type: 'spring', stiffness: 250, damping: 18, delay: 0.1 }}
+        transition={{ type: 'spring', stiffness: 250, damping: 18, delay: 0.08 }}
       >
-        <span className="text-5xl">{RATING_EMOJI[result.rating]}</span>
+        <span className="rating-badge" style={tone}>
+          <Icon className="w-7 h-7" strokeWidth={1.75} aria-hidden />
+        </span>
         <h2
-          className="neon-text font-display text-4xl sm:text-5xl font-bold"
+          className="neon-text font-display text-4xl sm:text-5xl font-bold leading-none"
           style={{ color: meta.color, '--neon': meta.color } as React.CSSProperties}
         >
           {result.rating}
         </h2>
-        <p className="text-white/50 font-mono text-sm mt-1">{meta.message}</p>
-
-        {/* Round score — springs in with the rating, then counts up to its
-            final value so a Perfect doesn't just pop straight to "10". */}
-        <motion.p
-          className="font-score font-bold text-3xl mt-1"
-          style={{ color: meta.color }}
-          initial={{ opacity: 0, y: 6 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-        >
-          {formatScore(displayScore)}
-          <span className="text-white/50 text-lg">/{MAX_ROUND_SCORE}</span>
-        </motion.p>
+        <p className="text-white/45 font-mono text-sm text-center px-2">{meta.message}</p>
       </motion.div>
 
-      {/* Accuracy + distance-from-centre readouts */}
-      <motion.div
-        className="grid grid-cols-2 gap-3 w-full max-w-xs"
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 0.35 }}
+      {/* Round score — springs in with the rating, then counts up to its
+          final value so a Perfect doesn't just pop straight to "10". */}
+      <motion.p
+        className="font-score font-bold text-4xl leading-none"
+        style={{ color: meta.color }}
+        initial={{ opacity: 0, y: 6 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.18 }}
       >
-        <div className="stat-card">
-          <p className="stat-label">Accuracy</p>
-          <p className="stat-value" style={{ color: beam }}>
-            {result.accuracy.toFixed(1)}%
-          </p>
+        {formatScore(displayScore)}
+        <span className="text-white/40 text-xl">/{MAX_ROUND_SCORE}</span>
+      </motion.p>
+
+      {/* Accuracy meter — the same two numbers the stat boxes used to hold,
+          but placed on a scale so "34.6%" and "98.2%" actually look
+          different rather than reading as two similar figures. */}
+      <motion.div
+        className="tap-meter"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.3 }}
+      >
+        <div className="tap-meter__track">
+          <span className="tap-meter__zone" style={{ left: `${ZONE_EDGE_ACCURACY}%` }} />
+          <motion.span
+            className="tap-meter__fill"
+            style={tone}
+            initial={{ width: 0 }}
+            animate={{ width: `${result.accuracy}%` }}
+            transition={{ delay: 0.3, duration: reducedMotion ? 0 : 0.7, ease: [0.16, 1, 0.3, 1] }}
+          />
         </div>
-        <div className="stat-card">
-          <p className="stat-label">Distance</p>
-          <p className="stat-value" style={{ color: beam }}>
-            {result.distance.toFixed(1)}% off
-          </p>
+        <div className="tap-meter__legend">
+          <span>
+            Accuracy{' '}
+            <b style={{ color: meta.color }}>{result.accuracy.toFixed(1)}%</b>
+          </span>
+          <span>{result.distance.toFixed(1)}% off centre</span>
         </div>
       </motion.div>
 
@@ -120,7 +139,7 @@ export function TapResultScreen({ result, beam, nextLabel, onNext, onMenu }: Tap
         className="flex gap-3 w-full max-w-sm"
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.45 }}
+        transition={{ delay: 0.4 }}
       >
         <NeonButton
           variant="ghost"

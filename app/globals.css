@@ -684,6 +684,68 @@ body {
   box-shadow: 0 1px 0 rgba(255, 255, 255, 0.06) inset;
 }
 
+/* Rating badge on the result screen — a tinted ring around one Lucide
+   glyph, so the outcome colour carries into the icon too. */
+.rating-badge {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 999px;
+  color: var(--tone);
+  background: color-mix(in srgb, var(--tone) 14%, transparent);
+  border: 1px solid color-mix(in srgb, var(--tone) 38%, transparent);
+  box-shadow: 0 0 28px -8px color-mix(in srgb, var(--tone) 80%, transparent);
+}
+
+.tap-meter {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+  max-width: 22rem;
+}
+
+.tap-meter__track {
+  position: relative;
+  height: 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.07);
+  overflow: hidden;
+}
+
+.tap-meter__fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--tone) 45%, transparent),
+    var(--tone)
+  );
+  box-shadow: 0 0 14px -2px color-mix(in srgb, var(--tone) 85%, transparent);
+}
+
+/* Marks the Perfect Zone's edge on the accuracy scale. */
+.tap-meter__zone {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  transform: translateX(-50%);
+  background: rgba(255, 255, 255, 0.4);
+  z-index: 1;
+}
+
+.tap-meter__legend {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.45);
+}
+
 /* Round progress: one segment per round, tinted by that round's rating. */
 .round-strip {
   display: flex;

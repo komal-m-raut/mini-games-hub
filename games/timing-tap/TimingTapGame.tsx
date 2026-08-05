@@ -362,7 +362,6 @@ export function TimingTapGame({ challengeCode }: TimingTapGameProps = {}) {
           >
             <TapResultScreen
               result={state.result}
-              beam={cfg.beam}
               nextLabel={isFinalRound ? 'Results' : 'Next'}
               onNext={nextRound}
               onMenu={resetToMenu}
