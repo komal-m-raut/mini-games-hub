@@ -200,7 +200,7 @@ export function TimingTapGame({ challengeCode }: TimingTapGameProps = {}) {
           <div className="flex items-center justify-between gap-3">
             <button
               onClick={isChallenge ? resetToMenu : backToMenu}
-              className="flex items-center gap-1.5 -ml-3 px-3 py-2.5 min-h-11 text-white/40 hover:text-white/70 transition-colors text-sm font-mono cursor-pointer"
+              className="flex items-center gap-1.5 -ml-3 px-3 py-2.5 min-h-11 text-white/55 hover:text-white/70 transition-colors text-sm font-ui cursor-pointer"
             >
               <ArrowLeft className="w-4 h-4" strokeWidth={1.5} />
               {isChallenge ? 'Restart' : 'Menu'}
@@ -245,7 +245,7 @@ export function TimingTapGame({ challengeCode }: TimingTapGameProps = {}) {
                 <DifficultySelector options={DIFFICULTY_OPTIONS} onSelect={selectDifficulty} />
                 <button
                   onClick={() => setMenuView('mode')}
-                  className="mx-auto flex items-center gap-1.5 px-3 py-2.5 min-h-11 text-white/40 hover:text-white/70 transition-colors text-sm font-mono cursor-pointer"
+                  className="mx-auto flex items-center gap-1.5 px-3 py-2.5 min-h-11 text-white/55 hover:text-white/70 transition-colors text-sm font-ui cursor-pointer"
                 >
                   <ArrowLeft className="w-4 h-4" strokeWidth={1.5} />
                   Back
@@ -430,7 +430,7 @@ export function TimingTapGame({ challengeCode }: TimingTapGameProps = {}) {
       <div className="flex justify-center items-center gap-3">
         {cfg && !isMenu && !isEnd && (
           <motion.span
-            className="px-3 py-1 rounded-full text-xs font-mono border"
+            className="px-3 py-1 rounded-full text-xs font-ui border"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3 }}

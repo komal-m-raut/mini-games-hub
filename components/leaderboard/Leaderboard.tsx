@@ -32,7 +32,7 @@ function RankBadge({ rank }: { rank: number }) {
       />
     );
   }
-  return <span className="text-white/55 font-mono text-sm w-5 text-center">{rank}</span>;
+  return <span className="text-white/55 font-ui text-sm w-5 text-center">{rank}</span>;
 }
 
 function LeaderboardRow({
@@ -57,21 +57,21 @@ function LeaderboardRow({
         </div>
         <p className="text-white font-medium truncate">
           {entry.name}
-          {isSelf && <span className="text-brand-violet text-xs font-mono ml-2">you</span>}
+          {isSelf && <span className="text-brand-violet text-xs font-ui ml-2">you</span>}
         </p>
       </div>
 
       <div className="flex items-center gap-6 shrink-0">
         {entry.roundScores && (
           <div className="text-right hidden sm:block">
-            <p className="text-xs text-white/55 font-mono">Rounds</p>
-            <p className="text-white/70 font-mono text-sm">
+            <p className="text-xs text-white/55 font-ui">Rounds</p>
+            <p className="text-white/70 font-ui text-sm">
               {entry.roundScores.map(formatScore).join(' · ')}
             </p>
           </div>
         )}
         <div className="text-right">
-          <p className="text-xs text-white/55 font-mono">Score</p>
+          <p className="text-xs text-white/55 font-ui">Score</p>
           <p className="font-display font-bold text-brand-purple">
             {formatScore(entry.score)}
             <span className="text-white/55 text-xs">/{MAX_CHALLENGE_SCORE}</span>
@@ -97,7 +97,7 @@ export function Leaderboard({ gameId, title = 'Leaderboard' }: LeaderboardProps)
             <h2 className="font-display font-bold text-white text-lg sm:text-xl">{title}</h2>
           </div>
           <div className="flex items-center gap-3 shrink-0">
-            <div className="flex items-center gap-1.5 text-xs text-white/55 font-mono whitespace-nowrap">
+            <div className="flex items-center gap-1.5 text-xs text-white/55 font-ui whitespace-nowrap">
               <Users className="w-3.5 h-3.5 shrink-0" />
               {(stats?.totalPlayers ?? 0).toLocaleString()} player{stats?.totalPlayers === 1 ? '' : 's'}
             </div>

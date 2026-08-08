@@ -32,7 +32,7 @@ export function ChallengeLauncher({ gameId, onBack }: ChallengeLauncherProps) {
     >
       <div className="text-center">
         <h2 className="font-display text-2xl sm:text-3xl font-bold text-white mb-1">Multiplayer</h2>
-        <p className="text-white/55 text-sm font-mono">
+        <p className="text-white/55 text-sm font-ui">
           Same rounds for everyone · climb the shared board
         </p>
       </div>
@@ -70,7 +70,7 @@ export function ChallengeLauncher({ gameId, onBack }: ChallengeLauncherProps) {
       {onBack && (
         <button
           onClick={onBack}
-          className="flex items-center gap-1.5 text-white/55 hover:text-white/80 transition-colors text-sm font-mono cursor-pointer"
+          className="flex items-center gap-1.5 text-white/55 hover:text-white/80 transition-colors text-sm font-ui cursor-pointer"
         >
           <ArrowLeft className="w-4 h-4" strokeWidth={1.5} />
           Back

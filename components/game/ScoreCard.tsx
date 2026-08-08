@@ -22,7 +22,7 @@ export function ScoreCard({ score, round, totalRounds, totalScore }: ScoreCardPr
       {/* Latest round score — the one prominent number in this row */}
       <Zap className="w-4 h-4 text-brand-yellow shrink-0" strokeWidth={1.5} />
       <div>
-        <p className="text-[0.65rem] text-white/40 font-mono uppercase tracking-wide leading-none mb-0.5">
+        <p className="text-[0.65rem] text-white/55 font-ui uppercase tracking-wide leading-none mb-0.5">
           Score
         </p>
         <motion.p
@@ -36,7 +36,7 @@ export function ScoreCard({ score, round, totalRounds, totalScore }: ScoreCardPr
         </motion.p>
         {/* Total + round, demoted to a single quiet line so the round
             score above stays the only number that reads as "the score" */}
-        <p className="font-score text-[0.7rem] text-white/40 leading-none mt-0.5">
+        <p className="font-score text-[0.7rem] text-white/55 leading-none mt-0.5">
           Round {round}
           {totalRounds !== null && <span className="text-white/50">/{totalRounds}</span>}
           {' · '}

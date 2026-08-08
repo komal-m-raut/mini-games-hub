@@ -82,7 +82,7 @@ export function PourResultScreen({
         >
           {result.rating}
         </h2>
-        <p className="text-white/50 font-mono text-sm mt-1">{meta.message}</p>
+        <p className="text-white/50 font-ui text-sm mt-1">{meta.message}</p>
 
         {/* Round score — the one number on this screen, promoted under the
             rating word (U7); the glass comparison below shows the miss). */}

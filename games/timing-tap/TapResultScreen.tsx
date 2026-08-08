@@ -90,7 +90,7 @@ export function TapResultScreen({ result, nextLabel, onNext, onMenu }: TapResult
         >
           {result.rating}
         </h2>
-        <p className="text-white/45 font-mono text-sm text-center px-2">{meta.message}</p>
+        <p className="text-white/60 font-ui text-sm text-center px-2">{meta.message}</p>
       </motion.div>
 
       {/* Round score — springs in with the rating, then counts up to its
@@ -103,7 +103,7 @@ export function TapResultScreen({ result, nextLabel, onNext, onMenu }: TapResult
         transition={{ delay: 0.18 }}
       >
         {formatScore(displayScore)}
-        <span className="text-white/40 text-xl">/{MAX_ROUND_SCORE}</span>
+        <span className="text-white/55 text-xl">/{MAX_ROUND_SCORE}</span>
       </motion.p>
 
       {/* Accuracy meter — the same two numbers the stat boxes used to hold,

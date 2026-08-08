@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import { Analytics } from '@vercel/analytics/next';
 import Script from 'next/script';
-import { Orbitron, Space_Grotesk, JetBrains_Mono } from 'next/font/google';
+import { Fredoka, Nunito, JetBrains_Mono } from 'next/font/google';
 import { Navigation } from '@/components/layout/Navigation';
 import { Footer } from '@/components/layout/Footer';
 import { RouteFocusManager } from '@/components/layout/RouteFocusManager';
@@ -11,17 +11,22 @@ import { ServiceWorkerRegister } from '@/components/pwa/ServiceWorkerRegister';
 import { SITE_URL, SITE_NAME, SITE_DESCRIPTION } from '@/lib/constants';
 import './globals.css';
 
-const orbitron = Orbitron({
+// Display: rounded and chunky rather than squared/technical. Orbitron's
+// squared sci-fi letterforms were what made every heading read as a HUD
+// readout instead of a game title.
+const fredoka = Fredoka({
   subsets: ['latin'],
-  weight: ['400', '600', '700', '800', '900'],
-  variable: '--font-orbitron',
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-fredoka',
   display: 'swap',
 });
 
-const spaceGrotesk = Space_Grotesk({
+// Body: humanist and soft-cornered, so it sits with the display face instead
+// of fighting it.
+const nunito = Nunito({
   subsets: ['latin'],
-  weight: ['300', '400', '500', '600', '700'],
-  variable: '--font-space',
+  weight: ['400', '500', '600', '700', '800'],
+  variable: '--font-nunito',
   display: 'swap',
 });
 
@@ -114,7 +119,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html
       lang="en"
       data-scroll-behavior="smooth"
-      className={`${orbitron.variable} ${spaceGrotesk.variable} ${jetbrainsMono.variable}`}
+      className={`${fredoka.variable} ${nunito.variable} ${jetbrainsMono.variable}`}
     >
       <head>
         {/* Site-wide structured data so search engines understand what

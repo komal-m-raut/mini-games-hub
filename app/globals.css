@@ -26,10 +26,18 @@
   --color-text-muted:   #94A3B8;
   --color-text-dim:     #475569;
 
-  /* Typography — next/font injects the actual var values */
-  --font-display: var(--font-orbitron, 'Orbitron', ui-sans-serif);
-  --font-body:    var(--font-space, 'Space Grotesk', system-ui, sans-serif);
-  --font-mono:    var(--font-jetbrains, 'JetBrains Mono', ui-monospace, monospace);
+  /* Typography — next/font injects the actual var values.
+     Three faces, three jobs, and no overlap:
+       display — game titles and headings (rounded, chunky)
+       body    — every word a player actually reads, including small labels
+       numeric — scores, timers and ranks only, for tabular digits
+     `--font-mono` deliberately no longer exists as a Tailwind utility: it
+     was being used as the *UI text* font in 60-odd places, and monospace on
+     body copy is what made the whole app read as a terminal readout. Small
+     labels use `.font-ui` (the body face) instead. */
+  --font-display: var(--font-fredoka, 'Fredoka', ui-rounded, ui-sans-serif);
+  --font-body:    var(--font-nunito, 'Nunito', system-ui, sans-serif);
+  --font-numeric: var(--font-jetbrains, 'JetBrains Mono', ui-monospace, monospace);
 
   /* Border */
   --color-border: rgba(139 92 246 / 0.18);
@@ -104,8 +112,18 @@ body {
 /* ─────────────────────────────────────────────
    Typography
 ───────────────────────────────────────────── */
-.font-display { font-family: var(--font-display); }
-.font-mono    { font-family: var(--font-mono); }
+.font-display {
+  font-family: var(--font-display);
+  /* Fredoka's rounded counters get muddy when headings are set tight, and
+     it carries far more weight per glyph than Orbitron did — so headings
+     need slightly looser tracking, not the -0.02em a squared face wanted. */
+  letter-spacing: 0.005em;
+}
+
+/* Small UI labels — eyebrows, hints, tags, captions. Body face, never
+   monospace; the only thing that separates them from body copy is size and
+   colour, which is all the separation they ever needed. */
+.font-ui { font-family: var(--font-body); }
 
 /* ─────────────────────────────────────────────
    Glassmorphism Card
@@ -185,7 +203,7 @@ body {
   min-height: 44px;
   border-radius: var(--radius-sm);
   font-size: 0.875rem;
-  font-family: var(--font-mono);
+  font-family: var(--font-body);
   color: rgba(255, 255, 255, 0.5);
   text-decoration: none;
   transition: color 0.2s, background 0.2s;
@@ -205,7 +223,7 @@ body {
    Neon Buttons
 ───────────────────────────────────────────── */
 .neon-btn {
-  font-family: var(--font-mono);
+  font-family: var(--font-body);
   font-weight: 600;
   letter-spacing: 0.04em;
   border-radius: var(--radius-md);
@@ -229,14 +247,31 @@ body {
   pointer-events: none;
 }
 
+/* Lifted rather than lit: a solid drop shadow plus an inner top highlight
+   reads as a physical button you can press, where the old 20px purple halo
+   read as a glowing HUD element. The halo is still there on hover, just
+   tucked under a real shadow instead of replacing one. */
 .neon-btn-primary {
-  background: linear-gradient(135deg, #7C3AED, #A855F7);
+  background: linear-gradient(180deg, #8B5CF6, #6D28D9);
   color: #fff;
-  border-color: rgba(168, 85, 247, 0.4);
-  box-shadow: 0 0 20px rgba(124, 58, 237, 0.35);
+  border-color: rgba(196, 181, 253, 0.35);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.25),
+    0 4px 0 -1px #4C1D95,
+    0 8px 20px -6px rgba(76, 29, 149, 0.7);
 }
 .neon-btn-primary:hover:not(:disabled) {
-  box-shadow: 0 0 32px rgba(124, 58, 237, 0.6), 0 0 60px rgba(124, 58, 237, 0.2);
+  background: linear-gradient(180deg, #9B6DFA, #7C3AED);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.3),
+    0 4px 0 -1px #4C1D95,
+    0 10px 26px -6px rgba(124, 58, 237, 0.75);
+}
+.neon-btn-primary:active:not(:disabled) {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    0 1px 0 -1px #4C1D95,
+    0 4px 12px -6px rgba(76, 29, 149, 0.7);
 }
 
 .neon-btn-secondary {
@@ -273,46 +308,165 @@ body {
    Difficulty Card
 ───────────────────────────────────────────── */
 .difficulty-card {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.07);
-  border-radius: var(--radius-xl);
+  background: rgba(255, 255, 255, 0.035);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: var(--radius-lg);
   text-align: left;
   cursor: pointer;
-  transition: border-color 0.25s, box-shadow 0.25s, background 0.25s;
+  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
   overflow: hidden;
   padding: 0;
 }
 
+/* Tint and lift on hover instead of a 40px coloured halo. The halo made
+   the hovered card glow like an alert rather than look picked up. */
 .difficulty-card:hover {
-  border-color: rgba(255, 255, 255, 0.15);
-  background: rgba(255, 255, 255, 0.055);
-  box-shadow: 0 0 40px var(--glow, transparent);
+  border-color: color-mix(in srgb, var(--accent, #fff) 50%, transparent);
+  background: color-mix(in srgb, var(--accent, #fff) 10%, rgba(255, 255, 255, 0.03));
+  box-shadow: 0 10px 24px -12px rgba(0, 0, 0, 0.9);
 }
 
 /* ─────────────────────────────────────────────
    Game Card (hub)
+   An arcade cabinet, not a feature card: a big tinted art panel carrying
+   the game's own colour, then a plain-language label plate underneath. The
+   whole card is one link, so the Play row at the bottom is an affordance
+   rather than a nested control — it lights up with the card on hover.
+   Per-game colour arrives on `--game` from the registry.
 ───────────────────────────────────────────── */
 .game-card {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.07);
+  --game: #7C3AED;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
+  border: 1px solid rgba(255, 255, 255, 0.09);
   border-radius: var(--radius-xl);
   overflow: hidden;
   cursor: pointer;
-  transition: transform 0.25s, box-shadow 0.25s, border-color 0.25s;
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
   text-decoration: none;
-  display: block;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
   position: relative;
+  box-shadow: 0 10px 24px -14px rgba(0, 0, 0, 0.9);
 }
 
 .game-card:hover {
-  transform: translateY(-4px) scale(1.01);
-  border-color: rgba(255, 255, 255, 0.15);
+  transform: translateY(-3px);
+  border-color: color-mix(in srgb, var(--game) 45%, transparent);
+  box-shadow:
+    0 16px 34px -16px rgba(0, 0, 0, 0.95),
+    0 0 0 1px color-mix(in srgb, var(--game) 20%, transparent);
+}
+
+.game-card:active {
+  transform: translateY(-1px);
+}
+
+/* The art panel. Tall enough that the game's emoji reads as artwork rather
+   than a bullet glyph — at the old 28px banner height it was decoration
+   next to the text, which is backwards for a games hub. */
+.game-card__art {
+  position: relative;
+  display: grid;
+  place-items: center;
+  padding: 2rem 1rem;
+  background:
+    radial-gradient(circle at 50% 55%, color-mix(in srgb, var(--game) 30%, transparent), transparent 68%),
+    linear-gradient(160deg, color-mix(in srgb, var(--game) 16%, transparent), rgba(255, 255, 255, 0.02));
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.game-card__emoji {
+  font-size: 4.25rem;
+  line-height: 1;
+  /* Emoji are flat colour on a dark field; a soft drop shadow is what keeps
+     them from looking pasted on. */
+  filter: drop-shadow(0 8px 14px rgba(0, 0, 0, 0.55));
+  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.game-card:hover .game-card__emoji {
+  transform: scale(1.08) rotate(-3deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .game-card:hover { transform: none; }
+  .game-card:hover .game-card__emoji { transform: none; }
+}
+
+.game-card__body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  padding: 1.1rem 1.15rem 0.9rem;
+  flex: 1;
+}
+
+/* On a 375px phone the grid stacks one card per row, so a full-height art
+   panel meant one game per screenful. Shorter panel there; full height as
+   soon as the grid goes multi-column. Must follow the base rules above —
+   same specificity, so source order decides. */
+@media (max-width: 639px) {
+  .game-card__art   { padding: 1.15rem 1rem; }
+  .game-card__emoji { font-size: 3.25rem; }
+  .game-card__body  { padding: 0.9rem 1rem 0.75rem; }
+}
+
+/* The "what you actually do" line. This is the one sentence that has to
+   land before a player clicks, so it gets more contrast than the tagline. */
+.game-card__how {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.45rem;
+  font-size: 0.875rem;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.game-card__how svg {
+  flex-shrink: 0;
+  margin-top: 0.15rem;
+  color: var(--game);
+}
+
+.game-card__cta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-top: auto;
+  padding: 0.75rem 1.15rem;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #fff;
+  background: color-mix(in srgb, var(--game) 20%, rgba(255, 255, 255, 0.03));
+  border-top: 1px solid color-mix(in srgb, var(--game) 25%, transparent);
+  transition: background 0.2s ease, gap 0.2s ease;
+}
+
+.game-card:hover .game-card__cta {
+  background: color-mix(in srgb, var(--game) 34%, rgba(255, 255, 255, 0.03));
+}
+
+.game-card__cta svg {
+  transition: transform 0.2s ease;
+}
+
+.game-card:hover .game-card__cta svg {
+  transform: translateX(3px);
 }
 
 .game-card-unavailable {
-  opacity: 0.45;
   cursor: not-allowed;
-  filter: grayscale(0.5);
+  opacity: 0.5;
+  filter: grayscale(0.6);
+}
+
+.game-card-unavailable:hover {
+  transform: none;
+  box-shadow: 0 10px 24px -14px rgba(0, 0, 0, 0.9);
+  border-color: rgba(255, 255, 255, 0.09);
 }
 
 /* ─────────────────────────────────────────────
@@ -363,7 +517,7 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-family: var(--font-mono, monospace);
+  font-family: var(--font-body);
   font-size: 1.4rem;
   line-height: 1;
   color: rgba(255, 255, 255, 0.85);
@@ -405,7 +559,7 @@ body {
   gap: 0.6rem;
   padding: 0.85rem 2.4rem;
   border-radius: 999px;
-  font-family: var(--font-mono, monospace);
+  font-family: var(--font-body);
   font-size: 0.95rem;
   font-weight: 600;
   letter-spacing: 0.02em;
@@ -469,6 +623,10 @@ body {
 /* ─────────────────────────────────────────────
    Mode selector (Solo / Multiplayer)
 ───────────────────────────────────────────── */
+/* Two tiers, not three peers: `mode-card-primary` is the way into the game
+   and `mode-card-secondary` are the two challenge modes beside it. Both stay
+   a single row at every width — the old icon-over-label column at ≥640px was
+   what made three modes read as a feature grid. */
 .mode-card {
   --mode-accent: #06b6d4;
   display: flex;
@@ -479,28 +637,7 @@ body {
   border-radius: var(--radius-lg);
   text-align: left;
   cursor: pointer;
-  background: color-mix(in srgb, var(--mode-accent) 6%, rgba(255, 255, 255, 0.02));
-  border: 1.5px solid color-mix(in srgb, var(--mode-accent) 22%, transparent);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
   transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
-}
-
-/* Icon-over-label on wider screens, where the grid goes 3-up and each
-   card has more width than height to spare. */
-@media (min-width: 640px) {
-  .mode-card {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.6rem;
-    padding: 1.25rem;
-  }
-}
-
-.mode-card:hover {
-  border-color: color-mix(in srgb, var(--mode-accent) 55%, transparent);
-  background: color-mix(in srgb, var(--mode-accent) 12%, rgba(255, 255, 255, 0.02));
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3),
-    0 0 24px color-mix(in srgb, var(--mode-accent) 25%, transparent);
 }
 
 .mode-card:focus-visible {
@@ -508,24 +645,52 @@ body {
   outline-offset: 3px;
 }
 
+.mode-card-primary {
+  width: 100%;
+  /* Centred, unlike the secondary pair: it spans the full column, and a
+     left-aligned label on a full-width button leaves the CTA looking like a
+     list row with a lot of dead space to its right. */
+  justify-content: center;
+  padding: 1.15rem 1.35rem;
+  background: linear-gradient(180deg, #8B5CF6, #6D28D9);
+  border: 1px solid rgba(196, 181, 253, 0.35);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.22),
+    0 4px 0 -1px #4C1D95,
+    0 10px 26px -8px rgba(76, 29, 149, 0.8);
+}
+
+.mode-card-primary:hover {
+  background: linear-gradient(180deg, #9B6DFA, #7C3AED);
+}
+
+.mode-card-primary .mode-icon {
+  color: #fff;
+  background: rgba(255, 255, 255, 0.18);
+  width: 2.75rem;
+  height: 2.75rem;
+}
+
+.mode-card-secondary {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid color-mix(in srgb, var(--mode-accent) 20%, rgba(255, 255, 255, 0.07));
+}
+
+.mode-card-secondary:hover {
+  border-color: color-mix(in srgb, var(--mode-accent) 45%, transparent);
+  background: color-mix(in srgb, var(--mode-accent) 9%, rgba(255, 255, 255, 0.02));
+}
+
 .mode-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 2.5rem;
-  height: 2.5rem;
+  width: 2.25rem;
+  height: 2.25rem;
   flex-shrink: 0;
   border-radius: 999px;
   color: var(--mode-accent);
   background: color-mix(in srgb, var(--mode-accent) 15%, transparent);
-  box-shadow: 0 0 18px color-mix(in srgb, var(--mode-accent) 30%, transparent);
-}
-
-@media (min-width: 640px) {
-  .mode-icon {
-    width: 3rem;
-    height: 3rem;
-  }
 }
 
 /* ─────────────────────────────────────────────
@@ -634,7 +799,7 @@ body {
    Timing Tap round shell
 ───────────────────────────────────────────── */
 .tap-eyebrow {
-  font-family: var(--font-mono);
+  font-family: var(--font-body);
   font-size: 0.7rem;
   text-transform: uppercase;
   letter-spacing: 0.18em;
@@ -667,14 +832,14 @@ body {
   gap: 0.4rem;
   flex-wrap: wrap;
   justify-content: center;
-  font-family: var(--font-mono);
+  font-family: var(--font-body);
   font-size: 0.8125rem;
   color: rgba(255, 255, 255, 0.45);
   text-align: center;
 }
 
 .tap-key {
-  font-family: var(--font-mono);
+  font-family: var(--font-body);
   font-size: 0.75rem;
   padding: 2px 8px;
   border-radius: 6px;
@@ -741,7 +906,7 @@ body {
   display: flex;
   justify-content: space-between;
   gap: 0.75rem;
-  font-family: var(--font-mono);
+  font-family: var(--font-body);
   font-size: 0.75rem;
   color: rgba(255, 255, 255, 0.45);
 }
@@ -1034,7 +1199,7 @@ body {
 }
 
 .stat-label {
-  font-family: var(--font-mono);
+  font-family: var(--font-body);
   font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.1em;
@@ -1074,7 +1239,7 @@ body {
   min-height: 44px;
   border-radius: 6px;
   font-size: 0.75rem;
-  font-family: var(--font-mono);
+  font-family: var(--font-body);
   color: rgba(255, 255, 255, 0.55);
   background: transparent;
   border: none;
@@ -1105,7 +1270,7 @@ body {
 }
 
 .ad-placeholder-label {
-  font-family: var(--font-mono);
+  font-family: var(--font-body);
   font-size: 0.75rem;
   color: rgba(255, 255, 255, 0.55);
   text-transform: uppercase;
@@ -1116,7 +1281,7 @@ body {
    placeholder box as a dev/debug annotation — not information a player
    needs, so it stays low-contrast/small on purpose (M1/M7). */
 .ad-placeholder-size {
-  font-family: var(--font-mono);
+  font-family: var(--font-body);
   font-size: 0.65rem;
   color: rgba(255, 255, 255, 0.1);
 }
@@ -1222,30 +1387,30 @@ body {
 .neon-text,
 .neon-text-purple,
 .neon-text-cyan {
-  text-shadow:
-    0 0 12px color-mix(in srgb, var(--neon, currentColor) 45%, transparent),
-    0 0 26px color-mix(in srgb, var(--neon, currentColor) 20%, transparent);
+  text-shadow: 0 0 18px color-mix(in srgb, var(--neon, currentColor) 22%, transparent);
 }
 
 .neon-text-purple {
-  color: #A78BFA;
+  color: #C4B5FD;
   --neon: #A78BFA;
 }
 
+/* Lightened from #06B6D4: cyan that dark fails 4.5:1 against the page
+   background at body sizes, and it was being used on headline text. */
 .neon-text-cyan {
-  color: #06B6D4;
-  --neon: #06B6D4;
+  color: #67E8F9;
+  --neon: #22D3EE;
 }
 
 /* ─────────────────────────────────────────────
    Tabular numeric readouts (scores, rounds, timers, …)
    JetBrains Mono's digits are all the same width, and tabular-nums stops
-   them jittering as values tick over — Orbitron bold numerals go near-
-   solid at small sizes (M19), so anything that changes every frame reads
-   better in mono anyway.
+   them jittering as values tick over. This is the *only* place monospace
+   still earns its keep: digits that change every frame. Everything a
+   player reads as words is body text now (see `.font-ui`).
 ───────────────────────────────────────────── */
 .font-score {
-  font-family: var(--font-mono);
+  font-family: var(--font-numeric);
   font-variant-numeric: tabular-nums;
 }
 

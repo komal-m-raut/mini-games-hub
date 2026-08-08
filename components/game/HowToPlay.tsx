@@ -22,7 +22,7 @@ export function HowToPlay({ title, steps }: HowToPlayProps) {
         <span>{title}</span>
         <ChevronDown className="how-to-play-chevron w-5 h-5 shrink-0" strokeWidth={1.5} />
       </summary>
-      <ol className="how-to-play-steps font-mono text-sm text-white/60">
+      <ol className="how-to-play-steps text-[0.9375rem] text-white/70">
         {steps.map((step, i) => (
           <li key={i}>{step}</li>
         ))}

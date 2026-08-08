@@ -48,7 +48,7 @@ export function ChallengeIntro({ gameId, code, difficulties, onStart }: Challeng
       <motion.div className="fade-up">
         <div className="flex items-center justify-center gap-2 mb-2">
           <Swords className="w-5 h-5 text-brand-cyan" strokeWidth={1.5} />
-          <p className="font-mono text-xs text-brand-cyan uppercase tracking-widest">
+          <p className="font-ui text-xs text-brand-cyan uppercase tracking-widest">
             {daily ? 'Daily Challenge' : 'Friend Challenge'}
           </p>
         </div>
@@ -64,7 +64,7 @@ export function ChallengeIntro({ gameId, code, difficulties, onStart }: Challeng
           return (
             <div
               key={i}
-              className="px-4 py-2 rounded-xl border text-xs font-mono"
+              className="px-4 py-2 rounded-xl border text-xs font-ui"
               style={{ color, borderColor: `${color}40`, background: `${color}10` }}
             >
               <span className="block text-white/55 text-xs uppercase tracking-wider mb-0.5">
@@ -82,7 +82,7 @@ export function ChallengeIntro({ gameId, code, difficulties, onStart }: Challeng
         </NeonButton>
         <button
           onClick={copyInvite}
-          className="relative after:absolute after:content-[''] after:-inset-2 flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-white/10 bg-white/5 text-white/60 hover:text-white hover:border-white/25 transition-all text-xs font-mono cursor-pointer"
+          className="relative after:absolute after:content-[''] after:-inset-2 flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-white/10 bg-white/5 text-white/60 hover:text-white hover:border-white/25 transition-all text-xs font-ui cursor-pointer"
         >
           {copied ? (
             <Check className="w-3.5 h-3.5 text-green-400" strokeWidth={1.5} />

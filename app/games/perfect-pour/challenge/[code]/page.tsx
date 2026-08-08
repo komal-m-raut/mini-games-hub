@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { PerfectPourGame } from '@/games/perfect-pour/PerfectPourGame';
-import { GameBackLink } from '@/components/game/GameBackLink';
+import { GameHeader } from '@/components/game/GameHeader';
 import { challengeLabel, isValidChallengeCode } from '@/lib/challenge';
 
 type Props = { params: Promise<{ code: string }> };
@@ -27,12 +27,7 @@ export default async function PourChallengePage({ params }: Props) {
   return (
     <div className="page-container py-8 sm:py-12 flex flex-col gap-12">
       <div>
-        <div className="mb-3">
-          <GameBackLink />
-        </div>
-        <h1 className="text-center font-display text-xs sm:text-sm font-bold text-white/55 uppercase tracking-[0.2em] mb-3">
-          🥤 Perfect Pour
-        </h1>
+        <GameHeader gameId="perfect-pour" />
         <PerfectPourGame challengeCode={code} />
       </div>
     </div>

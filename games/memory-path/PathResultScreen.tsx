@@ -92,7 +92,7 @@ export function PathResultScreen({
         >
           {result.rating}
         </h2>
-        <p className="text-white/50 font-mono text-sm mt-1">{meta.message}</p>
+        <p className="text-white/50 font-ui text-sm mt-1">{meta.message}</p>
 
         {/* Round score — the one number on this screen, promoted under the
             rating word (U7). Accuracy/correct/mistakes are dropped: the grid
@@ -111,7 +111,7 @@ export function PathResultScreen({
 
         {/* Everything the grid can't show at a glance, kept as a quiet line
             rather than its own card row. */}
-        <p className="font-score text-xs text-white/40 mt-1">
+        <p className="font-score text-xs text-white/55 mt-1">
           {result.mistakes === 0 ? 'No mistakes' : `${result.mistakes} mistake${result.mistakes === 1 ? '' : 's'}`}
           {' · '}
           {result.seconds.toFixed(1)}s
@@ -133,7 +133,7 @@ export function PathResultScreen({
           marks={result.marks}
           interactive={false}
         />
-        <div className="flex justify-center gap-4 mt-3 font-mono text-[0.65rem] text-white/40">
+        <div className="flex justify-center gap-4 mt-3 font-ui text-[0.65rem] text-white/55">
           <span className="flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 rounded-sm bg-green-500/60" /> Correct
           </span>

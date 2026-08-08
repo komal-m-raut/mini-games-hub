@@ -88,7 +88,7 @@ export function MemoryPathGame({ challengeCode }: MemoryPathGameProps = {}) {
         >
           <button
             onClick={isChallenge ? resetToMenu : backToMenu}
-            className="flex items-center gap-1.5 -m-3 p-3 min-h-11 text-white/40 hover:text-white/70 transition-colors text-sm font-mono cursor-pointer"
+            className="flex items-center gap-1.5 -m-3 p-3 min-h-11 text-white/55 hover:text-white/70 transition-colors text-sm font-ui cursor-pointer"
           >
             <ArrowLeft className="w-4 h-4" strokeWidth={1.5} />
             {isChallenge ? 'Restart' : 'Menu'}
@@ -129,7 +129,7 @@ export function MemoryPathGame({ challengeCode }: MemoryPathGameProps = {}) {
                 <DifficultySelector options={DIFFICULTY_OPTIONS} onSelect={selectDifficulty} />
                 <button
                   onClick={() => setMenuView('mode')}
-                  className="mx-auto flex items-center gap-1.5 text-white/40 hover:text-white/70 transition-colors text-sm font-mono cursor-pointer"
+                  className="mx-auto flex items-center gap-1.5 text-white/55 hover:text-white/70 transition-colors text-sm font-ui cursor-pointer"
                 >
                   <ArrowLeft className="w-4 h-4" strokeWidth={1.5} />
                   Back
@@ -168,7 +168,7 @@ export function MemoryPathGame({ challengeCode }: MemoryPathGameProps = {}) {
               <p className="font-display text-xl font-bold text-white">
                 {PHASE_TITLE[state.phase]}
               </p>
-              <p className="font-mono text-xs text-white/40">
+              <p className="font-ui text-xs text-white/55">
                 {isTracing
                   ? `${state.traced.length}/${state.path.length} cells · ${(
                       state.traceMs / 1000
@@ -212,7 +212,7 @@ export function MemoryPathGame({ challengeCode }: MemoryPathGameProps = {}) {
                 interactive (M8) — during `fading` the path is still
                 dissolving and PathGrid isn't listening yet, so telling the
                 player to go early would drop their first input silently. */}
-            <p className="font-mono text-xs text-white/25 h-9 flex items-center text-center px-2">
+            <p className="font-ui text-xs text-white/25 h-9 flex items-center text-center px-2">
               {isTracing
                 ? 'Drag to retrace it, or use arrow keys + Space'
                 : state.phase === 'fading'
@@ -316,7 +316,7 @@ export function MemoryPathGame({ challengeCode }: MemoryPathGameProps = {}) {
       <div className="flex justify-center items-center gap-3">
         {cfg && !isMenu && !isEnd && (
           <motion.span
-            className="px-3 py-1 rounded-full text-xs font-mono border"
+            className="px-3 py-1 rounded-full text-xs font-ui border"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3 }}

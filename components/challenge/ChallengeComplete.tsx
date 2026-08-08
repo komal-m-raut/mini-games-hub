@@ -32,7 +32,7 @@ function CopyButton({ getText, label }: { getText: () => string; label: string }
           setTimeout(() => setFailed(false), 2000);
         }
       }}
-      className="relative after:absolute after:content-[''] after:-inset-2 flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-white/10 bg-white/5 text-white/60 hover:text-white hover:border-white/25 transition-all text-xs font-mono cursor-pointer"
+      className="relative after:absolute after:content-[''] after:-inset-2 flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-white/10 bg-white/5 text-white/60 hover:text-white hover:border-white/25 transition-all text-xs font-ui cursor-pointer"
     >
       {copied ? (
         <Check className="w-3.5 h-3.5 text-green-400" strokeWidth={1.5} />
@@ -113,14 +113,14 @@ export function ChallengeComplete({ gameId, code, roundScores, onReplay }: Chall
         animate={{ scale: 1, opacity: 1 }}
         transition={{ type: 'spring', stiffness: 200, damping: 16 }}
       >
-        <p className="font-mono text-xs text-brand-cyan uppercase tracking-widest mb-2">
+        <p className="font-ui text-xs text-brand-cyan uppercase tracking-widest mb-2">
           Challenge Complete
         </p>
         <p className="font-display text-6xl font-black text-white mb-1">
           {formatScore(total)}
           <span className="text-white/55 text-3xl">/{MAX_CHALLENGE_SCORE}</span>
         </p>
-        <p className="text-white/55 text-sm font-mono">{challengeLabel(code)}</p>
+        <p className="text-white/55 text-sm font-ui">{challengeLabel(code)}</p>
       </motion.div>
 
       {/* Per-round breakdown */}
@@ -152,7 +152,7 @@ export function ChallengeComplete({ gameId, code, roundScores, onReplay }: Chall
             onKeyDown={(e) => e.key === 'Enter' && submit()}
             placeholder="Your nickname"
             maxLength={20}
-            className="flex-1 w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white placeholder-white/55 font-mono text-sm outline-none focus:border-brand-purple/60 transition-colors"
+            className="flex-1 w-full px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-white placeholder-white/55 font-ui text-sm outline-none focus:border-brand-purple/60 transition-colors"
           />
           <NeonButton
             variant="primary"
@@ -166,19 +166,19 @@ export function ChallengeComplete({ gameId, code, roundScores, onReplay }: Chall
           </NeonButton>
         </div>
       ) : (
-        <p className="text-green-400 text-sm font-mono flex items-center gap-1.5">
+        <p className="text-green-400 text-sm font-ui flex items-center gap-1.5">
           <Check className="w-4 h-4" strokeWidth={1.5} /> Score on the board!
         </p>
       )}
       {submitState === 'error' && (
-        <p className="text-red-400 text-xs font-mono">Submission failed — try again.</p>
+        <p className="text-red-400 text-xs font-ui">Submission failed — try again.</p>
       )}
 
       {/* Share row */}
       <div className="flex flex-wrap items-center justify-center gap-2">
         <button
           onClick={share}
-          className="relative after:absolute after:content-[''] after:-inset-2 flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-brand-cyan/30 bg-brand-cyan/10 text-brand-cyan hover:border-brand-cyan/60 transition-all text-xs font-mono cursor-pointer"
+          className="relative after:absolute after:content-[''] after:-inset-2 flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-brand-cyan/30 bg-brand-cyan/10 text-brand-cyan hover:border-brand-cyan/60 transition-all text-xs font-ui cursor-pointer"
         >
           <Share2 className="w-3.5 h-3.5" strokeWidth={1.5} />
           {shareState === 'error' ? 'Share failed' : shareState === 'shared' ? 'Copied!' : 'Share result'}

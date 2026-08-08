@@ -77,7 +77,7 @@ export function SessionSummary({
         transition={{ type: 'spring', stiffness: 200, damping: 16 }}
       >
         <p
-          className="font-mono text-xs uppercase tracking-widest mb-2"
+          className="font-ui text-xs uppercase tracking-widest mb-2"
           style={{ color: accent }}
         >
           Session Complete · {subtitle}
@@ -88,7 +88,7 @@ export function SessionSummary({
         </p>
         {isNewBest ? (
           <motion.p
-            className="text-brand-yellow text-sm font-mono"
+            className="text-brand-yellow text-sm font-ui"
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.3 }}
@@ -96,7 +96,7 @@ export function SessionSummary({
             🎉 New personal best!
           </motion.p>
         ) : (
-          <p className="text-white/40 text-sm font-mono">
+          <p className="text-white/55 text-sm font-ui">
             Best: {formatScore(bestSession)}/{max}
           </p>
         )}
@@ -123,7 +123,7 @@ export function SessionSummary({
 
       <button
         onClick={share}
-        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-brand-cyan/30 bg-brand-cyan/10 text-brand-cyan hover:border-brand-cyan/60 transition-all text-xs font-mono cursor-pointer"
+        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-brand-cyan/30 bg-brand-cyan/10 text-brand-cyan hover:border-brand-cyan/60 transition-all text-xs font-ui cursor-pointer"
       >
         {copied ? (
           <Check className="w-3.5 h-3.5 text-green-400" strokeWidth={1.5} />

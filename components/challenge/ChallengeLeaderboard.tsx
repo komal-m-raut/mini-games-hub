@@ -107,18 +107,18 @@ export function ChallengeLeaderboard({
                         strokeWidth={1.5}
                       />
                     ) : (
-                      <span className="text-white/55 font-mono text-sm">{rank}</span>
+                      <span className="text-white/55 font-ui text-sm">{rank}</span>
                     )}
                   </div>
                   <p className="text-white font-medium truncate">
                     {entry.name}
-                    {isSelf && <span className="text-brand-violet text-xs font-mono ml-2">you</span>}
+                    {isSelf && <span className="text-brand-violet text-xs font-ui ml-2">you</span>}
                   </p>
                 </div>
 
                 <div className="flex items-center gap-4 shrink-0">
                   {entry.roundScores && (
-                    <p className="font-mono text-xs text-white/55 hidden sm:block">
+                    <p className="font-ui text-xs text-white/55 hidden sm:block">
                       {entry.roundScores.map(formatScore).join(' · ')}
                     </p>
                   )}

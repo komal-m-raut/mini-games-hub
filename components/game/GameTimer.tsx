@@ -29,7 +29,7 @@ export function GameTimer({ timeLeft, totalSeconds, label, size = 'md' }: GameTi
   return (
     <div className="flex flex-col items-center gap-2">
       {label && (
-        <p className="text-xs font-mono text-white/50 uppercase tracking-widest">{label}</p>
+        <p className="text-xs font-ui text-white/50 uppercase tracking-widest">{label}</p>
       )}
       <div className="relative" style={{ width: viewBoxSize, height: viewBoxSize }}>
         <svg width={viewBoxSize} height={viewBoxSize} viewBox={`0 0 ${viewBoxSize} ${viewBoxSize}`}>

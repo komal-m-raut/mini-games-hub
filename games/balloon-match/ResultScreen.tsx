@@ -86,7 +86,7 @@ export function ResultScreen({
         >
           {result.rating}
         </h2>
-        <p className="text-white/50 font-mono text-sm mt-1">{meta.message}</p>
+        <p className="text-white/50 font-ui text-sm mt-1">{meta.message}</p>
 
         {/* Round score — the one number on this screen (the top bar shows
             the running total separately), promoted under the rating word */}
@@ -103,7 +103,7 @@ export function ResultScreen({
 
         {showHighScoreBadge && (
           <motion.div
-            className="mt-2 px-3 py-1 rounded-full bg-yellow-500/20 border border-yellow-500/40 text-yellow-400 text-xs font-mono"
+            className="mt-2 px-3 py-1 rounded-full bg-yellow-500/20 border border-yellow-500/40 text-yellow-400 text-xs font-ui"
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.4 }}
