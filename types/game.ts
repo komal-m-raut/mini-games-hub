@@ -44,7 +44,11 @@ export interface GameMeta {
    * player skips.
    */
   description: string;
-  /** Three or four words on the feel of it, e.g. "Calm and steady". */
+  /**
+   * Two or three words on the kind of game it is, e.g. "Focus & recall".
+   * Rendered as an uppercase kicker above the title, so keep it short —
+   * a sentence here wraps badly and stops reading as a category.
+   */
   tagline: string;
   /** One sentence: literally what the player does. Shown on the card. */
   howTo: string;

@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { ArrowRight, Play } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { GAME_REGISTRY } from '@/lib/gameRegistry';
 import { useSiteStats } from '@/hooks/useSiteStats';
 import { GameMeta } from '@/types/game';
@@ -35,20 +35,15 @@ function GameCard({ game }: { game: GameMeta }) {
       </div>
 
       <div className="game-card__body">
-        <h3 className="font-display text-xl font-semibold text-white leading-tight">
-          {game.title}
-        </h3>
-        <p className="text-sm text-white/50 leading-snug">{game.tagline}</p>
-        <p className="game-card__how mt-1.5">
-          <Play className="w-3.5 h-3.5" strokeWidth={2.5} aria-hidden="true" />
-          <span>{game.howTo}</span>
-        </p>
+        <p className="game-card__kind">{game.tagline}</p>
+        <h3 className="game-card__title">{game.title}</h3>
+        <p className="game-card__how">{game.howTo}</p>
       </div>
 
       <div className="game-card__cta">
         <span>{game.isAvailable ? 'Play' : 'Coming soon'}</span>
         {game.isAvailable && (
-          <ArrowRight className="w-4 h-4" strokeWidth={2.5} aria-hidden="true" />
+          <ArrowRight className="w-[1.15rem] h-[1.15rem]" strokeWidth={2.5} aria-hidden="true" />
         )}
       </div>
     </Wrapper>
@@ -67,16 +62,16 @@ export default function HubPage() {
           a landing page. The old version spent ~700px on an eyebrow pill, a
           giant wordmark and a stat row before the first game appeared, which
           pushed every card below the fold. */}
-      <header className="max-w-2xl">
+      <header className="max-w-3xl">
         <h1
-          className="fade-up font-display font-bold text-4xl sm:text-5xl text-white leading-[1.1]"
+          className="fade-up font-display font-semibold text-5xl sm:text-6xl lg:text-7xl text-white leading-[1.05]"
           style={{ animationDelay: '0.05s' }}
         >
           <span className="neon-text-purple">Tiny</span>{' '}
           <span className="neon-text-cyan">Arcadium</span>
         </h1>
         <p
-          className="fade-up mt-3 text-lg text-white/70 leading-relaxed"
+          className="fade-up mt-4 text-lg sm:text-xl text-white/70 leading-relaxed"
           style={{ animationDelay: '0.12s' }}
         >
           Four small games to unwind with. Pick one and play — no download, no
@@ -87,18 +82,18 @@ export default function HubPage() {
       {/* Games */}
       <section className="flex flex-col gap-4">
         <div className="fade-up flex items-baseline justify-between gap-4 flex-wrap">
-          <h2 className="font-display font-semibold text-2xl text-white">
+          <h2 className="font-display font-semibold text-3xl text-white">
             Pick a game
           </h2>
           {/* One quiet line of context, in plain words, instead of a row of
               icon+mono stat chips that read as a service status bar. */}
-          <p className="text-sm text-white/50">
+          <p className="text-base text-white/50">
             {liveCount} games
             {players > 0 && <> · {players.toLocaleString()} people have played</>}
           </p>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
           {GAME_REGISTRY.map((game, i) => (
             <div key={game.id} className="fade-up" style={{ animationDelay: `${0.06 * i}s` }}>
               <GameCard game={game} />
