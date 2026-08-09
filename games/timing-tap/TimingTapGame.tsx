@@ -200,9 +200,9 @@ export function TimingTapGame({ challengeCode }: TimingTapGameProps = {}) {
           <div className="flex items-center justify-between gap-3">
             <button
               onClick={isChallenge ? resetToMenu : backToMenu}
-              className="flex items-center gap-1.5 -ml-3 px-3 py-2.5 min-h-11 text-white/55 hover:text-white/70 transition-colors text-sm font-ui cursor-pointer"
+              className="btn btn-sm btn-ghost -ml-3.5"
             >
-              <ArrowLeft className="w-4 h-4" strokeWidth={1.5} />
+              <ArrowLeft strokeWidth={2} />
               {isChallenge ? 'Restart' : 'Menu'}
             </button>
             <ScoreCard
@@ -245,9 +245,9 @@ export function TimingTapGame({ challengeCode }: TimingTapGameProps = {}) {
                 <DifficultySelector options={DIFFICULTY_OPTIONS} onSelect={selectDifficulty} />
                 <button
                   onClick={() => setMenuView('mode')}
-                  className="mx-auto flex items-center gap-1.5 px-3 py-2.5 min-h-11 text-white/55 hover:text-white/70 transition-colors text-sm font-ui cursor-pointer"
+                  className="btn btn-sm btn-ghost mx-auto"
                 >
-                  <ArrowLeft className="w-4 h-4" strokeWidth={1.5} />
+                  <ArrowLeft strokeWidth={2} />
                   Back
                 </button>
               </div>
@@ -279,7 +279,7 @@ export function TimingTapGame({ challengeCode }: TimingTapGameProps = {}) {
           >
             <div className="flex flex-col items-center gap-1.5">
               <p className="tap-eyebrow">Round {state.round}</p>
-              <p className="font-display text-xl sm:text-2xl font-bold text-white">Get Ready…</p>
+              <p className="font-display text-xl sm:text-2xl">Get Ready…</p>
             </div>
             <div className="relative w-full">
               <TimingBar
@@ -294,7 +294,7 @@ export function TimingTapGame({ challengeCode }: TimingTapGameProps = {}) {
                 <AnimatePresence mode="wait">
                   <motion.span
                     key={state.countdown}
-                    className="neon-text font-display text-6xl font-black text-white"
+                    className="neon-text font-display text-6xl"
                     style={{ '--neon': cfg.beam } as React.CSSProperties}
                     initial={{ scale: 0.4, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
@@ -321,7 +321,7 @@ export function TimingTapGame({ challengeCode }: TimingTapGameProps = {}) {
           >
             <div className="flex flex-col items-center gap-1.5">
               <p className="tap-eyebrow">Round {state.round}</p>
-              <p className="font-display text-xl sm:text-2xl font-bold text-white">
+              <p className="font-display text-xl sm:text-2xl">
                 Stop the beam
               </p>
             </div>

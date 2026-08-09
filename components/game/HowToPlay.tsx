@@ -18,11 +18,11 @@ interface HowToPlayProps {
 export function HowToPlay({ title, steps }: HowToPlayProps) {
   return (
     <details className="glass-card how-to-play">
-      <summary className="how-to-play-summary font-display text-base sm:text-lg font-bold text-white">
+      <summary className="how-to-play-summary font-display text-base sm:text-lg">
         <span>{title}</span>
         <ChevronDown className="how-to-play-chevron w-5 h-5 shrink-0" strokeWidth={1.5} />
       </summary>
-      <ol className="how-to-play-steps text-[0.9375rem] text-white/70">
+      <ol className="how-to-play-steps text-base text-ink-2">
         {steps.map((step, i) => (
           <li key={i}>{step}</li>
         ))}

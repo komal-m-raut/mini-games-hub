@@ -64,11 +64,11 @@ export function ChallengeLeaderboard({
       <div className="flex items-center justify-between mb-3">
         <div className="flex items-center gap-2">
           <Trophy className="w-4 h-4 text-brand-yellow" strokeWidth={1.5} />
-          <h3 className="font-display font-bold text-white text-base">Challenge Leaderboard</h3>
+          <h3 className="font-display text-base">Challenge Leaderboard</h3>
         </div>
         <button
           onClick={load}
-          className="min-w-11 min-h-11 flex items-center justify-center rounded-lg text-white/55 hover:text-white/80 hover:bg-white/5 transition-all"
+          className="min-w-11 min-h-11 flex items-center justify-center rounded-lg text-ink-3 hover:text-ink-1 hover:bg-white/5 transition-all"
           aria-label="Refresh challenge leaderboard"
         >
           <RefreshCw className="w-4 h-4" strokeWidth={1.5} />
@@ -82,9 +82,9 @@ export function ChallengeLeaderboard({
           ))}
         </div>
       ) : error ? (
-        <p className="text-white/55 text-sm py-6 text-center">Couldn&apos;t load scores. Try refreshing.</p>
+        <p className="text-ink-3 text-sm py-6 text-center">Couldn&apos;t load scores. Try refreshing.</p>
       ) : entries.length === 0 ? (
-        <p className="text-white/55 text-sm py-6 text-center">
+        <p className="text-ink-3 text-sm py-6 text-center">
           No scores yet — be the first on the board!
         </p>
       ) : (
@@ -112,7 +112,7 @@ export function ChallengeLeaderboard({
                         strokeWidth={1.5}
                       />
                     ) : (
-                      <span className="text-white/55 font-ui text-sm">{rank}</span>
+                      <span className="text-ink-3 font-ui text-sm">{rank}</span>
                     )}
                   </div>
                   <p className="text-white font-medium truncate">
@@ -123,13 +123,13 @@ export function ChallengeLeaderboard({
 
                 <div className="flex items-center gap-4 shrink-0">
                   {entry.roundScores && (
-                    <p className="font-ui text-xs text-white/55 hidden sm:block">
+                    <p className="font-ui text-xs text-ink-3 hidden sm:block">
                       {entry.roundScores.map(formatScore).join(' · ')}
                     </p>
                   )}
-                  <p className="font-display font-bold text-brand-purple">
+                  <p className="font-display text-brand-purple">
                     {formatScore(entry.score)}
-                    <span className="text-white/55 text-xs">/{MAX_CHALLENGE_SCORE}</span>
+                    <span className="text-ink-3 text-xs">/{MAX_CHALLENGE_SCORE}</span>
                   </p>
                 </div>
               </motion.div>

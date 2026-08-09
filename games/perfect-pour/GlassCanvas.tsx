@@ -383,7 +383,7 @@ export function Glass({
       </div>
 
       {label && (
-        <p className="text-xs font-ui text-white/55 uppercase tracking-widest">{label}</p>
+        <p className="text-xs font-ui text-ink-3 uppercase tracking-widest">{label}</p>
       )}
     </div>
   );

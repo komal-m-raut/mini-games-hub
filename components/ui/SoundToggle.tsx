@@ -14,7 +14,7 @@ export function SoundToggle({ className = '' }: { className?: string }) {
         if (muted) play('click');
         toggle();
       }}
-      className={`min-w-11 min-h-11 flex items-center justify-center rounded-lg text-white/55 hover:text-white/90 hover:bg-white/5 transition-all cursor-pointer ${className}`}
+      className={`min-w-11 min-h-11 flex items-center justify-center rounded-lg text-ink-3 hover:text-ink-1 hover:bg-white/5 transition-all cursor-pointer ${className}`}
       aria-label={muted ? 'Unmute sound' : 'Mute sound'}
       aria-pressed={muted}
       title={muted ? 'Unmute' : 'Mute'}

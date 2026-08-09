@@ -1,7 +1,7 @@
 'use client';
 
-import { motion } from 'framer-motion';
 import { CalendarDays, Play, Swords } from 'lucide-react';
+import { NeonButton } from '@/components/ui/NeonButton';
 
 interface ModeSelectorProps {
   accent?: string;
@@ -22,7 +22,7 @@ export function ModeSelector({
   // three lines each and were the reason the row needed so much height.
   const modes = [
     {
-      icon: <Play className="w-4 h-4" strokeWidth={2.5} fill="currentColor" />,
+      icon: <Play strokeWidth={2.5} fill="currentColor" />,
       label: 'Play solo',
       hint: 'Five rounds at your own pace',
       primary: true,
@@ -30,7 +30,7 @@ export function ModeSelector({
       onClick: onSolo,
     },
     {
-      icon: <CalendarDays className="w-4 h-4" strokeWidth={2} />,
+      icon: <CalendarDays strokeWidth={2} />,
       label: "Today's Challenge",
       hint: 'The same rounds for everyone today',
       primary: false,
@@ -38,7 +38,7 @@ export function ModeSelector({
       onClick: onDailyChallenge,
     },
     {
-      icon: <Swords className="w-4 h-4" strokeWidth={2} />,
+      icon: <Swords strokeWidth={2} />,
       label: 'Challenge a friend',
       hint: 'Share a link and compare scores',
       primary: false,
@@ -49,24 +49,22 @@ export function ModeSelector({
 
   return (
     <div className="flex flex-col gap-3.5">
-      <h2 className="font-display text-2xl font-semibold text-white text-center">
-        Ready to play?
-      </h2>
+      <h2 className="font-display text-2xl text-center">Ready to play?</h2>
 
       <div className="flex flex-wrap justify-center gap-2">
         {modes.map(({ icon, label, hint, primary, tone, onClick }) => (
-          <motion.button
+          <NeonButton
             key={label}
             onClick={onClick}
             title={hint}
             aria-label={`${label} — ${hint}`}
-            className={`mode-pill ${primary ? 'mode-pill-primary' : ''}`}
-            style={{ '--mode-accent': tone } as React.CSSProperties}
-            whileTap={{ scale: 0.97 }}
+            variant={primary ? 'primary' : 'secondary'}
+            accent={tone}
+            pill
           >
             {icon}
             <span>{label}</span>
-          </motion.button>
+          </NeonButton>
         ))}
       </div>
     </div>

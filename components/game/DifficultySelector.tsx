@@ -44,7 +44,7 @@ export function DifficultySelector({
         animate={{ opacity: 1, y: 0 }}
         className="text-center"
       >
-        <h2 className="font-display text-3xl sm:text-4xl font-bold text-white mb-2">{title}</h2>
+        <h2 className="font-display text-3xl sm:text-4xl mb-2">{title}</h2>
       </motion.div>
 
       <motion.div
@@ -71,11 +71,11 @@ export function DifficultySelector({
               {/* No neon-text here: the difficulty name is the label you read
                   to make a choice, and a glow on it costs legibility for
                   nothing. Colour alone already carries the easy→hard ramp. */}
-              <p className="font-display text-xl sm:text-2xl font-bold" style={{ color: opt.color }}>
+              <p className="font-display text-xl sm:text-2xl" style={{ color: opt.color }}>
                 {opt.label}
               </p>
               {opt.qualifier && (
-                <p className="text-white/60 text-sm leading-snug">{opt.qualifier}</p>
+                <p className="text-ink-3 text-sm leading-snug">{opt.qualifier}</p>
               )}
             </div>
           </motion.button>

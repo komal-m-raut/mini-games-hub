@@ -21,20 +21,20 @@ export default function AboutPage() {
       <div className="max-w-2xl mx-auto">
         <Link
           href="/"
-          className="inline-flex items-center gap-1.5 text-sm text-white/55 hover:text-white/80 transition-colors mb-8"
+          className="inline-flex items-center gap-1.5 text-sm text-ink-3 hover:text-ink-1 transition-colors mb-8"
         >
           ← Back to Hub
         </Link>
 
-        <h1 className="font-display font-black text-3xl sm:text-4xl text-white mb-2">
+        <h1 className="font-display text-3xl sm:text-4xl mb-2">
           About Tiny Arcadium
         </h1>
-        <p className="text-white/55 text-sm mb-10">A free browser-based mini-game hub</p>
+        <p className="text-ink-3 text-sm mb-10">A free browser-based mini-game hub</p>
 
-        <div className="space-y-10 text-white/70 leading-relaxed">
+        <div className="space-y-10 text-ink-2 leading-relaxed">
 
           <section>
-            <h2 className="font-display font-bold text-xl text-white mb-3">What this is</h2>
+            <h2 className="font-display text-xl mb-3">What this is</h2>
             <p>
               Tiny Arcadium is a small collection of free browser games. Everything runs
               instantly in your browser tab — no download, no signup, no account. Just open a
@@ -43,7 +43,7 @@ export default function AboutPage() {
           </section>
 
           <section>
-            <h2 className="font-display font-bold text-xl text-white mb-3">The games</h2>
+            <h2 className="font-display text-xl mb-3">The games</h2>
             <p className="mb-3">Right now the hub has three games, each testing a different skill:</p>
             <ul className="space-y-2 list-none">
               {GAME_REGISTRY.map((game) => (
@@ -56,7 +56,7 @@ export default function AboutPage() {
           </section>
 
           <section>
-            <h2 className="font-display font-bold text-xl text-white mb-3">How it works</h2>
+            <h2 className="font-display text-xl mb-3">How it works</h2>
             <p>
               Every game supports a few ways to play: <span className="text-white">Solo</span>{' '}
               mode, where you pick a difficulty and play freely; a{' '}
@@ -69,7 +69,7 @@ export default function AboutPage() {
           </section>
 
           <section>
-            <h2 className="font-display font-bold text-xl text-white mb-3">Leaderboards</h2>
+            <h2 className="font-display text-xl mb-3">Leaderboards</h2>
             <p>
               Scores are kept on leaderboards under a nickname you choose. We don’t collect any
               personal information — see our{' '}
@@ -84,7 +84,7 @@ export default function AboutPage() {
           </section>
 
           <section>
-            <h2 className="font-display font-bold text-xl text-white mb-3">Free, supported by ads</h2>
+            <h2 className="font-display text-xl mb-3">Free, supported by ads</h2>
             <p>
               Tiny Arcadium is free to play. We keep it that way by showing ads around the games
               — never during active play.
@@ -92,7 +92,7 @@ export default function AboutPage() {
           </section>
 
           <section id="contact">
-            <h2 className="font-display font-bold text-xl text-white mb-3">Contact</h2>
+            <h2 className="font-display text-xl mb-3">Contact</h2>
             <p>
               Questions or feedback? Email us at{' '}
               <a

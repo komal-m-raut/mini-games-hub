@@ -29,7 +29,7 @@ export function GameTimer({ timeLeft, totalSeconds, label, size = 'md' }: GameTi
   return (
     <div className="flex flex-col items-center gap-2">
       {label && (
-        <p className="text-xs font-ui text-white/50 uppercase tracking-widest">{label}</p>
+        <p className="text-xs font-ui text-ink-3 uppercase tracking-widest">{label}</p>
       )}
       <div className="relative" style={{ width: viewBoxSize, height: viewBoxSize }}>
         <svg width={viewBoxSize} height={viewBoxSize} viewBox={`0 0 ${viewBoxSize} ${viewBoxSize}`}>
@@ -63,7 +63,7 @@ export function GameTimer({ timeLeft, totalSeconds, label, size = 'md' }: GameTi
         <div className="absolute inset-0 flex items-center justify-center">
           <motion.span
             key={timeLeft}
-            className={`font-display font-bold ${textClass}`}
+            className={`font-display ${textClass}`}
             style={{ color }}
             initial={{ scale: 1.3, opacity: 0.5 }}
             animate={{ scale: 1, opacity: 1 }}

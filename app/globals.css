@@ -4,16 +4,43 @@
    Design Tokens
 ───────────────────────────────────────────── */
 @theme inline {
-  /* Backgrounds */
+  /* ── Surfaces ───────────────────────────────────────────────
+     Three elevation steps, replacing the fourteen ad-hoc
+     rgba(255,255,255,x) fills this file had accumulated. Anything
+     that sits on the page picks one of these; nothing invents its
+     own alpha. */
   --color-bg-deep:     #080818;
   --color-bg-base:     #0F0F23;
   --color-bg-elevated: #161630;
-  --color-surface:     rgba(255 255 255 / 0.04);
 
-  /* Brand neons */
+  --color-surface-1: rgba(255 255 255 / 0.035);  /* resting card */
+  --color-surface-2: rgba(255 255 255 / 0.07);   /* hover / raised */
+  --color-surface-3: rgba(255 255 255 / 0.12);   /* pressed / selected */
+
+  /* Hairlines. Two only: a quiet divider and a visible edge. */
+  --color-line-1: rgba(255 255 255 / 0.08);
+  --color-line-2: rgba(255 255 255 / 0.16);
+
+  /* ── Text ramp ──────────────────────────────────────────────
+     Four steps, each measured against --color-bg-base. The old code
+     expressed text colour as twelve different `text-white/N`
+     opacities, several of which (40%, 45%) landed under 4.5:1.
+     Ratios below are measured in-browser against #0F0F23, not estimated.
+       ink-1  #F1F5F9  17.2:1  headings, values, button labels
+       ink-2  #C7CEDB  11.9:1  body copy (the <body> default)
+       ink-3  #94A3B8   7.4:1  captions, secondary labels
+       ink-4  #6B7688   4.1:1  decorative only — under AA, never prose */
+  --color-ink-1: #F1F5F9;
+  --color-ink-2: #C7CEDB;
+  --color-ink-3: #94A3B8;
+  --color-ink-4: #6B7688;
+
+  /* ── Brand ──────────────────────────────────────────────────
+     Cyan lightened from #06B6D4, which failed 4.5:1 as text on the
+     page background and was nonetheless used as text in six places. */
   --color-brand-purple:  #7C3AED;
   --color-brand-violet:  #A78BFA;
-  --color-brand-cyan:    #06B6D4;
+  --color-brand-cyan:    #22D3EE;
   --color-brand-pink:    #EC4899;
   --color-brand-teal:    #14B8A6;
   --color-brand-blue:    #3B82F6;
@@ -21,32 +48,65 @@
   --color-brand-yellow:  #EAB308;
   --color-brand-green:   #22C55E;
 
-  /* Text */
-  --color-text-primary: #E2E8F0;
-  --color-text-muted:   #94A3B8;
-  --color-text-dim:     #475569;
+  /* ── Type scale ─────────────────────────────────────────────
+     Sizes stay on Tailwind's own ramp — it is already a sound scale
+     and re-basing it would silently resize ~200 call sites. What was
+     actually missing is owned line-heights (tight for display, open
+     for prose) and a legitimate step below 12px, so the arbitrary
+     `text-[0.65rem]` / `[0.7rem]` one-offs have somewhere to go. */
+  --text-2xs: 0.6875rem;
+  --text-2xs--line-height: 1.45;
+  --text-xs--line-height: 1.5;
+  --text-sm--line-height: 1.55;
+  --text-base--line-height: 1.6;
+  --text-lg--line-height: 1.55;
+  --text-xl--line-height: 1.35;
+  --text-2xl--line-height: 1.25;
+  --text-3xl--line-height: 1.18;
+  --text-4xl--line-height: 1.12;
+  --text-5xl--line-height: 1.06;
+  --text-6xl--line-height: 1.03;
+  --text-7xl--line-height: 1;
+
+  /* ── Motion ─────────────────────────────────────────────────
+     One rhythm for the whole app. Durations were previously drawn
+     freehand anywhere between 100ms and 500ms. */
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --ease-spring:   cubic-bezier(0.34, 1.56, 0.64, 1);
+  --dur-fast:   120ms;
+  --dur-normal: 200ms;
+  --dur-slow:   320ms;
 
   /* Typography — next/font injects the actual var values.
      Three faces, three jobs, and no overlap:
-       display — game titles and headings (rounded, chunky)
-       body    — every word a player actually reads, including small labels
+       display — headings, game titles, button labels
+       body    — every word a player reads as prose, including small labels
        numeric — scores, timers and ranks only, for tabular digits
-     `--font-mono` deliberately no longer exists as a Tailwind utility: it
-     was being used as the *UI text* font in 60-odd places, and monospace on
-     body copy is what made the whole app read as a terminal readout. Small
-     labels use `.font-ui` (the body face) instead. */
-  --font-display: var(--font-fredoka, 'Fredoka', ui-rounded, ui-sans-serif);
-  --font-body:    var(--font-nunito, 'Nunito', system-ui, sans-serif);
+     There is deliberately no `font-mono` utility: monospace was being used
+     as the UI text font in 60-odd places, which is what made the app read
+     as a terminal readout. Small labels use `.font-ui` (the body face). */
+  --font-display: var(--font-space, 'Space Grotesk', ui-sans-serif);
+  --font-body:    var(--font-inter, 'Inter', system-ui, sans-serif);
   --font-numeric: var(--font-jetbrains, 'JetBrains Mono', ui-monospace, monospace);
+
+  /* ── Weight roles ───────────────────────────────────────────
+     Three weights, three jobs. The old code reached for font-bold
+     51 times and font-black 7 more, which is not a hierarchy. */
+  --fw-body:    400;
+  --fw-medium:  500;  /* labels, emphasis inside prose */
+  --fw-display: 600;  /* every heading, title and button label */
 
   /* Border */
   --color-border: rgba(139 92 246 / 0.18);
 
-  /* Radius scale */
-  --radius-sm:  8px;
+  /* ── Radius scale ───────────────────────────────────────────
+     Four steps plus a pill. Previously radii were drawn from
+     999px/12px/10px/6px/3px/2px/1px as well as these tokens. */
+  --radius-sm:   8px;
   --radius-md:  12px;
   --radius-lg:  16px;
   --radius-xl:  24px;
+  --radius-pill: 999px;
 
   /* Z-index scale */
   --z-base:    0;
@@ -75,10 +135,14 @@ html {
 
 body {
   background-color: var(--color-bg-base);
-  color: var(--color-text-primary);
+  /* ink-2 is the prose default; headings and values opt up to ink-1. */
+  color: var(--color-ink-2);
   font-family: var(--font-body);
+  font-weight: var(--fw-body);
   font-size: 16px;
   line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
@@ -112,13 +176,30 @@ body {
 /* ─────────────────────────────────────────────
    Typography
 ───────────────────────────────────────────── */
+/* One rule owns heading typography: family, weight, tracking and colour.
+   Callers that previously each chose their own `font-bold`/`font-black`
+   now only choose a size. Space Grotesk is wide and open, so display text
+   wants slightly negative tracking to hold together as a word-shape. */
 .font-display {
   font-family: var(--font-display);
-  /* Fredoka's rounded counters get muddy when headings are set tight, and
-     it carries far more weight per glyph than Orbitron did — so headings
-     need slightly looser tracking, not the -0.02em a squared face wanted. */
-  letter-spacing: 0.005em;
+  font-weight: var(--fw-display);
+  letter-spacing: -0.015em;
+  color: var(--color-ink-1);
 }
+
+/* Optical correction: tracking that suits a 48px hero is too loose at 16px
+   and too tight at 72px. */
+.font-display.text-2xl,
+.font-display.text-3xl { letter-spacing: -0.02em; }
+
+.font-display.text-4xl,
+.font-display.text-5xl,
+.font-display.text-6xl,
+.font-display.text-7xl { letter-spacing: -0.03em; }
+
+.font-display.text-sm,
+.font-display.text-xs,
+.font-display.text-2xs { letter-spacing: 0; }
 
 /* Small UI labels — eyebrows, hints, tags, captions. Body face, never
    monospace; the only thing that separates them from body copy is size and
@@ -132,10 +213,10 @@ body {
    default 1.5rem — unlayered classes otherwise win over Tailwind utilities. */
 @layer components {
   .glass-card {
-    background: rgba(255, 255, 255, 0.035);
+    background: var(--color-surface-1);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(255, 255, 255, 0.07);
+    border: 1px solid var(--color-line-1);
     border-radius: var(--radius-xl);
     padding: 1.5rem;
     position: relative;
@@ -206,12 +287,12 @@ body {
   font-family: var(--font-body);
   color: rgba(255, 255, 255, 0.5);
   text-decoration: none;
-  transition: color 0.2s, background 0.2s;
+  transition: color var(--dur-normal), background var(--dur-normal);
 }
 
 .nav-link:hover {
   color: rgba(255, 255, 255, 0.9);
-  background: rgba(255, 255, 255, 0.06);
+  background: var(--color-surface-2);
 }
 
 .nav-link-active {
@@ -220,100 +301,177 @@ body {
 }
 
 /* ─────────────────────────────────────────────
-   Neon Buttons
+   Buttons
+   One base, three sizes, four variants. Every control in the app that
+   behaves like a button routes through this — the shared NeonButton, the
+   game-card CTA, the mode pills, the leaderboard tabs, the result-screen
+   actions. Before this there were nine different padding pairs and seven
+   radii, so the same action looked different game to game.
+
+   Geometry is driven by four custom properties rather than per-size rules,
+   which is what lets a size modifier be three declarations instead of a
+   full re-spec.
 ───────────────────────────────────────────── */
-.neon-btn {
-  font-family: var(--font-body);
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  border-radius: var(--radius-md);
-  border: 1px solid transparent;
-  cursor: pointer;
-  transition: box-shadow 0.2s, border-color 0.2s, background 0.2s;
+.btn {
+  --btn-h: 2.75rem;        /* 44px — the touch-target floor */
+  --btn-px: 1.25rem;
+  --btn-fs: 0.9375rem;
+  --btn-icon: 1.125rem;
+  --btn-accent: var(--color-brand-purple);
+
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 0.5rem;
+  height: var(--btn-h);
+  padding-inline: var(--btn-px);
+  border-radius: var(--radius-md);
+  border: 1px solid transparent;
+  font-family: var(--font-display);
+  font-size: var(--btn-fs);
+  font-weight: var(--fw-display);
+  line-height: 1;
+  letter-spacing: -0.005em;
+  white-space: nowrap;
   text-decoration: none;
-  position: relative;
-  overflow: hidden;
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  transition:
+    background var(--dur-normal) var(--ease-standard),
+    border-color var(--dur-normal) var(--ease-standard),
+    color var(--dur-normal) var(--ease-standard),
+    box-shadow var(--dur-normal) var(--ease-standard);
 }
 
-.neon-btn::before {
+/* Icons size off the button rather than each caller picking w-4 vs w-5. */
+.btn > svg {
+  width: var(--btn-icon);
+  height: var(--btn-icon);
+  flex-shrink: 0;
+}
+
+/* One press behaviour everywhere. Translate, not scale: scaling a button
+   with a border shimmers the edge, and it never shifts neighbours. */
+.btn:active:not(:disabled):not([aria-disabled='true']) {
+  transform: translateY(1px);
+}
+
+.btn:disabled,
+.btn[aria-disabled='true'] {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ── Sizes ── */
+.btn-sm {
+  --btn-h: 2.25rem;
+  --btn-px: 0.875rem;
+  --btn-fs: 0.875rem;
+  --btn-icon: 1rem;
+  position: relative;
+}
+
+/* A 36px control is right visually but under the 44px touch floor, so the
+   hit area is expanded invisibly rather than the button being made bigger. */
+.btn-sm::after {
   content: '';
   position: absolute;
-  inset: 0;
-  background: linear-gradient(135deg, rgba(255,255,255,0.08) 0%, transparent 70%);
-  pointer-events: none;
+  inset: -4px -2px;
+}
+
+.btn-lg {
+  --btn-h: 3.25rem;
+  --btn-px: 1.75rem;
+  --btn-fs: 1.0625rem;
+  --btn-icon: 1.25rem;
+}
+
+.btn-block { width: 100%; }
+.btn-pill  { border-radius: var(--radius-pill); }
+
+/* ── Variants ──
+   Primary is the only filled control on a screen. The rest are quiet by
+   default and pick up the accent on hover, so a game's colour still reads
+   without every button shouting in it. */
+.btn-primary {
+  color: #fff;
+  background: linear-gradient(180deg, #8B5CF6, #6D28D9);
+  border-color: rgba(196, 181, 253, 0.35);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    0 6px 16px -8px rgba(76, 29, 149, 0.9);
+}
+.btn-primary:hover:not(:disabled) {
+  background: linear-gradient(180deg, #9B6DFA, #7C3AED);
+  border-color: rgba(196, 181, 253, 0.5);
+}
+
+/* Accent-tinted. Mixed toward the darkest ink rather than toward
+   transparency: a translucent accent over a dark card goes muddy (orange
+   turned brown) and leaves a white label near 3:1. */
+.btn-accent {
+  color: #fff;
+  background: color-mix(in srgb, var(--btn-accent) 50%, #0B0B1A);
+  border-color: color-mix(in srgb, var(--btn-accent) 60%, transparent);
+}
+.btn-accent:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--btn-accent) 65%, #0B0B1A);
+  border-color: color-mix(in srgb, var(--btn-accent) 85%, transparent);
+}
+
+.btn-secondary {
+  color: var(--color-ink-1);
+  background: var(--color-surface-1);
+  border-color: color-mix(in srgb, var(--btn-accent) 30%, var(--color-line-1));
+}
+.btn-secondary:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--btn-accent) 14%, var(--color-surface-1));
+  border-color: color-mix(in srgb, var(--btn-accent) 55%, transparent);
+}
+
+.btn-ghost {
+  color: var(--color-ink-2);
+  background: transparent;
+  border-color: transparent;
+}
+.btn-ghost:hover:not(:disabled) {
+  color: var(--color-ink-1);
+  background: var(--color-surface-2);
+}
+
+.btn-danger {
+  color: #FCA5A5;
+  background: rgba(239, 68, 68, 0.14);
+  border-color: rgba(239, 68, 68, 0.4);
+}
+.btn-danger:hover:not(:disabled) {
+  color: #fff;
+  background: rgba(239, 68, 68, 0.28);
+  border-color: rgba(239, 68, 68, 0.65);
+}
+
+/* Icon-only: square, and the label lives in aria-label. */
+.btn-icon {
+  --btn-px: 0;
+  width: var(--btn-h);
 }
 
 /* Lifted rather than lit: a solid drop shadow plus an inner top highlight
    reads as a physical button you can press, where the old 20px purple halo
    read as a glowing HUD element. The halo is still there on hover, just
    tucked under a real shadow instead of replacing one. */
-.neon-btn-primary {
-  background: linear-gradient(180deg, #8B5CF6, #6D28D9);
-  color: #fff;
-  border-color: rgba(196, 181, 253, 0.35);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.25),
-    0 4px 0 -1px #4C1D95,
-    0 8px 20px -6px rgba(76, 29, 149, 0.7);
-}
-.neon-btn-primary:hover:not(:disabled) {
-  background: linear-gradient(180deg, #9B6DFA, #7C3AED);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.3),
-    0 4px 0 -1px #4C1D95,
-    0 10px 26px -6px rgba(124, 58, 237, 0.75);
-}
-.neon-btn-primary:active:not(:disabled) {
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.2),
-    0 1px 0 -1px #4C1D95,
-    0 4px 12px -6px rgba(76, 29, 149, 0.7);
-}
-
-.neon-btn-secondary {
-  background: rgba(6, 182, 212, 0.12);
-  color: #06B6D4;
-  border-color: rgba(6, 182, 212, 0.35);
-}
-.neon-btn-secondary:hover:not(:disabled) {
-  background: rgba(6, 182, 212, 0.2);
-  box-shadow: 0 0 20px rgba(6, 182, 212, 0.4);
-}
-
-.neon-btn-ghost {
-  background: rgba(255, 255, 255, 0.04);
-  color: rgba(255, 255, 255, 0.7);
-  border-color: rgba(255, 255, 255, 0.1);
-}
-.neon-btn-ghost:hover:not(:disabled) {
-  background: rgba(255, 255, 255, 0.08);
-  color: #fff;
-}
-
-.neon-btn-danger {
-  background: rgba(239, 68, 68, 0.12);
-  color: #EF4444;
-  border-color: rgba(239, 68, 68, 0.35);
-}
-.neon-btn-danger:hover:not(:disabled) {
-  background: rgba(239, 68, 68, 0.22);
-  box-shadow: 0 0 20px rgba(239, 68, 68, 0.4);
-}
-
 /* ─────────────────────────────────────────────
    Difficulty Card
 ───────────────────────────────────────────── */
 .difficulty-card {
-  background: rgba(255, 255, 255, 0.035);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: var(--color-surface-1);
+  border: 1px solid var(--color-line-1);
   border-radius: var(--radius-lg);
   text-align: left;
   cursor: pointer;
-  transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+  transition: border-color var(--dur-normal), box-shadow var(--dur-normal), background var(--dur-normal);
   overflow: hidden;
   padding: 0;
 }
@@ -337,11 +495,11 @@ body {
 .game-card {
   --game: #7C3AED;
   background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.02));
-  border: 1px solid rgba(255, 255, 255, 0.09);
+  border: 1px solid var(--color-line-1);
   border-radius: var(--radius-xl);
   overflow: hidden;
   cursor: pointer;
-  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  transition: transform var(--dur-normal) ease, box-shadow var(--dur-normal) ease, border-color var(--dur-normal) ease;
   text-decoration: none;
   display: flex;
   flex-direction: column;
@@ -388,7 +546,7 @@ body {
   /* Emoji are flat colour on a dark field; a soft drop shadow is what keeps
      them from looking pasted on. */
   filter: drop-shadow(0 10px 18px rgba(0, 0, 0, 0.6));
-  transition: transform 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+  transition: transform var(--dur-normal) cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 .game-card:hover .game-card__emoji {
@@ -441,17 +599,23 @@ body {
 /* A control, not a table footer. The old version was a full-bleed strip
    flush to the card edge, which read as a caption bar; insetting it and
    giving it a solid accent fill makes it look like the button it is. */
+/* Geometry deliberately mirrors `.btn`: same height, radius, family, weight
+   and icon size. It can't literally be a `.btn` — the whole card is one
+   link, so this is a div, not a nested control — but it must not *look*
+   like a different kind of button from the ones inside the games. */
 .game-card__cta {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 0.5rem;
   margin: 1.15rem 1.25rem 1.25rem;
-  padding: 0.7rem 0.9rem 0.7rem 1.1rem;
+  height: 2.75rem;
+  padding-inline: 1.1rem 0.9rem;
   border-radius: var(--radius-md);
   font-family: var(--font-display);
-  font-weight: 600;
-  font-size: 1rem;
+  font-weight: var(--fw-display);
+  font-size: 0.9375rem;
+  letter-spacing: -0.005em;
   color: #fff;
   /* Mixed toward the page's darkest ink rather than toward transparency:
      a translucent accent over a dark card just goes muddy (orange came out
@@ -460,7 +624,7 @@ body {
      reading as that game's colour. */
   background: color-mix(in srgb, var(--game) 50%, #0B0B1A);
   border: 1px solid color-mix(in srgb, var(--game) 60%, transparent);
-  transition: background 0.2s ease, border-color 0.2s ease;
+  transition: background var(--dur-normal) ease, border-color var(--dur-normal) ease;
 }
 
 .game-card:hover .game-card__cta {
@@ -469,7 +633,10 @@ body {
 }
 
 .game-card__cta svg {
-  transition: transform 0.2s ease;
+  width: 1.125rem;
+  height: 1.125rem;
+  flex-shrink: 0;
+  transition: transform var(--dur-normal) var(--ease-standard);
 }
 
 .game-card:hover .game-card__cta svg {
@@ -510,7 +677,7 @@ body {
   justify-content: center;
   cursor: pointer;
   position: relative;
-  transition: border-color 0.2s, background 0.2s;
+  transition: border-color var(--dur-normal), background var(--dur-normal);
   user-select: none;
   touch-action: none;
 }
@@ -540,7 +707,7 @@ body {
   --step-accent: #7c3aed;
   width: 2.75rem;
   height: 2.75rem;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -554,7 +721,7 @@ body {
   user-select: none;
   -webkit-user-select: none;
   touch-action: none;
-  transition: transform 0.1s ease, background 0.2s ease, border-color 0.2s ease;
+  transition: transform var(--dur-fast) ease, background var(--dur-normal) ease, border-color var(--dur-normal) ease;
 }
 
 .step-btn:hover {
@@ -585,7 +752,7 @@ body {
   align-items: center;
   gap: 0.6rem;
   padding: 0.85rem 2.4rem;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   font-family: var(--font-body);
   font-size: 0.95rem;
   font-weight: 600;
@@ -599,8 +766,8 @@ body {
   user-select: none;
   -webkit-user-select: none;
   touch-action: none;
-  transition: transform 0.12s ease, box-shadow 0.2s ease, background 0.2s ease,
-    border-color 0.2s ease;
+  transition: transform 0.12s ease, box-shadow var(--dur-normal) ease, background var(--dur-normal) ease,
+    border-color var(--dur-normal) ease;
 }
 
 .pour-lever:hover {
@@ -625,10 +792,10 @@ body {
 .pour-lever-dot {
   width: 0.6rem;
   height: 0.6rem;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: var(--lever-accent);
   box-shadow: 0 0 8px var(--lever-accent);
-  transition: box-shadow 0.2s ease;
+  transition: box-shadow var(--dur-normal) ease;
 }
 
 .pour-lever-active .pour-lever-dot {
@@ -650,55 +817,6 @@ body {
 /* ─────────────────────────────────────────────
    Mode selector (Solo / Multiplayer)
 ───────────────────────────────────────────── */
-/* One compact row of three. Solo keeps the accent fill so there's still an
-   obvious way in, but none of them take a full-width block: the entry screen
-   should be one glance and a click, not a stack of panels. */
-.mode-pill {
-  --mode-accent: #06b6d4;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  height: 2.75rem;
-  padding: 0 1.1rem;
-  border-radius: 999px;
-  font-family: var(--font-display);
-  font-size: 0.9375rem;
-  font-weight: 600;
-  white-space: nowrap;
-  cursor: pointer;
-  color: rgba(255, 255, 255, 0.82);
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid color-mix(in srgb, var(--mode-accent) 28%, rgba(255, 255, 255, 0.08));
-  transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
-}
-
-.mode-pill:hover {
-  color: #fff;
-  border-color: color-mix(in srgb, var(--mode-accent) 55%, transparent);
-  background: color-mix(in srgb, var(--mode-accent) 14%, rgba(255, 255, 255, 0.02));
-}
-
-.mode-pill:focus-visible {
-  outline: 2px solid color-mix(in srgb, var(--mode-accent) 70%, transparent);
-  outline-offset: 3px;
-}
-
-.mode-pill-primary {
-  color: #fff;
-  padding: 0 1.35rem;
-  background: linear-gradient(180deg, #8B5CF6, #6D28D9);
-  border-color: rgba(196, 181, 253, 0.4);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.22),
-    0 3px 0 -1px #4C1D95,
-    0 8px 18px -8px rgba(76, 29, 149, 0.8);
-}
-
-.mode-pill-primary:hover {
-  background: linear-gradient(180deg, #9B6DFA, #7C3AED);
-  border-color: rgba(196, 181, 253, 0.55);
-}
-
 /* ─────────────────────────────────────────────
    How to Play (collapsible, native <details>)
 ───────────────────────────────────────────── */
@@ -724,7 +842,7 @@ body {
 
 .how-to-play-chevron {
   color: rgba(255, 255, 255, 0.4);
-  transition: transform 0.2s ease;
+  transition: transform var(--dur-normal) ease;
 }
 
 .how-to-play[open] .how-to-play-chevron {
@@ -759,8 +877,8 @@ body {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.06);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-2);
   color: rgba(255, 255, 255, 0.8);
   font-size: 0.7rem;
 }
@@ -794,8 +912,8 @@ body {
   position: absolute;
   inset: 4px;
   border-radius: var(--radius-md);
-  background: rgba(255, 255, 255, 0.035);
-  border: 1px solid rgba(255, 255, 255, 0.07);
+  background: var(--color-surface-1);
+  border: 1px solid var(--color-line-1);
   border-style: solid;
   border-width: 1px;
   will-change: opacity;
@@ -825,7 +943,7 @@ body {
   user-select: none;
   -webkit-user-select: none;
   -webkit-tap-highlight-color: transparent;
-  transition: background 0.2s ease;
+  transition: background var(--dur-normal) ease;
 }
 
 .tap-surface:hover {
@@ -848,10 +966,10 @@ body {
   font-family: var(--font-body);
   font-size: 0.75rem;
   padding: 2px 8px;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   color: rgba(255, 255, 255, 0.75);
-  background: rgba(255, 255, 255, 0.07);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: var(--color-surface-2);
+  border: 1px solid var(--color-line-2);
   box-shadow: 0 1px 0 rgba(255, 255, 255, 0.06) inset;
 }
 
@@ -862,7 +980,7 @@ body {
   place-items: center;
   width: 56px;
   height: 56px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   color: var(--tone);
   background: color-mix(in srgb, var(--tone) 14%, transparent);
   border: 1px solid color-mix(in srgb, var(--tone) 38%, transparent);
@@ -880,15 +998,15 @@ body {
 .tap-meter__track {
   position: relative;
   height: 8px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.07);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-2);
   overflow: hidden;
 }
 
 .tap-meter__fill {
   display: block;
   height: 100%;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: linear-gradient(
     90deg,
     color-mix(in srgb, var(--tone) 45%, transparent),
@@ -927,9 +1045,9 @@ body {
 .round-pip {
   flex: 1;
   height: 5px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: rgba(255, 255, 255, 0.08);
-  transition: background 0.3s ease, box-shadow 0.3s ease;
+  transition: background var(--dur-slow) ease, box-shadow var(--dur-slow) ease;
 }
 
 .round-pip[data-state='done'] {
@@ -974,7 +1092,7 @@ body {
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0) 55%),
     rgba(4, 4, 16, 0.55);
-  border: 1px solid rgba(255, 255, 255, 0.09);
+  border: 1px solid var(--color-line-1);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.06),
     inset 0 -18px 28px -20px rgba(0, 0, 0, 0.9);
@@ -992,7 +1110,7 @@ body {
 .timing-bar[data-frozen='true'] .timing-tick,
 .timing-bar[data-frozen='true'] .timing-zone {
   opacity: 0.45;
-  transition: opacity 0.3s ease;
+  transition: opacity var(--dur-slow) ease;
 }
 
 .timing-bar[data-slow-motion='true'] {
@@ -1023,7 +1141,7 @@ body {
   position: absolute;
   top: 5px;
   bottom: 5px;
-  border-radius: 10px;
+  border-radius: var(--radius-sm);
   background: linear-gradient(
     180deg,
     color-mix(in srgb, var(--beam) 30%, transparent),
@@ -1044,7 +1162,7 @@ body {
   top: -5px;
   bottom: -5px;
   width: 2px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: color-mix(in srgb, var(--beam) 80%, white 20%);
   box-shadow: 0 0 8px color-mix(in srgb, var(--beam) 60%, transparent);
 }
@@ -1061,7 +1179,7 @@ body {
   left: 50%;
   width: 2px;
   transform: translateX(-50%);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: linear-gradient(
     180deg,
     color-mix(in srgb, var(--beam) 60%, white 40%),
@@ -1078,7 +1196,7 @@ body {
   position: absolute;
   top: -6px;
   bottom: -6px;
-  border-radius: 12px;
+  border-radius: var(--radius-md);
   pointer-events: none;
   background: color-mix(in srgb, var(--beam) 22%, transparent);
   box-shadow:
@@ -1100,7 +1218,7 @@ body {
   top: -8px;
   bottom: -8px;
   width: 5px;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: linear-gradient(
     180deg,
     color-mix(in srgb, var(--beam) 55%, white 45%),
@@ -1165,7 +1283,7 @@ body {
   top: 50%;
   height: 2px;
   transform: translateY(-50%);
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   background: linear-gradient(
     90deg,
     color-mix(in srgb, var(--tone, white) 15%, transparent),
@@ -1175,7 +1293,7 @@ body {
 
 .timing-ripple {
   position: absolute;
-  border-radius: 999px;
+  border-radius: var(--radius-pill);
   border: 2px solid var(--beam);
   transform: translate(-50%, -50%);
   animation: tap-ripple 0.55s ease-out forwards;
@@ -1191,7 +1309,7 @@ body {
 ───────────────────────────────────────────── */
 .stat-card {
   background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.07);
+  border: 1px solid var(--color-line-1);
   border-radius: var(--radius-md);
   padding: 12px;
   text-align: center;
@@ -1248,37 +1366,19 @@ body {
   gap: 0.75rem;
   padding: 8px 10px;
   border-radius: var(--radius-sm);
-  transition: background 0.15s;
+  transition: background var(--dur-fast);
 }
 
 .leaderboard-row:hover {
   background: rgba(255, 255, 255, 0.04);
 }
 
-/* Compact on purpose: the tabs now sit on the header row beside the refresh
-   control, where the old 44px min-height forced the header onto two lines.
-   36px plus the surrounding gap still gives a comfortable target. */
-.lb-tab {
-  display: inline-flex;
-  align-items: center;
-  height: 2.25rem;
-  padding: 0 0.75rem;
-  border-radius: var(--radius-sm);
-  font-size: 0.8125rem;
-  font-family: var(--font-body);
-  color: rgba(255, 255, 255, 0.55);
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  white-space: nowrap;
-  transition: color 0.15s, background 0.15s;
-}
-
-.lb-tab:hover { color: rgba(255, 255, 255, 0.75); }
-
-.lb-tab-active {
-  color: #C4B5FD;
-  background: rgba(124, 58, 237, 0.22);
+/* The tabs are `.btn .btn-sm .btn-ghost` in the markup — this only adds the
+   selected state, which the base button system has no concept of. */
+.lb-tab-active,
+.lb-tab-active:hover {
+  color: var(--color-brand-violet);
+  background: color-mix(in srgb, var(--color-brand-purple) 22%, transparent);
 }
 
 /* ─────────────────────────────────────────────
@@ -1366,7 +1466,7 @@ body {
 /* Ambient gradient blobs */
 .ambient-blob {
   position: absolute;
-  border-radius: 9999px;
+  border-radius: var(--radius-pill);
   filter: blur(80px);
   pointer-events: none;
   opacity: 0.07;
@@ -1436,9 +1536,15 @@ body {
    still earns its keep: digits that change every frame. Everything a
    player reads as words is body text now (see `.font-ui`).
 ───────────────────────────────────────────── */
+/* Like .font-display, this owns weight and colour so the eight call sites
+   stop each declaring `font-bold text-white` of their own. A score is
+   primary information, so it sits at ink-1. */
 .font-score {
   font-family: var(--font-numeric);
   font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  color: var(--color-ink-1);
 }
 
 /* ─────────────────────────────────────────────

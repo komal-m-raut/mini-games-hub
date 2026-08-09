@@ -38,10 +38,10 @@ export function GameHeader({ gameId }: GameHeaderProps) {
           {game.emoji}
         </span>
         <div className="min-w-0">
-          <h1 className="font-display text-2xl sm:text-3xl font-bold text-white leading-tight">
+          <h1 className="font-display text-2xl sm:text-3xl leading-tight">
             {game.title}
           </h1>
-          <p className="text-sm sm:text-base text-white/65 leading-snug mt-0.5">
+          <p className="text-sm sm:text-base text-ink-2 leading-snug mt-0.5">
             {game.howTo}
           </p>
         </div>

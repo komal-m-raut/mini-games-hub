@@ -32,12 +32,12 @@ function CopyButton({ getText, label }: { getText: () => string; label: string }
           setTimeout(() => setFailed(false), 2000);
         }
       }}
-      className="relative after:absolute after:content-[''] after:-inset-2 flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-white/10 bg-white/5 text-white/60 hover:text-white hover:border-white/25 transition-all text-xs font-ui cursor-pointer"
+      className="btn btn-sm btn-secondary" style={{ '--btn-accent': '#22D3EE' } as React.CSSProperties}
     >
       {copied ? (
         <Check className="w-3.5 h-3.5 text-green-400" strokeWidth={1.5} />
       ) : (
-        <Copy className="w-3.5 h-3.5" strokeWidth={1.5} />
+        <Copy strokeWidth={1.5} />
       )}
       {failed ? 'Copy failed' : copied ? 'Copied!' : label}
     </button>
@@ -116,11 +116,11 @@ export function ChallengeComplete({ gameId, code, roundScores, onReplay }: Chall
         <p className="font-ui text-xs text-brand-cyan uppercase tracking-widest mb-2">
           Challenge Complete
         </p>
-        <p className="font-display text-6xl font-black text-white mb-1">
+        <p className="font-display text-6xl mb-1">
           {formatScore(total)}
-          <span className="text-white/55 text-3xl">/{MAX_CHALLENGE_SCORE}</span>
+          <span className="text-ink-3 text-3xl">/{MAX_CHALLENGE_SCORE}</span>
         </p>
-        <p className="text-white/55 text-sm font-ui">{challengeLabel(code)}</p>
+        <p className="text-ink-3 text-sm font-ui">{challengeLabel(code)}</p>
       </motion.div>
 
       {/* Per-round breakdown */}
@@ -136,7 +136,7 @@ export function ChallengeComplete({ gameId, code, roundScores, onReplay }: Chall
             <p className="stat-label">Round {i + 1}</p>
             <p className="stat-value text-brand-purple">
               {formatScore(score)}
-              <span className="text-white/55 text-sm">/{MAX_ROUND_SCORE}</span>
+              <span className="text-ink-3 text-sm">/{MAX_ROUND_SCORE}</span>
             </p>
           </motion.div>
         ))}
@@ -159,7 +159,6 @@ export function ChallengeComplete({ gameId, code, roundScores, onReplay }: Chall
             size="md"
             onClick={submit}
             className="flex items-center gap-2 whitespace-nowrap w-full sm:w-auto justify-center"
-            glow="rgba(124, 58, 237, 0.5)"
           >
             <Send className="w-4 h-4 shrink-0" strokeWidth={1.5} />
             {submitState === 'sending' ? 'Submitting…' : 'Submit Score'}
@@ -167,7 +166,7 @@ export function ChallengeComplete({ gameId, code, roundScores, onReplay }: Chall
         </div>
       ) : (
         <p className="text-green-400 text-sm font-ui flex items-center gap-1.5">
-          <Check className="w-4 h-4" strokeWidth={1.5} /> Score on the board!
+          <Check strokeWidth={1.5} /> Score on the board!
         </p>
       )}
       {submitState === 'error' && (
@@ -178,9 +177,9 @@ export function ChallengeComplete({ gameId, code, roundScores, onReplay }: Chall
       <div className="flex flex-wrap items-center justify-center gap-2">
         <button
           onClick={share}
-          className="relative after:absolute after:content-[''] after:-inset-2 flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-brand-cyan/30 bg-brand-cyan/10 text-brand-cyan hover:border-brand-cyan/60 transition-all text-xs font-ui cursor-pointer"
+          className="btn btn-sm btn-secondary" style={{ '--btn-accent': '#22D3EE' } as React.CSSProperties}
         >
-          <Share2 className="w-3.5 h-3.5" strokeWidth={1.5} />
+          <Share2 strokeWidth={1.5} />
           {shareState === 'error' ? 'Share failed' : shareState === 'shared' ? 'Copied!' : 'Share result'}
         </button>
         <CopyButton

@@ -85,25 +85,25 @@ export function TapResultScreen({ result, nextLabel, onNext, onMenu }: TapResult
           <Icon className="w-7 h-7" strokeWidth={1.75} aria-hidden />
         </span>
         <h2
-          className="neon-text font-display text-4xl sm:text-5xl font-bold leading-none"
+          className="neon-text font-display text-4xl sm:text-5xl leading-none"
           style={{ color: meta.color, '--neon': meta.color } as React.CSSProperties}
         >
           {result.rating}
         </h2>
-        <p className="text-white/60 font-ui text-sm text-center px-2">{meta.message}</p>
+        <p className="text-ink-3 font-ui text-sm text-center px-2">{meta.message}</p>
       </motion.div>
 
       {/* Round score — springs in with the rating, then counts up to its
           final value so a Perfect doesn't just pop straight to "10". */}
       <motion.p
-        className="font-score font-bold text-4xl leading-none"
+        className="font-score text-4xl leading-none"
         style={{ color: meta.color }}
         initial={{ opacity: 0, y: 6 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.18 }}
       >
         {formatScore(displayScore)}
-        <span className="text-white/55 text-xl">/{MAX_ROUND_SCORE}</span>
+        <span className="text-ink-3 text-xl">/{MAX_ROUND_SCORE}</span>
       </motion.p>
 
       {/* Accuracy meter — the same two numbers the stat boxes used to hold,
@@ -155,7 +155,6 @@ export function TapResultScreen({ result, nextLabel, onNext, onMenu }: TapResult
           size="md"
           onClick={onNext}
           className="flex-1 min-w-0 flex items-center justify-center gap-2 whitespace-nowrap"
-          glow="rgba(124, 58, 237, 0.5)"
         >
           {nextLabel}
         </NeonButton>

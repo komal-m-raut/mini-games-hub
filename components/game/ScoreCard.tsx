@@ -22,26 +22,26 @@ export function ScoreCard({ score, round, totalRounds, totalScore }: ScoreCardPr
       {/* Latest round score — the one prominent number in this row */}
       <Zap className="w-4 h-4 text-brand-yellow shrink-0" strokeWidth={1.5} />
       <div>
-        <p className="text-[0.65rem] text-white/55 font-ui uppercase tracking-wide leading-none mb-0.5">
+        <p className="text-2xs text-ink-3 font-ui uppercase tracking-wide leading-none mb-0.5">
           Score
         </p>
         <motion.p
           key={score}
-          className="font-score font-bold text-white text-xl leading-none"
+          className="font-score text-xl leading-none"
           initial={{ y: -8, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
         >
           {formatScore(score)}
-          <span className="text-white/50 text-sm">/{MAX_ROUND_SCORE}</span>
+          <span className="text-ink-3 text-sm">/{MAX_ROUND_SCORE}</span>
         </motion.p>
         {/* Total + round, demoted to a single quiet line so the round
             score above stays the only number that reads as "the score" */}
-        <p className="font-score text-[0.7rem] text-white/55 leading-none mt-0.5">
+        <p className="font-score text-2xs text-ink-3 leading-none mt-0.5">
           Round {round}
-          {totalRounds !== null && <span className="text-white/50">/{totalRounds}</span>}
+          {totalRounds !== null && <span className="text-ink-3">/{totalRounds}</span>}
           {' · '}
           {formatScore(totalScore)}
-          {maxTotal > 0 && <span className="text-white/50">/{maxTotal}</span>}
+          {maxTotal > 0 && <span className="text-ink-3">/{maxTotal}</span>}
         </p>
       </div>
     </div>

@@ -43,7 +43,7 @@ function GameCard({ game }: { game: GameMeta }) {
       <div className="game-card__cta">
         <span>{game.isAvailable ? 'Play' : 'Coming soon'}</span>
         {game.isAvailable && (
-          <ArrowRight className="w-[1.15rem] h-[1.15rem]" strokeWidth={2.5} aria-hidden="true" />
+          <ArrowRight strokeWidth={2.5} aria-hidden="true" />
         )}
       </div>
     </Wrapper>
@@ -64,14 +64,14 @@ export default function HubPage() {
           pushed every card below the fold. */}
       <header className="max-w-3xl">
         <h1
-          className="fade-up font-display font-semibold text-5xl sm:text-6xl lg:text-7xl text-white leading-[1.05]"
+          className="fade-up font-display text-5xl sm:text-6xl lg:text-7xl leading-[1.05]"
           style={{ animationDelay: '0.05s' }}
         >
           <span className="neon-text-purple">Tiny</span>{' '}
           <span className="neon-text-cyan">Arcadium</span>
         </h1>
         <p
-          className="fade-up mt-4 text-lg sm:text-xl text-white/70 leading-relaxed"
+          className="fade-up mt-4 text-lg sm:text-xl text-ink-2 leading-relaxed"
           style={{ animationDelay: '0.12s' }}
         >
           Four small games to unwind with. Pick one and play — no download, no
@@ -82,12 +82,12 @@ export default function HubPage() {
       {/* Games */}
       <section className="flex flex-col gap-4">
         <div className="fade-up flex items-baseline justify-between gap-4 flex-wrap">
-          <h2 className="font-display font-semibold text-3xl text-white">
+          <h2 className="font-display text-3xl">
             Pick a game
           </h2>
           {/* One quiet line of context, in plain words, instead of a row of
               icon+mono stat chips that read as a service status bar. */}
-          <p className="text-base text-white/50">
+          <p className="text-base text-ink-3">
             {liveCount} games
             {players > 0 && <> · {players.toLocaleString()} people have played</>}
           </p>

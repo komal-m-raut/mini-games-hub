@@ -27,7 +27,7 @@ function RankBadge({ rank }: { rank: number }) {
   if (rank <= 3) {
     return <Trophy className="w-4 h-4" style={{ color }} strokeWidth={2} />;
   }
-  return <span className="text-white/50 font-score text-sm">{rank}</span>;
+  return <span className="text-ink-3 font-score text-sm">{rank}</span>;
 }
 
 function LeaderboardRow({
@@ -55,13 +55,13 @@ function LeaderboardRow({
 
       <div className="flex items-center gap-4 shrink-0">
         {entry.roundScores && (
-          <p className="text-white/50 font-score text-xs hidden sm:block">
+          <p className="text-ink-3 font-score text-xs hidden sm:block">
             {entry.roundScores.map(formatScore).join(' · ')}
           </p>
         )}
-        <p className="font-score text-sm font-semibold text-brand-violet tabular-nums">
+        <p className="font-score text-sm text-brand-violet tabular-nums">
           {formatScore(entry.score)}
-          <span className="text-white/40 text-xs">/{MAX_CHALLENGE_SCORE}</span>
+          <span className="text-ink-4 text-xs">/{MAX_CHALLENGE_SCORE}</span>
         </p>
       </div>
     </div>
@@ -111,7 +111,7 @@ export function Leaderboard({ gameId, title = 'Leaderboard' }: LeaderboardProps)
       <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 px-4 sm:px-5 pt-4 pb-3">
         <div className="flex items-center gap-2 min-w-0">
           <Trophy className="w-4 h-4 text-brand-yellow shrink-0" strokeWidth={2} />
-          <h2 className="font-display font-semibold text-white text-base truncate">{title}</h2>
+          <h2 className="font-display text-base truncate">{title}</h2>
         </div>
 
         <div className="flex items-center gap-1">
@@ -119,7 +119,7 @@ export function Leaderboard({ gameId, title = 'Leaderboard' }: LeaderboardProps)
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`lb-tab ${activeTab === tab.id ? 'lb-tab-active' : ''}`}
+              className={`btn btn-sm btn-ghost ${activeTab === tab.id ? 'lb-tab-active' : ''}`}
             >
               {tab.label}
             </button>
@@ -127,10 +127,10 @@ export function Leaderboard({ gameId, title = 'Leaderboard' }: LeaderboardProps)
           <button
             onClick={refresh}
             disabled={isLoading}
-            className="w-9 h-9 flex items-center justify-center rounded-lg text-white/50 hover:text-white/80 hover:bg-white/5 transition-all disabled:opacity-30"
+            className="btn btn-sm btn-ghost btn-icon"
             aria-label="Refresh leaderboard"
           >
-            <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} strokeWidth={2} />
+            <RefreshCw className={isLoading ? 'animate-spin' : undefined} strokeWidth={2} />
           </button>
         </div>
       </div>
@@ -147,7 +147,7 @@ export function Leaderboard({ gameId, title = 'Leaderboard' }: LeaderboardProps)
           </div>
         ) : entries && entries.length === 0 ? (
           <div className="flex flex-col items-center justify-center gap-1 px-4 py-10 text-center">
-            <p className="text-white/60 text-sm">No scores yet — play a round and claim the top spot.</p>
+            <p className="text-ink-3 text-sm">No scores yet — play a round and claim the top spot.</p>
           </div>
         ) : (
           <div className="flex flex-col gap-1 px-3 pb-3">
@@ -165,7 +165,7 @@ export function Leaderboard({ gameId, title = 'Leaderboard' }: LeaderboardProps)
             {hasMore && (
               <div ref={sentinelRef} className="flex justify-center py-2.5">
                 <Loader2
-                  className={`w-4 h-4 text-white/40 ${isLoadingMore ? 'animate-spin' : ''}`}
+                  className={`w-4 h-4 text-ink-4 ${isLoadingMore ? 'animate-spin' : ''}`}
                   strokeWidth={2}
                 />
               </div>
@@ -177,7 +177,7 @@ export function Leaderboard({ gameId, title = 'Leaderboard' }: LeaderboardProps)
       {/* Footer: how much of the board you're looking at, plus the retention
           rule stated where it matters rather than buried in a tooltip. */}
       {!isLoading && entries && entries.length > 0 && (
-        <p className="px-4 sm:px-5 py-2.5 border-t border-white/5 text-xs text-white/45">
+        <p className="px-4 sm:px-5 py-2.5 border-t border-white/5 text-xs text-ink-3">
           Showing {entries.length} of {total} · scores from the last 7 days
         </p>
       )}

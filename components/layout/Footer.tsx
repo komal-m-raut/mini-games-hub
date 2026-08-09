@@ -14,7 +14,7 @@ export function Footer() {
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <Gamepad2 className="w-5 h-5 text-brand-purple" strokeWidth={1.5} />
-            <span className="font-display text-sm text-white/60">
+            <span className="font-display text-sm text-ink-3">
               Tiny Arcadium · Stress relief, one game at a time
             </span>
           </div>
@@ -22,23 +22,23 @@ export function Footer() {
           {/* -my-3 py-3 grows the tap target to 44px+ tall without changing
               the visible line height — these anchors have no background/
               border, so the extra padding renders invisibly (M6). */}
-          <div className="flex items-center gap-6 text-sm text-white/55">
-            <Link href="/about" className="-my-3 py-3 hover:text-white/80 transition-colors">
+          <div className="flex items-center gap-6 text-sm text-ink-3">
+            <Link href="/about" className="-my-3 py-3 hover:text-ink-1 transition-colors">
               About
             </Link>
-            <Link href="/privacy" className="-my-3 py-3 hover:text-white/80 transition-colors">
+            <Link href="/privacy" className="-my-3 py-3 hover:text-ink-1 transition-colors">
               Privacy Policy
             </Link>
-            <Link href="/terms" className="-my-3 py-3 hover:text-white/80 transition-colors">
+            <Link href="/terms" className="-my-3 py-3 hover:text-ink-1 transition-colors">
               Terms
             </Link>
-            <a href="/privacy#contact" className="-my-3 py-3 hover:text-white/80 transition-colors">
+            <a href="/privacy#contact" className="-my-3 py-3 hover:text-ink-1 transition-colors">
               Contact
             </a>
           </div>
         </div>
 
-        <p className="mt-4 text-center text-xs text-white/55">
+        <p className="mt-4 text-center text-xs text-ink-3">
           © {new Date().getFullYear()} Tiny Arcadium. All rights reserved.
         </p>
       </div>
