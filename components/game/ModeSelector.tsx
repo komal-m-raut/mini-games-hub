@@ -16,73 +16,56 @@ export function ModeSelector({
   onDailyChallenge,
   onFriendChallenge,
 }: ModeSelectorProps) {
-  // Solo is the only mode that starts a game right here — the other two
-  // navigate away to a seeded challenge — so it leads as the primary action
-  // and the challenge modes sit under it as a secondary pair. Three
-  // identically-weighted cards left the screen with no obvious way in.
-  const secondary = [
+  // All three sit on one compact row. Solo still carries the accent fill, so
+  // there's an obvious way in without it taking a full-width block of its
+  // own — the descriptions moved out because at this size they wrapped to
+  // three lines each and were the reason the row needed so much height.
+  const modes = [
     {
-      icon: <CalendarDays className="w-5 h-5" strokeWidth={2} />,
-      label: "Today's Challenge",
-      description: 'Same rounds for everyone',
-      accent: '#06B6D4',
-      onClick: onDailyChallenge,
-      delay: 0.06,
+      icon: <Play className="w-4 h-4" strokeWidth={2.5} fill="currentColor" />,
+      label: 'Play solo',
+      hint: 'Five rounds at your own pace',
+      primary: true,
+      tone: '#8B5CF6',
+      onClick: onSolo,
     },
     {
-      icon: <Swords className="w-5 h-5" strokeWidth={2} />,
-      label: 'Challenge a Friend',
-      description: 'Share a link, compare scores',
-      accent,
+      icon: <CalendarDays className="w-4 h-4" strokeWidth={2} />,
+      label: "Today's Challenge",
+      hint: 'The same rounds for everyone today',
+      primary: false,
+      tone: '#06B6D4',
+      onClick: onDailyChallenge,
+    },
+    {
+      icon: <Swords className="w-4 h-4" strokeWidth={2} />,
+      label: 'Challenge a friend',
+      hint: 'Share a link and compare scores',
+      primary: false,
+      tone: accent,
       onClick: onFriendChallenge,
-      delay: 0.12,
     },
   ];
 
   return (
-    <div className="flex flex-col gap-4">
-      <h2 className="font-display text-2xl sm:text-3xl font-bold text-white text-center">
+    <div className="flex flex-col gap-3.5">
+      <h2 className="font-display text-2xl font-semibold text-white text-center">
         Ready to play?
       </h2>
 
-      <motion.button
-        onClick={onSolo}
-        className="mode-card mode-card-primary fade-up"
-        whileHover={{ y: -2 }}
-        whileTap={{ scale: 0.99 }}
-        style={{ '--mode-accent': '#8B5CF6' } as React.CSSProperties}
-      >
-        <span className="mode-icon">
-          <Play className="w-6 h-6" strokeWidth={2.5} fill="currentColor" />
-        </span>
-        <span className="flex flex-col gap-0.5 text-left">
-          <span className="font-display font-bold text-white text-xl leading-tight">
-            Start playing
-          </span>
-          <span className="text-sm text-white/65 leading-snug">
-            Five rounds, at your own pace
-          </span>
-        </span>
-      </motion.button>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        {secondary.map(({ icon, label, description, accent: a, onClick, delay }) => (
+      <div className="flex flex-wrap justify-center gap-2">
+        {modes.map(({ icon, label, hint, primary, tone, onClick }) => (
           <motion.button
             key={label}
             onClick={onClick}
-            className="mode-card mode-card-secondary fade-up"
-            whileHover={{ y: -2 }}
-            style={
-              { '--mode-accent': a, animationDelay: `${delay}s` } as React.CSSProperties
-            }
+            title={hint}
+            aria-label={`${label} — ${hint}`}
+            className={`mode-pill ${primary ? 'mode-pill-primary' : ''}`}
+            style={{ '--mode-accent': tone } as React.CSSProperties}
+            whileTap={{ scale: 0.97 }}
           >
-            <span className="mode-icon">{icon}</span>
-            <span className="flex flex-col gap-0.5 text-left">
-              <span className="font-display font-semibold text-white/90 leading-tight">
-                {label}
-              </span>
-              <span className="text-xs text-white/55 leading-snug">{description}</span>
-            </span>
+            {icon}
+            <span>{label}</span>
           </motion.button>
         ))}
       </div>

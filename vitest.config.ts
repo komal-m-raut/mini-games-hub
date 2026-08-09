@@ -8,5 +8,8 @@ export default defineConfig({
   test: {
     include: ['tests/**/*.test.ts'],
     environment: 'node',
+    // Must run before any test module imports the score store, which reads
+    // SCORES_DATA_FILE once at module scope.
+    setupFiles: ['tests/setup/scoresDataFile.ts'],
   },
 });

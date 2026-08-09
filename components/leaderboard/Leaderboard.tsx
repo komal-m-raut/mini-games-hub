@@ -1,9 +1,8 @@
 'use client';
 
-import { motion, AnimatePresence } from 'framer-motion';
-import { Trophy, Users, RefreshCw } from 'lucide-react';
-import { useLeaderboard, LeaderboardTab } from '@/hooks/useLeaderboard';
-import { useSiteStats } from '@/hooks/useSiteStats';
+import { useEffect, useRef } from 'react';
+import { Trophy, RefreshCw, Loader2 } from 'lucide-react';
+import { useLeaderboard, LeaderboardTab, LEADERBOARD_PAGE_SIZE } from '@/hooks/useLeaderboard';
 import { MAX_CHALLENGE_SCORE } from '@/lib/challenge';
 import { RANK_COLORS } from '@/lib/constants';
 import { usePlayerId } from '@/lib/player';
@@ -11,8 +10,10 @@ import { ScoreEntry } from '@/types/game';
 import { formatScore } from '@/utils/scoring';
 
 const TABS: { id: LeaderboardTab; label: string }[] = [
-  { id: 'today', label: "Today's Challenge" },
-  { id: 'alltime', label: 'All Time' },
+  { id: 'today', label: 'Today' },
+  // Not "All Time" any more: scores are pruned after seven days, so that
+  // label would have been a promise the storage layer no longer keeps.
+  { id: 'week', label: 'This Week' },
 ];
 
 interface LeaderboardProps {
@@ -24,15 +25,9 @@ interface LeaderboardProps {
 function RankBadge({ rank }: { rank: number }) {
   const color = RANK_COLORS[rank - 1];
   if (rank <= 3) {
-    return (
-      <Trophy
-        className="w-5 h-5"
-        style={{ color, filter: `drop-shadow(0 0 6px ${color})` }}
-        strokeWidth={1.5}
-      />
-    );
+    return <Trophy className="w-4 h-4" style={{ color }} strokeWidth={2} />;
   }
-  return <span className="text-white/55 font-ui text-sm w-5 text-center">{rank}</span>;
+  return <span className="text-white/50 font-score text-sm">{rank}</span>;
 }
 
 function LeaderboardRow({
@@ -45,75 +40,81 @@ function LeaderboardRow({
   isSelf: boolean;
 }) {
   return (
-    <motion.div
+    <div
       className={`leaderboard-row ${isSelf ? 'border border-brand-purple/40 bg-brand-purple/10' : ''}`}
-      initial={{ opacity: 0, x: -20 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ delay: (rank - 1) * 0.06 }}
     >
-      <div className="flex items-center gap-3 flex-1 min-w-0">
-        <div className="w-7 flex justify-center shrink-0">
+      <div className="flex items-center gap-2.5 flex-1 min-w-0">
+        <div className="w-5 flex justify-center shrink-0">
           <RankBadge rank={rank} />
         </div>
-        <p className="text-white font-medium truncate">
+        <p className="text-white text-sm font-medium truncate">
           {entry.name}
-          {isSelf && <span className="text-brand-violet text-xs font-ui ml-2">you</span>}
+          {isSelf && <span className="text-brand-violet text-xs ml-1.5">you</span>}
         </p>
       </div>
 
-      <div className="flex items-center gap-6 shrink-0">
+      <div className="flex items-center gap-4 shrink-0">
         {entry.roundScores && (
-          <div className="text-right hidden sm:block">
-            <p className="text-xs text-white/55 font-ui">Rounds</p>
-            <p className="text-white/70 font-ui text-sm">
-              {entry.roundScores.map(formatScore).join(' · ')}
-            </p>
-          </div>
-        )}
-        <div className="text-right">
-          <p className="text-xs text-white/55 font-ui">Score</p>
-          <p className="font-display font-bold text-brand-purple">
-            {formatScore(entry.score)}
-            <span className="text-white/55 text-xs">/{MAX_CHALLENGE_SCORE}</span>
+          <p className="text-white/50 font-score text-xs hidden sm:block">
+            {entry.roundScores.map(formatScore).join(' · ')}
           </p>
-        </div>
+        )}
+        <p className="font-score text-sm font-semibold text-brand-violet tabular-nums">
+          {formatScore(entry.score)}
+          <span className="text-white/40 text-xs">/{MAX_CHALLENGE_SCORE}</span>
+        </p>
       </div>
-    </motion.div>
+    </div>
   );
 }
 
 export function Leaderboard({ gameId, title = 'Leaderboard' }: LeaderboardProps) {
-  const { entries, activeTab, setActiveTab, isLoading, refresh } = useLeaderboard(gameId);
-  const stats = useSiteStats();
+  const {
+    entries,
+    total,
+    hasMore,
+    isLoadingMore,
+    loadMore,
+    activeTab,
+    setActiveTab,
+    isLoading,
+    refresh,
+  } = useLeaderboard(gameId);
   const playerId = usePlayerId();
+
+  // Infinite scroll: a sentinel just past the last row inside the scroller.
+  // IntersectionObserver rather than a scroll handler so it costs nothing
+  // while idle and needs no throttling.
+  const sentinelRef = useRef<HTMLDivElement>(null);
+  const scrollerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const sentinel = sentinelRef.current;
+    const root = scrollerRef.current;
+    if (!sentinel || !root || !hasMore) return;
+
+    const observer = new IntersectionObserver(
+      ([e]) => {
+        if (e.isIntersecting) loadMore();
+      },
+      // Start fetching a little before the sentinel is actually on screen,
+      // so the next rows are usually there by the time you reach them.
+      { root, rootMargin: '80px' }
+    );
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [hasMore, loadMore, entries?.length]);
 
   return (
     <section id="leaderboard" className="glass-card p-0 overflow-hidden">
       {/* Header */}
-      <div className="px-4 sm:px-6 pt-6 pb-4 border-b border-white/5">
-        <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 mb-4">
-          <div className="flex items-center gap-2">
-            <Trophy className="w-5 h-5 text-brand-yellow" strokeWidth={1.5} />
-            <h2 className="font-display font-bold text-white text-lg sm:text-xl">{title}</h2>
-          </div>
-          <div className="flex items-center gap-3 shrink-0">
-            <div className="flex items-center gap-1.5 text-xs text-white/55 font-ui whitespace-nowrap">
-              <Users className="w-3.5 h-3.5 shrink-0" />
-              {(stats?.totalPlayers ?? 0).toLocaleString()} player{stats?.totalPlayers === 1 ? '' : 's'}
-            </div>
-            <button
-              onClick={refresh}
-              disabled={isLoading}
-              className="min-w-11 min-h-11 flex items-center justify-center rounded-lg text-white/55 hover:text-white/80 hover:bg-white/5 transition-all disabled:opacity-30"
-              aria-label="Refresh leaderboard"
-            >
-              <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} strokeWidth={1.5} />
-            </button>
-          </div>
+      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 px-4 sm:px-5 pt-4 pb-3">
+        <div className="flex items-center gap-2 min-w-0">
+          <Trophy className="w-4 h-4 text-brand-yellow shrink-0" strokeWidth={2} />
+          <h2 className="font-display font-semibold text-white text-base truncate">{title}</h2>
         </div>
 
-        {/* Tabs */}
-        <div className="flex gap-1">
+        <div className="flex items-center gap-1">
           {TABS.map((tab) => (
             <button
               key={tab.id}
@@ -123,43 +124,63 @@ export function Leaderboard({ gameId, title = 'Leaderboard' }: LeaderboardProps)
               {tab.label}
             </button>
           ))}
+          <button
+            onClick={refresh}
+            disabled={isLoading}
+            className="w-9 h-9 flex items-center justify-center rounded-lg text-white/50 hover:text-white/80 hover:bg-white/5 transition-all disabled:opacity-30"
+            aria-label="Refresh leaderboard"
+          >
+            <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} strokeWidth={2} />
+          </button>
         </div>
       </div>
 
-      {/* Entries */}
-      <div className="px-4 py-3 min-h-[280px]">
+      {/* Entries. The scroller is capped to roughly five rows so the board is
+          a compact panel you scroll rather than a section that grows the page
+          by a screenful whenever it fills up. */}
+      <div ref={scrollerRef} className="leaderboard-scroller">
         {isLoading ? (
-          <div className="flex flex-col gap-2">
-            {Array.from({ length: 5 }).map((_, i) => (
-              <div key={i} className="h-12 rounded-lg bg-white/3 animate-pulse" />
+          <div className="flex flex-col gap-1 px-3 pb-3">
+            {Array.from({ length: LEADERBOARD_PAGE_SIZE }).map((_, i) => (
+              <div key={i} className="h-11 rounded-lg bg-white/[0.03] animate-pulse" />
             ))}
           </div>
         ) : entries && entries.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-12 gap-2 text-center">
-            <p className="text-white/55">No scores yet — be the first to play and claim the top spot!</p>
-            <p className="text-white/35 text-sm">Finish a challenge and your score lands right here.</p>
+          <div className="flex flex-col items-center justify-center gap-1 px-4 py-10 text-center">
+            <p className="text-white/60 text-sm">No scores yet — play a round and claim the top spot.</p>
           </div>
         ) : (
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={activeTab}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="flex flex-col gap-1"
-            >
-              {(entries ?? []).map((entry, i) => (
-                <LeaderboardRow
-                  key={entry.playerId}
-                  entry={entry}
-                  rank={i + 1}
-                  isSelf={Boolean(playerId) && entry.playerId === playerId}
+          <div className="flex flex-col gap-1 px-3 pb-3">
+            {(entries ?? []).map((entry, i) => (
+              <LeaderboardRow
+                key={entry.playerId}
+                entry={entry}
+                rank={i + 1}
+                isSelf={Boolean(playerId) && entry.playerId === playerId}
+              />
+            ))}
+
+            {/* Sentinel + spinner. Kept inside the scroller so it only comes
+                into view when the player actually scrolls to the bottom. */}
+            {hasMore && (
+              <div ref={sentinelRef} className="flex justify-center py-2.5">
+                <Loader2
+                  className={`w-4 h-4 text-white/40 ${isLoadingMore ? 'animate-spin' : ''}`}
+                  strokeWidth={2}
                 />
-              ))}
-            </motion.div>
-          </AnimatePresence>
+              </div>
+            )}
+          </div>
         )}
       </div>
+
+      {/* Footer: how much of the board you're looking at, plus the retention
+          rule stated where it matters rather than buried in a tooltip. */}
+      {!isLoading && entries && entries.length > 0 && (
+        <p className="px-4 sm:px-5 py-2.5 border-t border-white/5 text-xs text-white/45">
+          Showing {entries.length} of {total} · scores from the last 7 days
+        </p>
+      )}
     </section>
   );
 }

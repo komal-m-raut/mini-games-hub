@@ -650,74 +650,53 @@ body {
 /* ─────────────────────────────────────────────
    Mode selector (Solo / Multiplayer)
 ───────────────────────────────────────────── */
-/* Two tiers, not three peers: `mode-card-primary` is the way into the game
-   and `mode-card-secondary` are the two challenge modes beside it. Both stay
-   a single row at every width — the old icon-over-label column at ≥640px was
-   what made three modes read as a feature grid. */
-.mode-card {
+/* One compact row of three. Solo keeps the accent fill so there's still an
+   obvious way in, but none of them take a full-width block: the entry screen
+   should be one glance and a click, not a stack of panels. */
+.mode-pill {
   --mode-accent: #06b6d4;
-  display: flex;
-  flex-direction: row;
+  display: inline-flex;
   align-items: center;
-  gap: 0.85rem;
-  padding: 0.85rem 1.1rem;
-  border-radius: var(--radius-lg);
-  text-align: left;
+  gap: 0.5rem;
+  height: 2.75rem;
+  padding: 0 1.1rem;
+  border-radius: 999px;
+  font-family: var(--font-display);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  white-space: nowrap;
   cursor: pointer;
-  transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+  color: rgba(255, 255, 255, 0.82);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid color-mix(in srgb, var(--mode-accent) 28%, rgba(255, 255, 255, 0.08));
+  transition: color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
 }
 
-.mode-card:focus-visible {
+.mode-pill:hover {
+  color: #fff;
+  border-color: color-mix(in srgb, var(--mode-accent) 55%, transparent);
+  background: color-mix(in srgb, var(--mode-accent) 14%, rgba(255, 255, 255, 0.02));
+}
+
+.mode-pill:focus-visible {
   outline: 2px solid color-mix(in srgb, var(--mode-accent) 70%, transparent);
   outline-offset: 3px;
 }
 
-.mode-card-primary {
-  width: 100%;
-  /* Centred, unlike the secondary pair: it spans the full column, and a
-     left-aligned label on a full-width button leaves the CTA looking like a
-     list row with a lot of dead space to its right. */
-  justify-content: center;
-  padding: 1.15rem 1.35rem;
+.mode-pill-primary {
+  color: #fff;
+  padding: 0 1.35rem;
   background: linear-gradient(180deg, #8B5CF6, #6D28D9);
-  border: 1px solid rgba(196, 181, 253, 0.35);
+  border-color: rgba(196, 181, 253, 0.4);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.22),
-    0 4px 0 -1px #4C1D95,
-    0 10px 26px -8px rgba(76, 29, 149, 0.8);
+    0 3px 0 -1px #4C1D95,
+    0 8px 18px -8px rgba(76, 29, 149, 0.8);
 }
 
-.mode-card-primary:hover {
+.mode-pill-primary:hover {
   background: linear-gradient(180deg, #9B6DFA, #7C3AED);
-}
-
-.mode-card-primary .mode-icon {
-  color: #fff;
-  background: rgba(255, 255, 255, 0.18);
-  width: 2.75rem;
-  height: 2.75rem;
-}
-
-.mode-card-secondary {
-  background: rgba(255, 255, 255, 0.03);
-  border: 1px solid color-mix(in srgb, var(--mode-accent) 20%, rgba(255, 255, 255, 0.07));
-}
-
-.mode-card-secondary:hover {
-  border-color: color-mix(in srgb, var(--mode-accent) 45%, transparent);
-  background: color-mix(in srgb, var(--mode-accent) 9%, rgba(255, 255, 255, 0.02));
-}
-
-.mode-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 2.25rem;
-  height: 2.25rem;
-  flex-shrink: 0;
-  border-radius: 999px;
-  color: var(--mode-accent);
-  background: color-mix(in srgb, var(--mode-accent) 15%, transparent);
+  border-color: rgba(196, 181, 253, 0.55);
 }
 
 /* ─────────────────────────────────────────────
@@ -1246,12 +1225,29 @@ body {
 /* ─────────────────────────────────────────────
    Leaderboard
 ───────────────────────────────────────────── */
+/* Roughly five rows tall, then it scrolls. The board used to grow the page
+   by a screenful once it filled up; capping it keeps the game, the
+   how-to-play and the board all within easy reach. */
+.leaderboard-scroller {
+  max-height: 17.5rem;
+  overflow-y: auto;
+  /* Reaching the end of this list must not start scrolling the page. */
+  overscroll-behavior: contain;
+}
+
+.leaderboard-scroller::-webkit-scrollbar { width: 5px; }
+.leaderboard-scroller::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.14);
+  border-radius: 3px;
+}
+
 .leaderboard-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 12px;
-  border-radius: var(--radius-md);
+  gap: 0.75rem;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
   transition: background 0.15s;
 }
 
@@ -1259,26 +1255,30 @@ body {
   background: rgba(255, 255, 255, 0.04);
 }
 
+/* Compact on purpose: the tabs now sit on the header row beside the refresh
+   control, where the old 44px min-height forced the header onto two lines.
+   36px plus the surrounding gap still gives a comfortable target. */
 .lb-tab {
   display: inline-flex;
   align-items: center;
-  padding: 5px 14px;
-  min-height: 44px;
-  border-radius: 6px;
-  font-size: 0.75rem;
+  height: 2.25rem;
+  padding: 0 0.75rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.8125rem;
   font-family: var(--font-body);
   color: rgba(255, 255, 255, 0.55);
   background: transparent;
   border: none;
   cursor: pointer;
+  white-space: nowrap;
   transition: color 0.15s, background 0.15s;
 }
 
 .lb-tab:hover { color: rgba(255, 255, 255, 0.75); }
 
 .lb-tab-active {
-  color: var(--color-brand-purple);
-  background: rgba(124, 58, 237, 0.15);
+  color: #C4B5FD;
+  background: rgba(124, 58, 237, 0.22);
 }
 
 /* ─────────────────────────────────────────────

@@ -31,7 +31,12 @@ export function ChallengeLeaderboard({
     let cancelled = false;
     (async () => {
       try {
-        const res = await fetch(`/api/scores/${gameId}/${code}`, { cache: 'no-store' });
+        // Explicit limit: the scores GET pages at 5 by default for the hub's
+        // infinite-scroll board. A challenge is a fixed group of friends
+        // shown in full with no scroller, so it asks for the whole board.
+        const res = await fetch(`/api/scores/${gameId}/${code}?limit=50`, {
+          cache: 'no-store',
+        });
         if (!res.ok) throw new Error(String(res.status));
         const data = await res.json();
         if (cancelled) return;

@@ -62,13 +62,51 @@ async function validateParams(params: Params['params']) {
   return { gameId, board, rules: GAME_RULES[gameId] };
 }
 
-export async function GET(_req: NextRequest, { params }: Params) {
+const DEFAULT_LIMIT = 5;
+const MAX_LIMIT = 50;
+
+/**
+ * Clamp a query param to a whole number in range, falling back on garbage.
+ *
+ * The absent/empty check has to come first: `Number(null)` and `Number('')`
+ * are both `0`, not `NaN`, so a missing `limit` would otherwise pass the
+ * integer test and clamp to `min` — serving one row per page instead of the
+ * default five.
+ */
+function intParam(raw: string | null, fallback: number, min: number, max: number): number {
+  if (raw === null || raw.trim() === '') return fallback;
+  const n = Number(raw);
+  if (!Number.isInteger(n)) return fallback;
+  return Math.min(Math.max(n, min), max);
+}
+
+/**
+ * GET /api/scores/{gameId}/{board}?offset=&limit=
+ *
+ * Paged so the client can render the first few rows and pull the rest as the
+ * player scrolls, instead of shipping up to MAX_BOARD_SIZE entries to draw
+ * five. `total` is the post-pruning board size, so it already excludes
+ * entries that have aged out of the retention window.
+ *
+ * The store still reads the whole board behind this — boards are one JSON
+ * blob per key, so paging here bounds the *response*, not the backend read.
+ * Making it bound both means per-entry keys plus a sorted set, which is a
+ * storage-layer change well beyond this endpoint.
+ */
+export async function GET(req: NextRequest, { params }: Params) {
   const parsed = await validateParams(params);
   if (!parsed) {
     return Response.json({ error: 'Unknown game or board' }, { status: 400 });
   }
-  const entries = await scoreStore.getBoard(parsed.gameId, parsed.board);
-  return Response.json({ entries });
+
+  const all = await scoreStore.getBoard(parsed.gameId, parsed.board);
+  const limit = intParam(req.nextUrl.searchParams.get('limit'), DEFAULT_LIMIT, 1, MAX_LIMIT);
+  const offset = intParam(req.nextUrl.searchParams.get('offset'), 0, 0, Number.MAX_SAFE_INTEGER);
+
+  const entries = all.slice(offset, offset + limit);
+  const nextOffset = offset + entries.length < all.length ? offset + entries.length : null;
+
+  return Response.json({ entries, total: all.length, nextOffset });
 }
 
 export async function POST(req: NextRequest, { params }: Params) {
