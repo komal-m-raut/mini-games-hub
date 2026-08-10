@@ -41,6 +41,20 @@ export const GAME_REGISTRY: GameMeta[] = [
     href: '/games/memory-path',
   },
   {
+    // Pink: the four existing cabinets already hold purple, cyan, indigo and
+    // orange, and a colour game shouldn't share a hue with a neighbour.
+    id: 'color-match',
+    title: 'Color Match',
+    description:
+      'A free colour perception game: memorise a colour, then recreate it from memory on RGB sliders. How accurate is your eye?',
+    tagline: 'Colour & perception',
+    howTo: 'Memorise a colour, then mix it back from memory on three sliders.',
+    emoji: '🎨',
+    accent: '#EC4899',
+    isAvailable: true,
+    href: '/games/color-match',
+  },
+  {
     id: 'timing-tap',
     title: 'Timing Tap',
     description:

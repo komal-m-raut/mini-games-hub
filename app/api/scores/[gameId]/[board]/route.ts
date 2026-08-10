@@ -28,6 +28,7 @@ const GAME_RULES: Record<string, GameRules> = {
   'perfect-pour': CHALLENGE_RULES,
   'memory-path': CHALLENGE_RULES,
   'timing-tap': CHALLENGE_RULES,
+  'color-match': CHALLENGE_RULES,
 };
 
 const BOARD_PATTERN = /^[a-z0-9-]{1,40}$/;

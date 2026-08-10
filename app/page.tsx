@@ -74,7 +74,10 @@ export default function HubPage() {
           className="fade-up mt-4 text-lg sm:text-xl text-ink-2 leading-relaxed"
           style={{ animationDelay: '0.12s' }}
         >
-          Four small games to unwind with. Pick one and play — no download, no
+          {/* No count in the copy: it said "Four small games" and went stale the
+              moment a fifth shipped. The live count is already one line down,
+              next to "Pick a game", where it comes from the registry. */}
+          Small games to unwind with. Pick one and play — no download, no
           account.
         </p>
       </header>
