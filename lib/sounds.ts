@@ -21,7 +21,10 @@ export type SoundName =
   | 'whoosh'
   | 'trace'
   | 'error'
-  | 'tap';
+  | 'tap'
+  | 'slide'
+  | 'confirm'
+  | 'sparkle';
 
 export type LoopName = 'water' | 'ambient' | 'sweep';
 
@@ -297,6 +300,32 @@ export function playSound(name: SoundName): void {
       src.stop(t0 + 0.08);
 
       tone(c, { freq: 1200, sweepTo: 600, dur: 0.07, gain: 0.14, type: 'triangle' });
+      break;
+    }
+
+    case 'slide':
+      // Grain of a slider moving. Deliberately the quietest sound in the
+      // palette: it fires repeatedly through a drag (throttled by the
+      // caller), so anything louder becomes a rattle rather than texture.
+      tone(c, { freq: 1500, sweepTo: 1150, dur: 0.035, gain: 0.045, type: 'sine' });
+      break;
+
+    case 'confirm':
+      // Two-note rising blip — "locked in", without pre-empting the result
+      // sound that follows a beat later.
+      tone(c, { freq: 587.33, dur: 0.1, gain: 0.13, type: 'triangle' });
+      tone(c, { freq: 880, dur: 0.16, gain: 0.11, type: 'triangle', delay: 0.07 });
+      break;
+
+    case 'sparkle': {
+      // Reserved for a 95%+ match: a bright shimmer that reads as *special*
+      // next to `success` without being as final as `celebrate`. A rising
+      // pentatonic run (so no interval can sound sour) with a bell on top.
+      [783.99, 1046.5, 1318.51, 1567.98].forEach((f, i) =>
+        tone(c, { freq: f, dur: 0.42, gain: 0.13, delay: i * 0.055, type: 'sine' })
+      );
+      tone(c, { freq: 2093, dur: 0.9, gain: 0.06, delay: 0.22, type: 'sine' });
+      tone(c, { freq: 2637.02, dur: 0.7, gain: 0.035, delay: 0.28, type: 'sine' });
       break;
     }
   }
