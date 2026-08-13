@@ -207,7 +207,7 @@ export const GAME_REGISTRY: GameMeta[] = [
     howTo: 'Watch a duration play out, then hold the button to recreate it from memory.',
     emoji: '⏱️',
     accent: '#38BDF8',
-    isAvailable: false,
+    isAvailable: true,
     href: '/games/time-sense',
   },
   {
