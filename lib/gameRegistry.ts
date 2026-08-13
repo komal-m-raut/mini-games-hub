@@ -286,7 +286,7 @@ export const GAME_REGISTRY: GameMeta[] = [
     howTo: 'Place your three marks, then slide them one cell at a time to make a line first.',
     emoji: '⚔️',
     accent: '#8B5CF6',
-    isAvailable: false,
+    isAvailable: true,
     href: '/games/xo-shift',
   },
   {
