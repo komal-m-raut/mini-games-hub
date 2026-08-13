@@ -8,7 +8,7 @@ import { ConfettiEffect } from '@/components/ui/ConfettiEffect';
 import { MAX_ROUND_SCORE, formatScore } from '@/utils/scoring';
 import { AMAZING_ACCURACY } from '../constants';
 import { ColorRating, ColorResult } from '../types';
-import { ColorPanel } from './ColorPanel';
+import { ColorCompare } from './ColorCompare';
 import { ParticleBurst } from './ParticleBurst';
 
 const RATING_META: Record<ColorRating, { emoji: string; color: string; message: string }> = {
@@ -67,38 +67,30 @@ export function ColorResultScreen({
         <p className="text-ink-3 font-ui text-sm mt-1">{meta.message}</p>
       </motion.div>
 
-      {/* The score is the only number here; the swatches below show the miss. */}
-      <motion.p
-        className="font-score text-5xl sm:text-6xl leading-none"
-        style={{ color: meta.color }}
+      <motion.div
+        className="flex items-baseline gap-3"
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
       >
-        {formatScore(result.score)}
-        <span className="text-2xl text-ink-3">/{MAX_ROUND_SCORE}</span>
-      </motion.p>
+        {/* The score is the headline number; accuracy backs it up in the
+            same units the target/mix comparison below is judged on. */}
+        <p className="font-score text-5xl sm:text-6xl leading-none" style={{ color: meta.color }}>
+          {formatScore(result.score)}
+          <span className="text-2xl text-ink-3">/{MAX_ROUND_SCORE}</span>
+        </p>
+        <span className="font-score text-base text-ink-3 tabular-nums">
+          {result.accuracy.toFixed(1)}% match
+        </span>
+      </motion.div>
 
       <motion.div
-        className="flex items-start justify-center gap-4 sm:gap-6 w-full max-w-sm"
+        className="w-full max-w-sm"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.3 }}
       >
-        <motion.div
-          className="flex-1 min-w-0"
-          animate={{ x: split ? 0 : '52%' }}
-          transition={{ type: 'spring', stiffness: 140, damping: 20 }}
-        >
-          <ColorPanel color={result.target} label="Target" size="sm" />
-        </motion.div>
-        <motion.div
-          className="flex-1 min-w-0"
-          animate={{ x: split ? 0 : '-52%' }}
-          transition={{ type: 'spring', stiffness: 140, damping: 20 }}
-        >
-          <ColorPanel color={result.actual} label="Yours" size="sm" />
-        </motion.div>
+        <ColorCompare target={result.target} actual={result.actual} revealed={split} />
       </motion.div>
 
       <motion.div

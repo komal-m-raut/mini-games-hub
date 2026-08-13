@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ArrowLeft, Check, ChevronDown } from 'lucide-react';
@@ -18,6 +18,7 @@ import { Difficulty } from '@/types/game';
 import { ColorPanel } from './components/ColorPanel';
 import { ColorResultScreen } from './components/ColorResultScreen';
 import { ColorSliders } from './components/ColorSliders';
+import { MixPreview } from './components/MixPreview';
 import { COLOR_DIFFICULTY } from './constants';
 import { useColorMatchGame } from './useColorMatchGame';
 
@@ -68,6 +69,10 @@ export function ColorMatchGame({ challengeCode }: ColorMatchGameProps = {}) {
 
   const router = useRouter();
   const [menuView, setMenuView] = useState<'mode' | 'solo'>('mode');
+  // The mixing preview's DOM node — ColorSliders writes to it directly on
+  // every drag tick, so the swatch fill can't lag behind the thumb even if
+  // something upstream is slow to re-render (see MixPreview).
+  const previewRef = useRef<HTMLDivElement>(null);
 
   const backToMenu = () => {
     setMenuView('mode');
@@ -199,10 +204,10 @@ export function ColorMatchGame({ challengeCode }: ColorMatchGameProps = {}) {
           </motion.div>
         )}
 
-        {state.phase === 'matching' && (
+        {state.phase === 'matching' && cfg && (
           <motion.div
             key={`match-${state.round}`}
-            className="glass-card flex flex-col items-center gap-5 py-8"
+            className="glass-card flex flex-col items-center gap-6 py-8"
             {...card}
           >
             <div className="flex items-start justify-between w-full">
@@ -212,9 +217,11 @@ export function ColorMatchGame({ challengeCode }: ColorMatchGameProps = {}) {
               </p>
             </div>
 
-            {/* The player's mix only — the target is gone until they submit */}
-            <ColorPanel color={state.current} size="md" showHex />
-            <ColorSliders color={state.current} onChange={setChannel} />
+            {/* The player's mix only — the target is gone until they submit.
+                The ghost ring just echoes where it sat, in the difficulty's
+                colour, never the target's own hue. */}
+            <MixPreview ref={previewRef} color={state.current} accent={cfg.color} />
+            <ColorSliders color={state.current} onChange={setChannel} previewRef={previewRef} />
 
             <NeonButton
               variant="primary"
