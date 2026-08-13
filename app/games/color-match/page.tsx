@@ -1,10 +1,13 @@
 import type { Metadata } from 'next';
 import { ColorMatchGame } from '@/games/color-match/ColorMatchGame';
+import { CONTENT } from '@/games/color-match/content';
 import { AdBanner } from '@/components/ads/AdBanner';
 import { GameHeader } from '@/components/game/GameHeader';
 import { HowToPlay } from '@/components/game/HowToPlay';
 import { Leaderboard } from '@/components/leaderboard/Leaderboard';
-import { SITE_URL } from '@/lib/constants';
+import { GameArticle } from '@/components/seo/GameArticle';
+import { getGameMeta } from '@/lib/gameRegistry';
+import { buildGameJsonLd, jsonLdScriptProps } from '@/lib/seo';
 
 const HOW_TO_PLAY_STEPS = [
   'One colour, on the clock. Each round shows a single flat colour panel for a few seconds while a timer counts down. Actually look at it — it disappears completely, and your memory is worse than you think.',
@@ -40,31 +43,14 @@ export const metadata: Metadata = {
   },
 };
 
-const jsonLd = {
-  '@context': 'https://schema.org',
-  '@type': 'VideoGame',
-  name: 'Color Match',
-  description: longDescription,
-  url: `${SITE_URL}/games/color-match`,
-  genre: ['Memory', 'Puzzle'],
-  applicationCategory: 'Game',
-  operatingSystem: 'Any',
-  isAccessibleForFree: true,
-  offers: {
-    '@type': 'Offer',
-    price: '0',
-    priceCurrency: 'USD',
-  },
-};
+const meta = getGameMeta('color-match')!;
+const jsonLd = buildGameJsonLd({ meta, content: CONTENT, longDescription });
 
 export default function ColorMatchPage() {
   return (
     <div className="page-container py-8 sm:py-12 flex flex-col gap-12">
       {/* Per-game structured data so search engines can surface this as a playable game. */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }}
-      />
+      <script {...jsonLdScriptProps(jsonLd)} />
 
       <div>
         <GameHeader gameId="color-match" />
@@ -73,6 +59,9 @@ export default function ColorMatchPage() {
 
       {/* How to Play */}
       <HowToPlay title="How to Play Color Match" steps={HOW_TO_PLAY_STEPS} />
+
+      {/* SEO/content article: about, tips, FAQ, related games */}
+      <GameArticle gameId="color-match" content={CONTENT} />
 
       {/* Leaderboard */}
       <section>

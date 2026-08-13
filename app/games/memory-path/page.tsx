@@ -1,10 +1,13 @@
 import type { Metadata } from 'next';
 import { MemoryPathGame } from '@/games/memory-path/MemoryPathGame';
+import { CONTENT } from '@/games/memory-path/content';
 import { AdBanner } from '@/components/ads/AdBanner';
 import { GameHeader } from '@/components/game/GameHeader';
 import { HowToPlay } from '@/components/game/HowToPlay';
 import { Leaderboard } from '@/components/leaderboard/Leaderboard';
-import { SITE_URL } from '@/lib/constants';
+import { GameArticle } from '@/components/seo/GameArticle';
+import { getGameMeta } from '@/lib/gameRegistry';
+import { buildGameJsonLd, jsonLdScriptProps } from '@/lib/seo';
 
 const HOW_TO_PLAY_STEPS = [
   'Watch the path light up. A sequence of cells glows across the grid one at a time — memorize the order before it fades.',
@@ -40,31 +43,14 @@ export const metadata: Metadata = {
   },
 };
 
-const jsonLd = {
-  '@context': 'https://schema.org',
-  '@type': 'VideoGame',
-  name: 'Memory Path',
-  description: longDescription,
-  url: `${SITE_URL}/games/memory-path`,
-  genre: ['Memory', 'Focus'],
-  applicationCategory: 'Game',
-  operatingSystem: 'Any',
-  isAccessibleForFree: true,
-  offers: {
-    '@type': 'Offer',
-    price: '0',
-    priceCurrency: 'USD',
-  },
-};
+const meta = getGameMeta('memory-path')!;
+const jsonLd = buildGameJsonLd({ meta, content: CONTENT, longDescription });
 
 export default function MemoryPathPage() {
   return (
     <div className="page-container py-8 sm:py-12 flex flex-col gap-12">
       {/* Per-game structured data so search engines can surface this as a playable game. */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }}
-      />
+      <script {...jsonLdScriptProps(jsonLd)} />
 
       <div>
         <GameHeader gameId="memory-path" />
@@ -73,6 +59,9 @@ export default function MemoryPathPage() {
 
       {/* How to Play */}
       <HowToPlay title="How to Play Memory Path" steps={HOW_TO_PLAY_STEPS} />
+
+      {/* SEO/content article: about, tips, FAQ, related games */}
+      <GameArticle gameId="memory-path" content={CONTENT} />
 
       {/* Leaderboard */}
       <section>

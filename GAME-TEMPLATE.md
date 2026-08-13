@@ -19,9 +19,6 @@ example of every convention below.
 | `app/games/<slug>/challenge/[code]/page.tsx` | Challenge route (async params, noindex) |
 | `tests/<slug>.test.ts` | Pure-logic tests (node env, no DOM) |
 
-Also: add one import line for your `CONTENT` to the map in
-`components/seo/GameArticle.tsx` (a comment marks the spot).
-
 **Never touch:** `lib/gameRegistry.ts` (the lead flips `isAvailable` after
 review), `public/sw.js`, `app/globals.css` (use Tailwind utilities, inline
 styles or `games/<slug>/styles.module.css`), shared components, other games,
@@ -67,9 +64,10 @@ Every game ships all three (via `ModeSelector` with the game's accent):
 
 Copy `app/games/timing-tap/page.tsx` structure exactly, with these updates:
 - jsonLd comes from `buildGameJsonLd({ meta, content, longDescription })` +
-  `jsonLdScriptProps(...)` (lib/seo) — meta via `getGameMeta('<slug>')`.
-- `<GameArticle gameId="<slug>" />` goes between `HowToPlay` and the
-  `Leaderboard` section.
+  `jsonLdScriptProps(...)` (lib/seo) — meta via `getGameMeta('<slug>')`,
+  content via `import { CONTENT } from '@/games/<slug>/content'`.
+- `<GameArticle gameId="<slug>" content={CONTENT} />` goes between
+  `HowToPlay` and the `Leaderboard` section.
 - metadata: unique `title` (short — the layout template appends the site
   name), ≤160-char `description`, `alternates.canonical: '/games/<slug>'`,
   openGraph + twitter blocks with `/og.png`.

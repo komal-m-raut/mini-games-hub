@@ -1,10 +1,13 @@
 import type { Metadata } from 'next';
 import { PerfectPourGame } from '@/games/perfect-pour/PerfectPourGame';
+import { CONTENT } from '@/games/perfect-pour/content';
 import { AdBanner } from '@/components/ads/AdBanner';
 import { GameHeader } from '@/components/game/GameHeader';
 import { HowToPlay } from '@/components/game/HowToPlay';
 import { Leaderboard } from '@/components/leaderboard/Leaderboard';
-import { SITE_URL } from '@/lib/constants';
+import { GameArticle } from '@/components/seo/GameArticle';
+import { getGameMeta } from '@/lib/gameRegistry';
+import { buildGameJsonLd, jsonLdScriptProps } from '@/lib/seo';
 
 const HOW_TO_PLAY_STEPS = [
   'Watch the glass fill. Each round starts with your glass automatically filling to a target level, held on screen for a few seconds so you can study it before it drains.',
@@ -40,31 +43,14 @@ export const metadata: Metadata = {
   },
 };
 
-const jsonLd = {
-  '@context': 'https://schema.org',
-  '@type': 'VideoGame',
-  name: 'Perfect Pour',
-  description: longDescription,
-  url: `${SITE_URL}/games/perfect-pour`,
-  genre: ['Memory', 'Precision'],
-  applicationCategory: 'Game',
-  operatingSystem: 'Any',
-  isAccessibleForFree: true,
-  offers: {
-    '@type': 'Offer',
-    price: '0',
-    priceCurrency: 'USD',
-  },
-};
+const meta = getGameMeta('perfect-pour')!;
+const jsonLd = buildGameJsonLd({ meta, content: CONTENT, longDescription });
 
 export default function PerfectPourPage() {
   return (
     <div className="page-container py-8 sm:py-12 flex flex-col gap-12">
       {/* Per-game structured data so search engines can surface this as a playable game. */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }}
-      />
+      <script {...jsonLdScriptProps(jsonLd)} />
 
       <div>
         <GameHeader gameId="perfect-pour" />
@@ -73,6 +59,9 @@ export default function PerfectPourPage() {
 
       {/* How to Play */}
       <HowToPlay title="How to Play Perfect Pour" steps={HOW_TO_PLAY_STEPS} />
+
+      {/* SEO/content article: about, tips, FAQ, related games */}
+      <GameArticle gameId="perfect-pour" content={CONTENT} />
 
       {/* Leaderboard */}
       <section>

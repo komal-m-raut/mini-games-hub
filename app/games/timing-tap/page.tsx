@@ -1,10 +1,13 @@
 import type { Metadata } from 'next';
 import { TimingTapGame } from '@/games/timing-tap/TimingTapGame';
+import { CONTENT } from '@/games/timing-tap/content';
 import { AdBanner } from '@/components/ads/AdBanner';
 import { GameHeader } from '@/components/game/GameHeader';
 import { HowToPlay } from '@/components/game/HowToPlay';
 import { Leaderboard } from '@/components/leaderboard/Leaderboard';
-import { SITE_URL } from '@/lib/constants';
+import { GameArticle } from '@/components/seo/GameArticle';
+import { getGameMeta } from '@/lib/gameRegistry';
+import { buildGameJsonLd, jsonLdScriptProps } from '@/lib/seo';
 
 const HOW_TO_PLAY_STEPS = [
   "Choose a difficulty. Easy gives you a wide Perfect Zone and a slow indicator; Medium shrinks the zone and speeds things up; Hard shrinks the zone further still and drifts its speed a little faster or slower on every pass, so you can't lock into a rhythm.",
@@ -40,31 +43,14 @@ export const metadata: Metadata = {
   },
 };
 
-const jsonLd = {
-  '@context': 'https://schema.org',
-  '@type': 'VideoGame',
-  name: 'Timing Tap',
-  description: longDescription,
-  url: `${SITE_URL}/games/timing-tap`,
-  genre: ['Reflex', 'Timing'],
-  applicationCategory: 'Game',
-  operatingSystem: 'Any',
-  isAccessibleForFree: true,
-  offers: {
-    '@type': 'Offer',
-    price: '0',
-    priceCurrency: 'USD',
-  },
-};
+const meta = getGameMeta('timing-tap')!;
+const jsonLd = buildGameJsonLd({ meta, content: CONTENT, longDescription });
 
 export default function TimingTapPage() {
   return (
     <div className="page-container py-8 sm:py-12 flex flex-col gap-12">
       {/* Per-game structured data so search engines can surface this as a playable game. */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }}
-      />
+      <script {...jsonLdScriptProps(jsonLd)} />
 
       <div>
         <GameHeader gameId="timing-tap" />
@@ -73,6 +59,9 @@ export default function TimingTapPage() {
 
       {/* How to Play */}
       <HowToPlay title="How to Play Timing Tap" steps={HOW_TO_PLAY_STEPS} />
+
+      {/* SEO/content article: about, tips, FAQ, related games */}
+      <GameArticle gameId="timing-tap" content={CONTENT} />
 
       {/* Leaderboard */}
       <section>

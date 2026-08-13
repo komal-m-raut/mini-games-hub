@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ADSENSE_CONFIG, AdPlacementId } from './AdConfig';
 
 type AdFormat = 'banner' | 'rectangle' | 'leaderboard';
@@ -29,15 +29,39 @@ export function AdBanner({ placement, format = 'banner', className = '' }: AdBan
   const adRef = useRef<HTMLModElement>(null);
   const { width, height } = FORMAT_DIMENSIONS[format];
   const slot = ADSENSE_CONFIG.slots[placement];
+  // AdSense marks a slot it couldn't fill with data-ad-status="unfilled" on
+  // the <ins> element itself, asynchronously and with no prop/callback —
+  // the only way to know is to watch the DOM. Left alone, an unfilled slot
+  // keeps its reserved width/height forever: a visible empty box (issues.md
+  // #1/#8). Once we see that status, stop rendering the container entirely.
+  const [unfilled, setUnfilled] = useState(false);
 
   useEffect(() => {
     if (!ADSENSE_CONFIG.enabled || !slot) return;
+    const el = adRef.current;
+
     try {
       // @ts-expect-error — adsbygoogle is injected by the AdSense script
       (window.adsbygoogle = window.adsbygoogle || []).push({});
     } catch {
       // AdSense script not yet loaded — silently skip
     }
+
+    if (!el) return undefined;
+
+    const checkStatus = () => {
+      if (el.getAttribute('data-ad-status') === 'unfilled') {
+        setUnfilled(true);
+      }
+    };
+    // A fast response can set the attribute before the observer below is
+    // even attached, so check once up front...
+    checkStatus();
+    // ...then keep watching — the usual case is AdSense setting it some
+    // time after the push above resolves.
+    const observer = new MutationObserver(checkStatus);
+    observer.observe(el, { attributes: true, attributeFilter: ['data-ad-status'] });
+    return () => observer.disconnect();
   }, [slot]);
 
   // Development placeholder
@@ -57,6 +81,10 @@ export function AdBanner({ placement, format = 'banner', className = '' }: AdBan
       </div>
     );
   }
+
+  // Confirmed unfilled — render nothing rather than leave a dead,
+  // ad-shaped hole in the page.
+  if (unfilled) return null;
 
   return (
     <div

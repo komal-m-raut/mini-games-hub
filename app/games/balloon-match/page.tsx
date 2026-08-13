@@ -1,10 +1,13 @@
 import type { Metadata } from 'next';
 import { BalloonGame } from '@/games/balloon-match/BalloonGame';
+import { CONTENT } from '@/games/balloon-match/content';
 import { AdBanner } from '@/components/ads/AdBanner';
 import { GameHeader } from '@/components/game/GameHeader';
 import { HowToPlay } from '@/components/game/HowToPlay';
 import { Leaderboard } from '@/components/leaderboard/Leaderboard';
-import { SITE_URL } from '@/lib/constants';
+import { GameArticle } from '@/components/seo/GameArticle';
+import { getGameMeta } from '@/lib/gameRegistry';
+import { buildGameJsonLd, jsonLdScriptProps } from '@/lib/seo';
 
 const HOW_TO_PLAY_STEPS = [
   'Memorize the balloon. Each round opens with a target balloon on screen for a few seconds — take in its size and color before it disappears.',
@@ -40,31 +43,14 @@ export const metadata: Metadata = {
   },
 };
 
-const jsonLd = {
-  '@context': 'https://schema.org',
-  '@type': 'VideoGame',
-  name: 'Balloon Match',
-  description: longDescription,
-  url: `${SITE_URL}/games/balloon-match`,
-  genre: ['Memory', 'Precision'],
-  applicationCategory: 'Game',
-  operatingSystem: 'Any',
-  isAccessibleForFree: true,
-  offers: {
-    '@type': 'Offer',
-    price: '0',
-    priceCurrency: 'USD',
-  },
-};
+const meta = getGameMeta('balloon-match')!;
+const jsonLd = buildGameJsonLd({ meta, content: CONTENT, longDescription });
 
 export default function BalloonMatchPage() {
   return (
     <div className="page-container py-8 sm:py-12 flex flex-col gap-12">
       {/* Per-game structured data so search engines can surface this as a playable game. */}
-      <script
-        type="application/ld+json"
-        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }}
-      />
+      <script {...jsonLdScriptProps(jsonLd)} />
 
       {/* Game */}
       <div>
@@ -74,6 +60,9 @@ export default function BalloonMatchPage() {
 
       {/* How to Play */}
       <HowToPlay title="How to Play Balloon Match" steps={HOW_TO_PLAY_STEPS} />
+
+      {/* SEO/content article: about, tips, FAQ, related games */}
+      <GameArticle gameId="balloon-match" content={CONTENT} />
 
       {/* Leaderboard */}
       <section>
