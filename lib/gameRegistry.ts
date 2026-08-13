@@ -155,7 +155,7 @@ export const GAME_REGISTRY: GameMeta[] = [
     howTo: 'The word says one colour but is inked in another — tap the ink colour, fast.',
     emoji: '🎭',
     accent: '#D946EF',
-    isAvailable: false,
+    isAvailable: true,
     href: '/games/stroop-snap',
   },
   {
