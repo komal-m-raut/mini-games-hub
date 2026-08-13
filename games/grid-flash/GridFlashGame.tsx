@@ -134,6 +134,7 @@ export function GridFlashGame({ challengeCode }: GridFlashGameProps = {}) {
           >
             {menuView === 'mode' && (
               <ModeSelector
+                soloHint="Three ladder rounds at your pace"
                 accent={ACCENT}
                 onSolo={() => setMenuView('solo')}
                 onDailyChallenge={() =>

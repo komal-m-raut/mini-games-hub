@@ -108,6 +108,7 @@ export function TapFrenzyGame({ challengeCode }: TapFrenzyGameProps = {}) {
             >
               {menuView === 'mode' && (
                 <ModeSelector
+                soloHint="Three 30-second rounds"
                   accent={ACCENT}
                   onSolo={() => setMenuView('solo')}
                   onDailyChallenge={() =>

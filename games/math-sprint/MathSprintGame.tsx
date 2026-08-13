@@ -125,6 +125,7 @@ export function MathSprintGame({ challengeCode }: MathSprintGameProps = {}) {
           >
             {menuView === 'mode' ? (
               <ModeSelector
+                soloHint="Three 30-second sprints"
                 accent="#84CC16"
                 onSolo={() => setMenuView('solo')}
                 onDailyChallenge={() => router.push(challengePath(GAME_ID, getDailyChallengeCode()))}

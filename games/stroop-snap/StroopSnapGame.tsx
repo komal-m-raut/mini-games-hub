@@ -124,6 +124,7 @@ export function StroopSnapGame({ challengeCode }: StroopSnapGameProps = {}) {
             >
               {menuView === 'mode' && (
                 <ModeSelector
+                soloHint="Three 30-second sprints"
                   accent="#D946EF"
                   onSolo={() => setMenuView('solo')}
                   onDailyChallenge={() =>

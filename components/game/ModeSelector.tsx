@@ -5,6 +5,12 @@ import { NeonButton } from '@/components/ui/NeonButton';
 
 interface ModeSelectorProps {
   accent?: string;
+  /**
+   * Tooltip/aria hint on the solo button. The default matches the classic
+   * 5-round session; games with a different solo format (30-second sprints,
+   * ladder rounds, endless runs) pass their own so the hint never lies.
+   */
+  soloHint?: string;
   onSolo: () => void;
   onDailyChallenge: () => void;
   onFriendChallenge: () => void;
@@ -12,6 +18,7 @@ interface ModeSelectorProps {
 
 export function ModeSelector({
   accent = '#06B6D4',
+  soloHint = 'Five rounds at your own pace',
   onSolo,
   onDailyChallenge,
   onFriendChallenge,
@@ -24,7 +31,7 @@ export function ModeSelector({
     {
       icon: <Play strokeWidth={2.5} fill="currentColor" />,
       label: 'Play solo',
-      hint: 'Five rounds at your own pace',
+      hint: soloHint,
       primary: true,
       tone: '#8B5CF6',
       onClick: onSolo,

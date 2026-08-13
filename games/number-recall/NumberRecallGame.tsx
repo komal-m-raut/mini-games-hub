@@ -105,6 +105,7 @@ export function NumberRecallGame({ challengeCode }: NumberRecallGameProps = {}) 
           >
             {menuView === 'mode' && (
               <ModeSelector
+                soloHint="Three ladder rounds at your pace"
                 accent="#14B8A6"
                 onSolo={() => setMenuView('solo')}
                 onDailyChallenge={() =>
