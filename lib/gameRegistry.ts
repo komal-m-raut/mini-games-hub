@@ -220,7 +220,7 @@ export const GAME_REGISTRY: GameMeta[] = [
     howTo: 'Listen to a tone, then slide until you match its pitch from memory.',
     emoji: '🎵',
     accent: '#A78BFA',
-    isAvailable: false,
+    isAvailable: true,
     href: '/games/echo-ear',
   },
   {
