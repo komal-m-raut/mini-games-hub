@@ -194,7 +194,7 @@ export const GAME_REGISTRY: GameMeta[] = [
     howTo: 'Pads light up in a growing sequence — repeat it back in order without slipping.',
     emoji: '🚦',
     accent: '#22C55E',
-    isAvailable: false,
+    isAvailable: true,
     href: '/games/echo-steps',
   },
   {
