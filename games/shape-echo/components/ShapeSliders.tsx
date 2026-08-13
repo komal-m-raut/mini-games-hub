@@ -2,6 +2,7 @@
 
 import { GUESS_WIDTH_MAX, GUESS_WIDTH_MIN, MAX_ROTATION_DEG } from '../constants';
 import { GuessGeom } from '../types';
+import styles from '../styles.module.css';
 
 interface ShapeSlidersProps {
   guess: GuessGeom;
@@ -14,17 +15,27 @@ interface ShapeSlidersProps {
 
 /**
  * Size (scales width, preserving the target's given aspect ratio) and
- * rotation sliders below the recreate stage. Native range inputs, matching
- * Color Match's `ColorSliders` — pointer, touch and keyboard support come
- * for free from the element itself.
+ * rotation sliders below the recreate stage — premium fat tracks (56px tap
+ * height) with a clear label and a live value readout above each one, sized
+ * for the thumb zone. Native range inputs, matching Color Match's
+ * `ColorSliders`: pointer, touch and keyboard support come for free from
+ * the element itself.
  */
 export function ShapeSliders({ guess, showRotation, color, onChange, onMoveEnd }: ShapeSlidersProps) {
-  const trackStyle = { '--track': `linear-gradient(90deg, #14141F, ${color})`, '--thumb': color } as React.CSSProperties;
+  const trackStyle = {
+    '--track': `linear-gradient(90deg, rgba(255, 255, 255, 0.06), ${color})`,
+    '--thumb': color,
+  } as React.CSSProperties;
 
   return (
-    <div className="flex flex-col gap-4 w-full">
-      <div className="flex items-center gap-3">
-        <span className="font-ui text-xs w-16 shrink-0 uppercase tracking-wide text-ink-3">Size</span>
+    <div className="flex flex-col gap-5 w-full">
+      <div className="flex flex-col gap-1.5 w-full">
+        <div className="flex items-baseline justify-between">
+          <span className="font-ui text-2xs uppercase tracking-widest text-ink-3">Size</span>
+          <span className="font-score text-sm text-ink-1 tabular-nums">
+            {Math.round(guess.width * 100)}%
+          </span>
+        </div>
         <input
           type="range"
           min={Math.round(GUESS_WIDTH_MIN * 100)}
@@ -35,17 +46,19 @@ export function ShapeSliders({ guess, showRotation, color, onChange, onMoveEnd }
           onPointerUp={onMoveEnd}
           aria-label="Size"
           aria-valuetext={`${Math.round(guess.width * 100)} percent of stage width`}
-          className="color-slider flex-1"
+          className={styles.fatSlider}
           style={trackStyle}
         />
-        <span className="font-score text-sm w-10 shrink-0 text-right tabular-nums text-ink-2">
-          {Math.round(guess.width * 100)}%
-        </span>
       </div>
 
       {showRotation && (
-        <div className="flex items-center gap-3">
-          <span className="font-ui text-xs w-16 shrink-0 uppercase tracking-wide text-ink-3">Rotation</span>
+        <div className="flex flex-col gap-1.5 w-full">
+          <div className="flex items-baseline justify-between">
+            <span className="font-ui text-2xs uppercase tracking-widest text-ink-3">Rotation</span>
+            <span className="font-score text-sm text-ink-1 tabular-nums">
+              {Math.round(guess.rotation)}°
+            </span>
+          </div>
           <input
             type="range"
             min={0}
@@ -56,12 +69,9 @@ export function ShapeSliders({ guess, showRotation, color, onChange, onMoveEnd }
             onPointerUp={onMoveEnd}
             aria-label="Rotation"
             aria-valuetext={`${Math.round(guess.rotation)} degrees`}
-            className="color-slider flex-1"
+            className={styles.fatSlider}
             style={trackStyle}
           />
-          <span className="font-score text-sm w-10 shrink-0 text-right tabular-nums text-ink-2">
-            {Math.round(guess.rotation)}°
-          </span>
         </div>
       )}
     </div>

@@ -1,0 +1,145 @@
+/*
+ * Shape Echo — presentation-only module CSS.
+ *
+ * Everything here consumes design tokens from app/globals.css (--radius-*,
+ * --dur-*, --ease-*, --color-*) but does not add to the shared token layer —
+ * this game owns none of those files. The goal is a single premium "stage"
+ * language shared by all three phases (flash / recreate / result), so the
+ * game reads as one material rather than three different boxed widgets.
+ */
+
+/* ── Stage ──────────────────────────────────────────────────────────
+   Edge-to-edge square surface, no hairline border — depth comes from a
+   soft top-lit wash, not a box. Every phase's stage shares this class so
+   flash → recreate → result never look like three different components. */
+.stage {
+  position: relative;
+  display: block;
+  width: 100%;
+  aspect-ratio: 1 / 1;
+  background:
+    radial-gradient(120% 90% at 50% 0%, rgba(255, 255, 255, 0.05), transparent 60%),
+    var(--color-bg-deep);
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.stageInteractive {
+  cursor: grab;
+}
+
+.stageInteractive:active {
+  cursor: grabbing;
+}
+
+/* The draggable shape's group: a tactile lift (scale + shadow) while held,
+ * centred on the shape itself rather than the viewBox origin. */
+.guessGroup {
+  transform-box: fill-box;
+  transform-origin: center;
+  transition:
+    transform var(--dur-normal) var(--ease-standard),
+    filter var(--dur-normal) var(--ease-standard);
+}
+
+/* ── Fat sliders (Size / Rotation) ─────────────────────────────────
+   56px tap height — well past the 48px thumb-target floor — on a slim
+   visual track, so the control reads light while still being easy to grab.
+   `appearance: none` needs the thumb re-specified per engine; WebKit and
+   Gecko expose different pseudo-elements and share no selector. */
+.fatSlider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 56px;
+  background: transparent;
+  cursor: pointer;
+  touch-action: pan-y;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.fatSlider::-webkit-slider-runnable-track {
+  height: 14px;
+  border-radius: var(--radius-pill);
+  background: var(--track);
+  border: 1px solid var(--color-line-1);
+}
+
+.fatSlider::-moz-range-track {
+  height: 14px;
+  border-radius: var(--radius-pill);
+  background: var(--track);
+  border: 1px solid var(--color-line-1);
+}
+
+.fatSlider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 30px;
+  height: 30px;
+  margin-top: -8px; /* (30 - 14) / 2 — centres the thumb on the 14px track */
+  border-radius: var(--radius-pill);
+  background: var(--thumb);
+  border: 3px solid var(--color-ink-1);
+  box-shadow: 0 6px 14px -4px rgba(0, 0, 0, 0.5);
+  transition: transform var(--dur-fast) var(--ease-standard);
+}
+
+.fatSlider::-moz-range-thumb {
+  width: 30px;
+  height: 30px;
+  border-radius: var(--radius-pill);
+  background: var(--thumb);
+  border: 3px solid var(--color-ink-1);
+  box-shadow: 0 6px 14px -4px rgba(0, 0, 0, 0.5);
+  transition: transform var(--dur-fast) var(--ease-standard);
+}
+
+.fatSlider:active::-webkit-slider-thumb {
+  transform: scale(1.08);
+}
+
+.fatSlider:active::-moz-range-thumb {
+  transform: scale(1.08);
+}
+
+/* The thumb carries the focus ring, so the native outline (which would box
+ * the whole 56px hit area) is suppressed in favour of a ring on the thumb
+ * itself — same approach as the shared `.color-slider`. */
+.fatSlider:focus-visible {
+  outline: none;
+}
+
+.fatSlider:focus-visible::-webkit-slider-thumb {
+  box-shadow: 0 0 0 3px var(--color-brand-purple);
+}
+
+.fatSlider:focus-visible::-moz-range-thumb {
+  box-shadow: 0 0 0 3px var(--color-brand-purple);
+}
+
+/* ── Result meters ──────────────────────────────────────────────────
+   Slim labeled tracks under the hero accuracy — supporting detail, not a
+   second focal element, so they stay thin and quiet. */
+.meter {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+}
+
+.meterTrack {
+  position: relative;
+  height: 6px;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.07);
+  overflow: hidden;
+}
+
+.meterFill {
+  display: block;
+  height: 100%;
+  border-radius: var(--radius-pill);
+}

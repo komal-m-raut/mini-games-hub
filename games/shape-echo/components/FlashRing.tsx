@@ -1,6 +1,7 @@
 'use client';
 
 import { motion, useReducedMotion } from 'framer-motion';
+import { cn } from '@/lib/utils';
 
 interface FlashRingProps {
   /** Total flash duration, seconds — drives the ring's drain animation. */
@@ -10,40 +11,42 @@ interface FlashRingProps {
   /** Bumped on every flash (re)start so the ring's animation replays. */
   flashKey: number;
   color: string;
+  className?: string;
 }
 
 /**
- * Draining countdown ring shown while the target shape is memorised. Under
- * `prefers-reduced-motion` the ring itself is skipped entirely — only the
- * numeric countdown remains — rather than just speeding it up, since a
- * flash this short (1.5-2.5s) has little animation to tone down.
+ * Thin countdown ring meant to sit tucked in a corner of the stage, not a
+ * chunky bar and not a second "Memorise" label — the phase heading already
+ * says that, so this carries only the number. Under `prefers-reduced-motion`
+ * the draining stroke is skipped entirely — only the numeral remains —
+ * rather than just speeding it up, since a flash this short (1.5-2.5s) has
+ * little animation to tone down.
  */
-export function FlashRing({ totalSeconds, timeLeft, flashKey, color }: FlashRingProps) {
+export function FlashRing({ totalSeconds, timeLeft, flashKey, color, className }: FlashRingProps) {
   const reducedMotion = useReducedMotion();
-  const r = 26;
-  const stroke = 4;
+  const r = 15;
+  const stroke = 2.5;
   const circumference = 2 * Math.PI * r;
-  const viewBoxSize = (r + stroke) * 2 + 4;
-  const cx = viewBoxSize / 2;
+  const size = (r + stroke) * 2 + 4;
+  const c = size / 2;
 
   return (
-    <div className="flex flex-col items-center gap-2">
-      <p className="text-xs font-ui text-ink-3 uppercase tracking-widest">Memorise</p>
-      <div className="relative" style={{ width: viewBoxSize, height: viewBoxSize }}>
-        {!reducedMotion && (
-          <svg width={viewBoxSize} height={viewBoxSize} viewBox={`0 0 ${viewBoxSize} ${viewBoxSize}`}>
-            <circle
-              cx={cx}
-              cy={cx}
-              r={r}
-              fill="none"
-              stroke="rgba(255,255,255,0.08)"
-              strokeWidth={stroke}
-            />
+    <div className={cn('pointer-events-none', className)} style={{ width: size, height: size }}>
+      <div className="relative" style={{ width: size, height: size }}>
+        <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} aria-hidden="true">
+          <circle
+            cx={c}
+            cy={c}
+            r={r}
+            fill="rgba(8, 8, 24, 0.6)"
+            stroke="rgba(255, 255, 255, 0.14)"
+            strokeWidth={stroke}
+          />
+          {!reducedMotion && (
             <motion.circle
               key={flashKey}
-              cx={cx}
-              cy={cx}
+              cx={c}
+              cy={c}
               r={r}
               fill="none"
               stroke={color}
@@ -53,16 +56,17 @@ export function FlashRing({ totalSeconds, timeLeft, flashKey, color }: FlashRing
               initial={{ strokeDashoffset: 0 }}
               animate={{ strokeDashoffset: circumference }}
               transition={{ duration: totalSeconds, ease: 'linear' }}
-              style={{ rotate: -90, transformOrigin: `${cx}px ${cx}px` }}
+              style={{ rotate: -90, transformOrigin: `${c}px ${c}px` }}
             />
-          </svg>
-        )}
+          )}
+        </svg>
         <div className="absolute inset-0 flex items-center justify-center">
-          <span className="font-display text-2xl" style={{ color }}>
+          <span className="font-score text-xs" style={{ color }}>
             {timeLeft}
           </span>
         </div>
       </div>
+      <span className="sr-only">{timeLeft} seconds left to memorise</span>
     </div>
   );
 }

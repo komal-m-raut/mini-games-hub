@@ -134,32 +134,35 @@ export function ShapeEchoGame({ challengeCode }: ShapeEchoGameProps = {}) {
         {state.phase === 'flashing' && cfg && (
           <motion.div
             key={`flash-${state.round}`}
-            className="glass-card flex flex-col items-center gap-5 py-8"
+            className="glass-card p-0 overflow-hidden flex flex-col"
             {...card}
           >
-            <div className="flex items-start justify-between w-full">
+            <div className="flex items-start justify-between px-5 pt-5 pb-4 sm:px-6 sm:pt-6">
               <p className="font-display text-3xl sm:text-4xl lowercase">memorise</p>
               <p className="font-score text-sm text-ink-3">
                 {state.round} / {state.totalRounds}
               </p>
             </div>
-            <ShapeFlashStage target={state.target} color={cfg.color} />
-            <FlashRing
-              totalSeconds={cfg.flashSeconds}
-              timeLeft={state.flashTimeLeft}
-              flashKey={flashKey}
-              color={cfg.color}
-            />
+            <div className="relative">
+              <ShapeFlashStage target={state.target} color={cfg.color} />
+              <FlashRing
+                totalSeconds={cfg.flashSeconds}
+                timeLeft={state.flashTimeLeft}
+                flashKey={flashKey}
+                color={cfg.color}
+                className="absolute top-3 right-3"
+              />
+            </div>
           </motion.div>
         )}
 
         {state.phase === 'recreating' && cfg && (
           <motion.div
             key={`recreate-${state.round}`}
-            className="glass-card flex flex-col items-center gap-5 py-8"
+            className="glass-card p-0 overflow-hidden flex flex-col"
             {...card}
           >
-            <div className="flex items-start justify-between w-full">
+            <div className="flex items-start justify-between px-5 pt-5 pb-4 sm:px-6 sm:pt-6">
               <p className="font-display text-3xl sm:text-4xl lowercase">recreate</p>
               <p className="font-score text-sm text-ink-3">
                 {state.round} / {state.totalRounds}
@@ -173,34 +176,38 @@ export function ShapeEchoGame({ challengeCode }: ShapeEchoGameProps = {}) {
               color={cfg.color}
               onChange={setGuess}
             />
-            <ShapeSliders
-              guess={state.guess}
-              showRotation={cfg.rotationEnabled}
-              color={cfg.color}
-              onChange={setGuess}
-            />
 
-            <NeonButton
-              variant="primary"
-              size="lg"
-              onClick={submit}
-              className="w-full max-w-xs flex items-center justify-center gap-2"
-            >
-              <Check strokeWidth={2.5} />
-              Confirm
-            </NeonButton>
+            <div className="flex flex-col gap-5 px-5 py-5 sm:px-6 sm:py-6">
+              <ShapeSliders
+                guess={state.guess}
+                showRotation={cfg.rotationEnabled}
+                color={cfg.color}
+                onChange={setGuess}
+              />
+
+              <NeonButton
+                variant="primary"
+                size="lg"
+                onClick={submit}
+                fullWidth
+                className="flex items-center justify-center gap-2"
+              >
+                <Check strokeWidth={2.5} />
+                Confirm
+              </NeonButton>
+            </div>
           </motion.div>
         )}
 
         {state.phase === 'results' && state.result && cfg && (
           <motion.div
             key={`results-${state.round}`}
-            className="glass-card py-8"
+            className="glass-card p-0 overflow-hidden flex flex-col"
             {...card}
             role="status"
             aria-live="polite"
           >
-            <div className="flex items-start justify-between w-full mb-2">
+            <div className="flex items-start justify-between px-5 pt-5 pb-2 sm:px-6 sm:pt-6">
               <p className="font-display text-3xl sm:text-4xl lowercase">result</p>
               <p className="font-score text-sm text-ink-3">
                 {state.round} / {state.totalRounds}

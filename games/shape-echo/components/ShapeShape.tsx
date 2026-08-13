@@ -16,6 +16,9 @@ interface ShapeShapeProps {
   strokeWidth?: number;
   strokeDasharray?: string;
   opacity?: number;
+  /** CSS filter value (e.g. a `drop-shadow(...)` chain) for the premium
+   *  glow/lift material — passed straight through to the SVG element. */
+  filter?: string;
 }
 
 /**

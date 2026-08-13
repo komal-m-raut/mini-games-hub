@@ -1,6 +1,7 @@
 'use client';
 
-import { motion } from 'framer-motion';
+import { useId } from 'react';
+import { motion, useReducedMotion } from 'framer-motion';
 import { Home } from 'lucide-react';
 import { NeonButton } from '@/components/ui/NeonButton';
 import { ConfettiEffect } from '@/components/ui/ConfettiEffect';
@@ -8,13 +9,20 @@ import { MAX_ROUND_SCORE, formatScore, ratingFromScore } from '@/utils/scoring';
 import { Rating } from '@/types/game';
 import { ShapeResult } from '../types';
 import { ShapeShape } from './ShapeShape';
+import styles from '../styles.module.css';
 
-const RATING_META: Record<Rating, { emoji: string; color: string; message: string }> = {
-  Perfect: { emoji: '🏆', color: '#EAB308', message: 'Position, size and rotation all landed.' },
-  Great: { emoji: '🎯', color: '#A78BFA', message: 'Very close to the flash.' },
-  Good: { emoji: '👍', color: '#14B8A6', message: 'Right idea, a little off.' },
-  'Try Again': { emoji: '🔷', color: '#94A3B8', message: 'Trust the first thing you noticed.' },
+const RATING_META: Record<Rating, { emoji: string; color: string }> = {
+  Perfect: { emoji: '🏆', color: '#EAB308' },
+  Great: { emoji: '🎯', color: '#A78BFA' },
+  Good: { emoji: '👍', color: '#14B8A6' },
+  'Try Again': { emoji: '🔷', color: '#94A3B8' },
 };
+
+const METERS: Array<{ key: 'posAcc' | 'sizeAcc' | 'rotAcc'; label: string; color: string }> = [
+  { key: 'posAcc', label: 'Position', color: '#22D3EE' },
+  { key: 'sizeAcc', label: 'Size', color: '#A78BFA' },
+  { key: 'rotAcc', label: 'Rotation', color: '#F97316' },
+];
 
 interface ShapeResultScreenProps {
   result: ShapeResult;
@@ -24,132 +32,133 @@ interface ShapeResultScreenProps {
   onMenu: () => void;
 }
 
-function AccuracyBar({ label, value, color }: { label: string; value: number; color: string }) {
-  const pct = Math.round(value * 100);
-  return (
-    <div className="flex flex-col gap-1 w-full">
-      <div className="flex items-center justify-between text-xs font-ui text-ink-3">
-        <span>{label}</span>
-        <span className="tabular-nums text-ink-2">{pct}%</span>
-      </div>
-      <div className="h-2 rounded-full bg-white/[0.06] overflow-hidden">
-        <motion.div
-          className="h-full rounded-full"
-          style={{ background: color }}
-          initial={{ width: 0 }}
-          animate={{ width: `${pct}%` }}
-          transition={{ duration: 0.5, ease: 'easeOut' }}
-        />
-      </div>
-    </div>
-  );
-}
-
-/** Comparison overlay: the target as a dashed ghost, the player's shape
- *  solid on top, both drawn from the same `ShapeShape` primitive. */
+/**
+ * The reveal is the product: a huge accuracy percentage first, then the
+ * target (a white ghost outline) and the player's shape (filled in the game
+ * accent) settle onto the stage together, then three slim labeled meters
+ * break the number down. Under `prefers-reduced-motion` the settle is
+ * instant — both shapes simply appear in place, no morph.
+ */
 export function ShapeResultScreen({ result, color, nextLabel, onNext, onMenu }: ShapeResultScreenProps) {
   const rating = ratingFromScore(result.score);
   const meta = RATING_META[rating];
+  const gradId = useId();
+  const reducedMotion = useReducedMotion();
+
+  const revealInitial = reducedMotion ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.82 };
+  const revealTransition = reducedMotion
+    ? { duration: 0 }
+    : { duration: 0.4, ease: [0.2, 0, 0, 1] as [number, number, number, number] };
 
   return (
     <motion.div
-      className="relative flex flex-col items-center gap-6 w-full"
-      initial={{ opacity: 0, y: 30 }}
+      className="flex flex-col items-center gap-6 w-full pb-5"
+      initial={{ opacity: 0, y: 24 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ type: 'spring', stiffness: 150, damping: 20 }}
+      transition={{ type: 'spring', stiffness: 160, damping: 22 }}
     >
       {rating === 'Perfect' && <ConfettiEffect trigger preset="perfect" />}
 
-      <motion.div
-        className="flex flex-col items-center gap-1"
-        initial={{ scale: 0.5 }}
-        animate={{ scale: 1 }}
-        transition={{ type: 'spring', stiffness: 250, damping: 18, delay: 0.1 }}
-      >
-        <span className="text-5xl">{meta.emoji}</span>
-        <h2 className="font-display text-4xl sm:text-5xl" style={{ color: meta.color }}>
-          {rating}
-        </h2>
-        <p className="text-ink-3 font-ui text-sm mt-1">{meta.message}</p>
-      </motion.div>
+      {/* The hero: one huge number, everything else demoted around it. */}
+      <div className="flex flex-col items-center gap-1 px-5">
+        <motion.p
+          className="font-score leading-none text-6xl sm:text-7xl"
+          style={{ color: meta.color }}
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.05 }}
+        >
+          {Math.round(result.accuracy)}
+          <span className="text-2xl text-ink-3">%</span>
+        </motion.p>
+        <p className="font-ui text-sm text-ink-3 flex items-center gap-1.5">
+          <span aria-hidden="true">{meta.emoji}</span>
+          <span className="font-display text-base" style={{ color: meta.color }}>
+            {rating}
+          </span>
+          <span className="text-ink-4">·</span>
+          <span>
+            {formatScore(result.score)}/{MAX_ROUND_SCORE}
+          </span>
+        </p>
+      </div>
 
-      <motion.p
-        className="font-score text-5xl sm:text-6xl leading-none"
-        style={{ color: meta.color }}
-        initial={{ opacity: 0, y: 8 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
-      >
-        {formatScore(result.score)}
-        <span className="text-2xl text-ink-3">/{MAX_ROUND_SCORE}</span>
-      </motion.p>
-
-      <motion.svg
+      <svg
         viewBox="0 0 100 100"
-        className="w-full select-none rounded-2xl"
-        style={{
-          maxWidth: 340,
-          aspectRatio: '1 / 1',
-          background: 'rgba(255,255,255,0.03)',
-          border: '1px solid rgba(255,255,255,0.08)',
-        }}
+        className={styles.stage}
         role="img"
-        aria-label="Comparison of the target shape and yours"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.3 }}
+        aria-label={`Comparison of the target shape and yours, ${Math.round(result.accuracy)} percent accurate`}
       >
-        <ShapeShape
-          type={result.target.type}
-          cx={result.target.cx}
-          cy={result.target.cy}
-          width={result.target.width}
-          ratio={result.target.ratio}
-          rotation={result.target.rotation}
-          fill="none"
-          stroke="rgba(255,255,255,0.55)"
-          strokeWidth={1.5}
-          strokeDasharray="4 3"
-        />
-        <ShapeShape
-          type={result.target.type}
-          cx={result.guess.cx}
-          cy={result.guess.cy}
-          width={result.guess.width}
-          ratio={result.target.ratio}
-          rotation={result.guess.rotation}
-          fill={`${color}33`}
-          stroke={color}
-          strokeWidth={2}
-        />
-      </motion.svg>
+        <defs>
+          <radialGradient id={gradId} cx="38%" cy="32%" r="75%">
+            <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.4" />
+            <stop offset="100%" stopColor={color} stopOpacity="0.45" />
+          </radialGradient>
+        </defs>
 
-      <div className="flex items-center justify-center gap-4 text-xs font-ui text-ink-3">
-        <span className="flex items-center gap-1.5">
-          <span
-            className="inline-block w-3 h-3 rounded-sm border border-dashed"
-            style={{ borderColor: 'rgba(255,255,255,0.55)' }}
+        {/* Target — a quiet white ghost outline, no fill. */}
+        <motion.g initial={revealInitial} animate={{ opacity: 1, scale: 1 }} transition={revealTransition}>
+          <ShapeShape
+            type={result.target.type}
+            cx={result.target.cx}
+            cy={result.target.cy}
+            width={result.target.width}
+            ratio={result.target.ratio}
+            rotation={result.target.rotation}
+            fill="none"
+            stroke="rgba(255, 255, 255, 0.65)"
+            strokeWidth={1.25}
           />
-          Target
-        </span>
-        <span className="flex items-center gap-1.5">
-          <span className="inline-block w-3 h-3 rounded-sm" style={{ background: `${color}55`, border: `1px solid ${color}` }} />
-          Yours
-        </span>
+        </motion.g>
+
+        {/* Yours — filled in the game accent, settling in just behind the target. */}
+        <motion.g
+          initial={revealInitial}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ ...revealTransition, delay: reducedMotion ? 0 : 0.06 }}
+        >
+          <ShapeShape
+            type={result.target.type}
+            cx={result.guess.cx}
+            cy={result.guess.cy}
+            width={result.guess.width}
+            ratio={result.target.ratio}
+            rotation={result.guess.rotation}
+            fill={`url(#${gradId})`}
+            stroke={color}
+            strokeWidth={1.5}
+            filter={`drop-shadow(0 0 12px ${color}66)`}
+          />
+        </motion.g>
+      </svg>
+
+      <div className="flex flex-col gap-3 w-full px-5">
+        {METERS.map((m) => (
+          <div key={m.key} className={styles.meter}>
+            <div className="flex items-center justify-between">
+              <span className="font-ui text-2xs uppercase tracking-widest text-ink-3">{m.label}</span>
+              <span className="font-score text-xs text-ink-2 tabular-nums">
+                {Math.round(result[m.key] * 100)}%
+              </span>
+            </div>
+            <div className={styles.meterTrack}>
+              <motion.div
+                className={styles.meterFill}
+                style={{ background: m.color }}
+                initial={{ width: reducedMotion ? `${result[m.key] * 100}%` : 0 }}
+                animate={{ width: `${result[m.key] * 100}%` }}
+                transition={{
+                  duration: reducedMotion ? 0 : 0.5,
+                  ease: 'easeOut',
+                  delay: reducedMotion ? 0 : 0.15,
+                }}
+              />
+            </div>
+          </div>
+        ))}
       </div>
 
-      <div className="flex flex-col gap-2.5 w-full max-w-sm">
-        <AccuracyBar label="Position" value={result.posAcc} color="#22D3EE" />
-        <AccuracyBar label="Size" value={result.sizeAcc} color="#A78BFA" />
-        <AccuracyBar label="Rotation" value={result.rotAcc} color="#F97316" />
-      </div>
-
-      <motion.div
-        className="flex gap-3 w-full max-w-sm"
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.45 }}
-      >
+      <div className="flex gap-3 w-full px-5">
         <NeonButton
           variant="ghost"
           size="md"
@@ -167,7 +176,7 @@ export function ShapeResultScreen({ result, color, nextLabel, onNext, onMenu }: 
         >
           {nextLabel}
         </NeonButton>
-      </motion.div>
+      </div>
     </motion.div>
   );
 }
