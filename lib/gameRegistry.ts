@@ -273,7 +273,7 @@ export const GAME_REGISTRY: GameMeta[] = [
     howTo: 'Throw 1–6 each ball to score runs — if the bot matches your number, you are out.',
     emoji: '🏏',
     accent: '#10B981',
-    isAvailable: false,
+    isAvailable: true,
     href: '/games/hand-cricket',
   },
   {
