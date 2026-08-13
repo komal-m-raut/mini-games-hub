@@ -299,7 +299,7 @@ export const GAME_REGISTRY: GameMeta[] = [
     howTo: 'Play XO where your oldest mark fades each turn — move it and keep three in sight.',
     emoji: '👻',
     accent: '#64748B',
-    isAvailable: false,
+    isAvailable: true,
     href: '/games/fading-xo',
   },
   {

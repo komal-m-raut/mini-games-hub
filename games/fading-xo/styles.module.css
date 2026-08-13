@@ -1,0 +1,31 @@
+/**
+ * Fading XO's one bit of bespoke CSS: the shimmer on whichever mark is
+ * about to be forced to move. Everything else in the game reaches for
+ * Tailwind utilities / inline styles, matching the rest of the app — this
+ * lives in its own module (rather than `app/globals.css`, which games never
+ * touch) because a keyframe animation has no clean Tailwind utility form.
+ */
+
+@keyframes ghostShimmer {
+  0%,
+  100% {
+    opacity: 0.32;
+  }
+  50% {
+    opacity: 0.58;
+  }
+}
+
+.ghost {
+  animation: ghostShimmer 1.7s ease-in-out infinite;
+}
+
+/* Belt-and-suspenders: Board.tsx already checks `useReducedMotion` in JS and
+ * skips this class entirely, but honouring the media query here too means
+ * the shimmer can never survive a stale render. */
+@media (prefers-reduced-motion: reduce) {
+  .ghost {
+    animation: none;
+    opacity: 0.45;
+  }
+}
