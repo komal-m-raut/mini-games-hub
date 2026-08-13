@@ -129,7 +129,7 @@ export const GAME_REGISTRY: GameMeta[] = [
     howTo: 'Watch tiles light up on the grid, then tap the same pattern back from memory.',
     emoji: '🟦',
     accent: '#3B82F6',
-    isAvailable: false,
+    isAvailable: true,
     href: '/games/grid-flash',
   },
   {
