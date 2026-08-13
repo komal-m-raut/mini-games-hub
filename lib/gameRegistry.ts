@@ -116,7 +116,7 @@ export const GAME_REGISTRY: GameMeta[] = [
     howTo: 'Tap each target the instant it appears — fast chains build combo bonuses.',
     emoji: '⚡',
     accent: '#EAB308',
-    isAvailable: false,
+    isAvailable: true,
     href: '/games/tap-frenzy',
   },
   {
