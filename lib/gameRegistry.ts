@@ -312,7 +312,7 @@ export const GAME_REGISTRY: GameMeta[] = [
     howTo: 'A shape flashes and vanishes — drag, resize and rotate yours to match it from memory.',
     emoji: '🔷',
     accent: '#0EA5E9',
-    isAvailable: false,
+    isAvailable: true,
     href: '/games/shape-echo',
   },
   {
