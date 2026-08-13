@@ -325,7 +325,7 @@ export const GAME_REGISTRY: GameMeta[] = [
     howTo: 'Guess the five-letter word in six tries — tiles turn green and gold to guide you.',
     emoji: '📝',
     accent: '#34D399',
-    isAvailable: false,
+    isAvailable: true,
     href: '/games/word-quest',
   },
   {
