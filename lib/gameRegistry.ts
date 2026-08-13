@@ -168,7 +168,7 @@ export const GAME_REGISTRY: GameMeta[] = [
     howTo: 'Blocks sweep past in a crowd — count the red ones and enter your total.',
     emoji: '🧮',
     accent: '#EF4444',
-    isAvailable: false,
+    isAvailable: true,
     href: '/games/block-count',
   },
   {
