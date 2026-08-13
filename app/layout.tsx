@@ -3,6 +3,7 @@ import { Analytics } from '@vercel/analytics/next';
 import Script from 'next/script';
 import { Space_Grotesk, Inter, JetBrains_Mono } from 'next/font/google';
 import { Navigation } from '@/components/layout/Navigation';
+import { BottomTabBar } from '@/components/layout/BottomTabBar';
 import { Footer } from '@/components/layout/Footer';
 import { RouteFocusManager } from '@/components/layout/RouteFocusManager';
 import { ParticleBackground } from '@/components/ui/ParticleBackground';
@@ -53,7 +54,7 @@ export const metadata: Metadata = {
     template: '%s · Tiny Arcadium',
   },
   description:
-    'Play free browser games instantly — no download, no signup. Tiny Arcadium collects quick memory, precision, and reflex games to relax and sharpen your mind.',
+    'Play free browser games instantly — no download, no signup. Tiny Arcadium is a growing arcade of quick memory, precision, reflex, puzzle and word games, with daily quests and streaks to keep you sharp.',
   keywords: [
     'free online games',
     'browser games no download',
@@ -64,16 +65,19 @@ export const metadata: Metadata = {
     'brain games',
     'no signup games',
     'stress relief games',
-    'balloon match',
     'reflex games',
     'precision games',
+    'puzzle games',
+    'word games',
+    'daily challenge games',
+    'arcade games online',
   ],
   alternates: { canonical: '/' },
   openGraph: {
     siteName: 'Tiny Arcadium',
     title: 'Tiny Arcadium — Free Mini Games You Can Play Instantly',
     description:
-      'Free browser games — memory, precision, and reflex challenges you can play instantly. No download, no signup.',
+      'A growing arcade of free browser games — memory, precision, reflex, puzzle and word challenges you can play instantly. No download, no signup.',
     type: 'website',
     url: '/',
     images: [{ url: '/og.png', width: 1200, height: 630, alt: 'Tiny Arcadium' }],
@@ -82,7 +86,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Tiny Arcadium — Free Mini Games You Can Play Instantly',
     description:
-      'Free browser games — memory, precision, and reflex challenges you can play instantly. No download, no signup.',
+      'A growing arcade of free browser games — memory, precision, reflex, puzzle and word challenges you can play instantly. No download, no signup.',
     images: ['/og.png'],
   },
   appleWebApp: {
@@ -158,10 +162,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <RouteFocusManager />
           <ParticleBackground count={18} />
           <Navigation />
+          <BottomTabBar />
           <main
             id="main-content"
             tabIndex={-1}
-            className="content-offset relative z-10 flex-1 flex flex-col"
+            className="content-offset hub-tabbar-pad relative z-10 flex-1 flex flex-col"
           >
             {children}
           </main>
