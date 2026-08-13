@@ -351,7 +351,7 @@ export const GAME_REGISTRY: GameMeta[] = [
     howTo: 'Steer the snake to the food and grow — avoid the walls and your own tail.',
     emoji: '🐍',
     accent: '#4ADE80',
-    isAvailable: false,
+    isAvailable: true,
     href: '/games/snake',
   },
   {
@@ -364,7 +364,7 @@ export const GAME_REGISTRY: GameMeta[] = [
     howTo: 'Reveal squares using number clues, flag the mines, and clear the whole board.',
     emoji: '💣',
     accent: '#CBD5E1',
-    isAvailable: false,
+    isAvailable: true,
     href: '/games/minesweeper',
   },
 ];
