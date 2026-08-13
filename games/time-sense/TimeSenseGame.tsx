@@ -14,13 +14,18 @@ import { challengePath, generateChallengeCode, getDailyChallengeCode } from '@/l
 import { SoundToggle } from '@/components/ui/SoundToggle';
 import { usePressAndHold } from '@/hooks/usePressAndHold';
 import { Difficulty } from '@/types/game';
-import { DurationBar } from './components/DurationBar';
+import { DurationRing } from './components/DurationRing';
 import { HoldButton } from './components/HoldButton';
 import { TimeSenseResultScreen } from './TimeSenseResultScreen';
 import { DECOY_HZ, TIME_SENSE_DIFFICULTY, formatSeconds } from './constants';
 import { useTimeSenseGame } from './useTimeSenseGame';
 
 const GAME_ID = 'time-sense';
+
+/** Mirrors app/globals.css's --ease-standard, so phase transitions here move
+ *  on the same buttery exponential-ease curve as the rest of the app. */
+const EASE_STANDARD = [0.2, 0, 0, 1] as const;
+const PHASE_TRANSITION = { duration: 0.25, ease: EASE_STANDARD };
 
 interface TimeSenseGameProps {
   /** When set, runs as a seeded 3-round challenge with a shared leaderboard. */
@@ -156,17 +161,21 @@ export function TimeSenseGame({ challengeCode }: TimeSenseGameProps = {}) {
           </motion.div>
         )}
 
-        {/* ── SHOW: watch the bar fill over the exact target duration ── */}
+        {/* ── SHOW: one ring sweeps over the exact target duration —
+              the whole screen, no competing chrome ── */}
         {state.phase === 'show' && cfg && (
           <motion.div
             key={`show-${state.round}`}
-            className="glass-card flex flex-col items-center gap-6 py-10"
-            initial={{ opacity: 0, scale: 0.95 }}
+            className="flex flex-col items-center justify-center gap-7 py-12 sm:py-16"
+            initial={{ opacity: 0, scale: 0.96 }}
             animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.9 }}
+            exit={{ opacity: 0, scale: 0.96 }}
+            transition={PHASE_TRANSITION}
           >
-            <p className="font-display text-xl">Watch the duration</p>
-            <DurationBar
+            <p className="font-ui text-xs uppercase tracking-widest text-ink-3">
+              Watch the duration
+            </p>
+            <DurationRing
               percent={showPercent}
               secondsLabel={formatSeconds(Math.min(state.showElapsedMs, state.targetMs))}
               color={cfg.color}
@@ -175,35 +184,35 @@ export function TimeSenseGame({ challengeCode }: TimeSenseGameProps = {}) {
           </motion.div>
         )}
 
-        {/* ── RECREATE: hold the button for what felt like the same length ── */}
+        {/* ── RECREATE: one giant hold button in the thumb zone — nothing
+              rendered here may correlate with the target on medium/hard ── */}
         {state.phase === 'recreate' && cfg && (
           <motion.div
             key={`recreate-${state.round}`}
-            className="glass-card relative overflow-hidden flex flex-col items-center gap-6 py-10"
-            initial={{ opacity: 0, scale: 0.95 }}
+            className="relative overflow-hidden flex flex-col items-center justify-center gap-8 py-12 sm:py-16"
+            initial={{ opacity: 0, scale: 0.96 }}
             animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.9 }}
+            exit={{ opacity: 0, scale: 0.96 }}
+            transition={PHASE_TRANSITION}
           >
-            {/* Hard's decoy: a background pulse at a fixed, wrong tempo,
-                deliberately unrelated to any target — dropped entirely under
-                reduced motion rather than merely slowed down. */}
+            {/* Hard's decoy: the stage itself breathing at a fixed, wrong
+                tempo, deliberately unrelated to any target — dropped
+                entirely under reduced motion rather than merely slowed. */}
             {cfg.decoy && !reducedMotion && (
               <motion.div
                 aria-hidden
                 className="absolute inset-0 pointer-events-none -z-10"
                 style={{
-                  background: `radial-gradient(circle at 50% 35%, ${cfg.glow}, transparent 70%)`,
+                  background: `radial-gradient(circle at 50% 42%, ${cfg.glow}, transparent 72%)`,
                 }}
-                animate={{ opacity: [0.15, 0.6, 0.15], scale: [0.95, 1.05, 0.95] }}
+                animate={{ opacity: [0.06, 0.22, 0.06], scale: [0.96, 1.04, 0.96] }}
                 transition={{ duration: 1 / DECOY_HZ, repeat: Infinity, ease: 'easeInOut' }}
               />
             )}
 
-            <p className="font-display text-xl">
+            <p className="font-display text-lg sm:text-xl text-center">
               {state.isHolding ? 'Release when it feels right' : 'Hold to recreate it'}
             </p>
-
-            <DurationBar percent={0} secondsLabel={null} color={cfg.color} glow={cfg.glow} />
 
             <HoldButton
               holdHandlers={holdHandlers}
@@ -217,16 +226,16 @@ export function TimeSenseGame({ challengeCode }: TimeSenseGameProps = {}) {
           </motion.div>
         )}
 
-        {/* ── Results ── */}
+        {/* ── Results: TimeSenseResultScreen owns its own layout below,
+              so this wrapper stays a plain stage, not a second box ── */}
         {state.phase === 'results' && state.result && (
           <motion.div
             key={`results-${state.round}`}
-            className="glass-card py-8"
-            initial={{ opacity: 0, scale: 0.95 }}
+            className="py-8"
+            initial={{ opacity: 0, scale: 0.97 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0 }}
-            role="status"
-            aria-live="polite"
+            transition={PHASE_TRANSITION}
           >
             <TimeSenseResultScreen
               result={state.result}

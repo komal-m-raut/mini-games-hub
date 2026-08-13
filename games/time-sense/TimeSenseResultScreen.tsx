@@ -6,7 +6,7 @@ import { NeonButton } from '@/components/ui/NeonButton';
 import { ConfettiEffect } from '@/components/ui/ConfettiEffect';
 import { Rating } from '@/types/game';
 import { MAX_ROUND_SCORE, formatScore } from '@/utils/scoring';
-import { formatSeconds, formatSignedError } from './constants';
+import { DurationCompare } from './components/DurationCompare';
 import { TimeSenseResult } from './types';
 
 const RATING_META: Record<
@@ -39,6 +39,14 @@ const RATING_META: Record<
   },
 };
 
+/** Over held too long (positive error), under released early (negative) —
+ *  a warm/cool pair distinct from any difficulty accent, so the hero number
+ *  always reads as "direction of the miss" at a glance. Exact borrows the
+ *  Perfect rating's gold since a 0ms miss only ever happens alongside it. */
+const OVER_COLOR = '#FB923C';
+const UNDER_COLOR = '#38BDF8';
+const EXACT_COLOR = '#EAB308';
+
 interface TimeSenseResultScreenProps {
   result: TimeSenseResult;
   nextLabel: string;
@@ -46,68 +54,73 @@ interface TimeSenseResultScreenProps {
   onMenu: () => void;
 }
 
-export function TimeSenseResultScreen({ result, nextLabel, onNext, onMenu }: TimeSenseResultScreenProps) {
+export function TimeSenseResultScreen({
+  result,
+  nextLabel,
+  onNext,
+  onMenu,
+}: TimeSenseResultScreenProps) {
   const meta = RATING_META[result.rating];
+
+  const rounded = Math.round(result.errorMs);
+  const isExact = rounded === 0;
+  const isOver = rounded > 0;
+  const heroColor = isExact ? EXACT_COLOR : isOver ? OVER_COLOR : UNDER_COLOR;
+  const heroText = isExact ? 'Exact!' : `${isOver ? '+' : '−'}${(Math.abs(rounded) / 1000).toFixed(2)}s`;
+  const heroCaption = isExact ? 'Dead on the target' : isOver ? 'Held too long' : 'Released early';
 
   return (
     <motion.div
-      className="flex flex-col items-center gap-6 w-full"
-      initial={{ opacity: 0, y: 30 }}
+      className="flex flex-col items-center gap-8 w-full"
+      initial={{ opacity: 0, y: 24 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ type: 'spring', stiffness: 150, damping: 20 }}
+      transition={{ duration: 0.3, ease: [0.2, 0, 0, 1] }}
+      role="status"
+      aria-live="polite"
     >
       {meta.confetti && <ConfettiEffect trigger preset={meta.confetti} />}
 
-      {/* Rating */}
+      {/* Hero: the signed miss — the one number this screen is about */}
       <motion.div
         className="flex flex-col items-center gap-1"
-        initial={{ scale: 0.5 }}
-        animate={{ scale: 1 }}
-        transition={{ type: 'spring', stiffness: 250, damping: 18, delay: 0.1 }}
+        initial={{ scale: 0.7, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ duration: 0.3, ease: [0.2, 0, 0, 1], delay: 0.05 }}
       >
-        <span className="text-5xl">{meta.emoji}</span>
-        <h2
-          className="neon-text font-display text-4xl sm:text-5xl"
-          style={{ color: meta.color, '--neon': meta.color } as React.CSSProperties}
+        <span
+          className="font-score leading-none tabular-nums"
+          style={{ color: heroColor, fontSize: 'clamp(3rem, 14vw, 4.5rem)' }}
         >
-          {result.rating}
-        </h2>
-        <p className="text-ink-3 font-ui text-sm mt-1">{meta.message}</p>
-
-        <motion.p
-          className="font-score text-3xl mt-1"
-          style={{ color: meta.color }}
-          initial={{ opacity: 0, y: 6 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2 }}
-        >
-          {formatScore(result.score)}
-          <span className="text-ink-3 text-lg">/{MAX_ROUND_SCORE}</span>
-        </motion.p>
+          {heroText}
+        </span>
+        <p className="font-ui text-sm text-ink-3 mt-1">{heroCaption}</p>
       </motion.div>
 
-      {/* Target vs held, and the signed miss */}
+      {/* Target vs held, to one scale */}
       <motion.div
-        className="stat-card w-full max-w-sm flex flex-col gap-2 px-5 py-4"
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 0.35 }}
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.25, ease: [0.2, 0, 0, 1], delay: 0.15 }}
       >
-        <div className="flex justify-between text-sm font-ui text-ink-2">
-          <span>Target</span>
-          <span className="font-score">{formatSeconds(result.targetMs)}</span>
+        <DurationCompare targetMs={result.targetMs} heldMs={result.heldMs} heldColor={heroColor} />
+      </motion.div>
+
+      {/* Accuracy + rating — one quiet line, not a stat table */}
+      <motion.div
+        className="flex flex-col items-center gap-1"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.25, delay: 0.25 }}
+      >
+        <div className="flex items-center gap-2">
+          <span className="text-2xl leading-none">{meta.emoji}</span>
+          <span className="font-display text-lg" style={{ color: meta.color }}>
+            {result.rating}
+          </span>
         </div>
-        <div className="flex justify-between text-sm font-ui text-ink-2">
-          <span>You held</span>
-          <span className="font-score">{formatSeconds(result.heldMs)}</span>
-        </div>
-        <div
-          className="flex justify-between text-sm font-ui border-t border-white/10 pt-2 mt-1"
-          style={{ color: meta.color }}
-        >
-          <span>Miss</span>
-          <span className="font-score">{formatSignedError(result.errorMs)}</span>
-        </div>
+        <p className="font-ui text-sm text-ink-3">
+          {result.accuracy.toFixed(1)}% accuracy · {formatScore(result.score)}/{MAX_ROUND_SCORE}
+        </p>
       </motion.div>
 
       {/* Actions */}
@@ -115,7 +128,7 @@ export function TimeSenseResultScreen({ result, nextLabel, onNext, onMenu }: Tim
         className="flex gap-3 w-full max-w-sm"
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.45 }}
+        transition={{ duration: 0.25, delay: 0.35 }}
       >
         <NeonButton
           variant="ghost"

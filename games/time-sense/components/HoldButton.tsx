@@ -16,7 +16,14 @@ interface HoldButtonProps {
   holdElapsedMs: number;
 }
 
-/** The big press-and-hold button players use to recreate the duration. */
+/**
+ * The single giant press-and-hold control of the RECREATE phase — sized to
+ * dominate the thumb zone on mobile. Pressed state is a tactile scale +
+ * inner shadow + darkening, identical in shape across every difficulty;
+ * only Easy layers a glow on top, and that glow is driven by a fixed
+ * saturation clock (never the round's own target), so nothing rendered
+ * here can leak the answer on Medium/Hard.
+ */
 export function HoldButton({
   holdHandlers,
   isHolding,
@@ -28,38 +35,42 @@ export function HoldButton({
   const glowStrength = Math.min(1, holdElapsedMs / HOLD_GLOW_SATURATION_MS);
 
   return (
-    <button
+    <motion.button
       type="button"
       {...holdHandlers}
-      aria-label={isHolding ? 'Release to lock in your hold' : 'Press and hold to recreate the duration'}
+      aria-label={
+        isHolding ? 'Release to lock in your hold' : 'Press and hold to recreate the duration'
+      }
       aria-pressed={isHolding}
-      className="relative grid place-items-center w-44 h-44 rounded-full font-display text-lg font-semibold"
+      className="relative grid place-items-center rounded-full font-display shrink-0"
       style={{
         ...holdHandlers.style,
-        color: isHolding ? '#fff' : 'rgba(255,255,255,0.85)',
-        background: `color-mix(in srgb, ${accent} ${isHolding ? 26 : 14}%, rgba(255,255,255,0.03))`,
-        border: `2px solid color-mix(in srgb, ${accent} ${isHolding ? 100 : 45}%, transparent)`,
+        width: 'clamp(200px, 55vw, 280px)',
+        height: 'clamp(200px, 55vw, 280px)',
+        fontSize: 'clamp(1.05rem, 4.5vw, 1.3rem)',
+        color: isHolding ? '#fff' : 'var(--color-ink-1)',
+        background: isHolding
+          ? `radial-gradient(circle at 50% 38%, color-mix(in srgb, ${accent} 32%, #0B0B1A), color-mix(in srgb, ${accent} 12%, #0B0B1A))`
+          : `color-mix(in srgb, ${accent} 15%, var(--color-surface-1))`,
+        border: `2px solid color-mix(in srgb, ${accent} ${isHolding ? 90 : 38}%, transparent)`,
         boxShadow: isHolding
-          ? `0 6px 18px rgba(0,0,0,0.4), 0 0 30px color-mix(in srgb, ${accent} 45%, transparent)`
-          : '0 10px 30px rgba(0,0,0,0.35)',
-        transition: 'background 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease',
+          ? `inset 0 8px 24px rgba(0,0,0,0.55), inset 0 0 0 1px rgba(0,0,0,0.25), 0 0 44px color-mix(in srgb, ${accent} 38%, transparent)`
+          : '0 18px 40px -14px rgba(0,0,0,0.55), inset 0 1px 0 rgba(255,255,255,0.05)',
+        transition: 'background 0.25s ease-out, border-color 0.25s ease-out, box-shadow 0.25s ease-out, color 0.25s ease-out',
       }}
+      animate={{ scale: isHolding ? 0.94 : 1 }}
+      transition={{ duration: 0.25, ease: [0.2, 0, 0, 1] }}
     >
       {showGlow && isHolding && !reducedMotion && (
         <motion.span
           aria-hidden
-          className="absolute inset-[-0.5rem] rounded-full pointer-events-none"
+          className="absolute inset-[-10%] rounded-full pointer-events-none"
           style={{ background: `radial-gradient(circle, ${accent} 0%, transparent 70%)` }}
           animate={{ opacity: 0.15 + glowStrength * 0.65, scale: 0.9 + glowStrength * 0.3 }}
           transition={{ duration: 0.05 }}
         />
       )}
-      <motion.span
-        animate={{ scale: isHolding ? 0.97 : 1 }}
-        transition={{ type: 'spring', stiffness: 400, damping: 25 }}
-      >
-        {isHolding ? 'Holding…' : 'Hold'}
-      </motion.span>
-    </button>
+      <span className="relative z-10">{isHolding ? 'Holding…' : 'Hold'}</span>
+    </motion.button>
   );
 }
