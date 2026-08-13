@@ -234,7 +234,7 @@ export const GAME_REGISTRY: GameMeta[] = [
     howTo: 'Tap once to lock the aim, tap again to throw — the closer to the bullseye, the better.',
     emoji: '🏹',
     accent: '#F43F5E',
-    isAvailable: false,
+    isAvailable: true,
     href: '/games/bullseye',
   },
   {

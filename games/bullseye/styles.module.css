@@ -1,0 +1,101 @@
+/**
+ * Bullseye's bespoke CSS: the SVG dartboard needs data-attribute-driven
+ * fills/strokes and a couple of glow filters with no clean Tailwind utility
+ * form. Everything else (layout, spacing, HUD chrome) reaches for Tailwind
+ * utilities inline, matching the rest of the app. Lives in its own module
+ * rather than `app/globals.css`, which games never touch.
+ */
+
+.stage {
+  position: relative;
+  width: 100%;
+  max-width: 19rem;
+  margin: 0 auto;
+  aspect-ratio: 1 / 1;
+}
+
+.svg {
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.ring {
+  fill: color-mix(in srgb, var(--beam) 9%, transparent);
+  stroke: color-mix(in srgb, var(--beam) 40%, transparent);
+  stroke-width: 0.4;
+}
+
+.ring[data-ring='BULLSEYE'] {
+  fill: color-mix(in srgb, var(--beam) 55%, transparent);
+  stroke: var(--beam);
+}
+
+.dartGhost {
+  fill: rgba(255, 255, 255, 0.32);
+}
+
+/* Stays visible (dimmed) while aiming X, so the row the throw already
+   committed to reads clearly against the moving vertical line. */
+.lockedLine {
+  stroke: rgba(255, 255, 255, 0.28);
+  stroke-width: 0.4;
+  stroke-dasharray: 2 1.6;
+}
+
+.aimLine {
+  stroke: var(--beam);
+  stroke-width: 0.7;
+  filter: drop-shadow(0 0 2.5px var(--beam));
+}
+
+.dartLanded {
+  fill: #fff;
+  stroke: var(--beam);
+  stroke-width: 0.6;
+  filter: drop-shadow(0 0 3px var(--beam));
+}
+
+.dartLanded[data-bullseye='true'] {
+  fill: #eab308;
+  stroke: #eab308;
+  filter: drop-shadow(0 0 6px #eab308);
+}
+
+.bullseyeFlash {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: #eab308;
+  text-shadow: 0 0 14px rgba(234, 179, 8, 0.75);
+  pointer-events: none;
+}
+
+.ringFlash {
+  position: absolute;
+  bottom: 0.4rem;
+  left: 50%;
+  transform: translateX(-50%);
+  font-weight: 600;
+  color: var(--beam);
+  pointer-events: none;
+}
+
+.pip {
+  width: 0.55rem;
+  height: 0.55rem;
+  border-radius: 9999px;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.pip[data-state='thrown'] {
+  background: var(--beam);
+}
+
+.pip[data-state='current'] {
+  background: rgba(255, 255, 255, 0.4);
+}
