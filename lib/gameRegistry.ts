@@ -247,7 +247,7 @@ export const GAME_REGISTRY: GameMeta[] = [
     howTo: 'Type the words as they appear for 30 seconds — speed and accuracy both count.',
     emoji: '⌨️',
     accent: '#06B6D4',
-    isAvailable: false,
+    isAvailable: true,
     href: '/games/type-storm',
   },
   {
