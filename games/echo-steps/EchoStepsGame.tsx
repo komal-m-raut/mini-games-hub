@@ -86,8 +86,16 @@ export function EchoStepsGame({ challengeCode }: EchoStepsGameProps = {}) {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [interactive, tapPad]);
 
+  // playbackIndex is the STEP cursor into the sequence, not a pad id — light
+  // the pad the sequence names at that step (the tone already plays it).
   const litPad =
-    state.phase === 'playback' ? state.playbackIndex : state.phase === 'input' ? state.tappedPad : null;
+    state.phase === 'playback'
+      ? state.playbackIndex !== null
+        ? (state.sequence[state.playbackIndex] ?? null)
+        : null
+      : state.phase === 'input'
+        ? state.tappedPad
+        : null;
 
   const subtitle =
     state.phase === 'playback'

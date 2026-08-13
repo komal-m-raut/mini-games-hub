@@ -37,18 +37,21 @@ export function PadBoard({ litPad, wrongPad, revealPad, interactive, onTap }: Pa
         const isReveal = revealPad === i;
         const isActive = isLit || isReveal;
 
-        let background = 'rgba(255,255,255,0.035)';
-        let border = `${color}40`;
+        // Resting pads keep a clear tint of their own colour — a Simon board
+        // reads as four colours even when nothing is lit. Lit pads jump to a
+        // saturated fill + glow so the flash is unmistakable against that.
+        let background = `${color}24`;
+        let border = `${color}59`;
         let boxShadow = 'none';
 
         if (isWrong) {
-          background = 'rgba(239,68,68,0.28)';
-          border = 'rgba(239,68,68,0.85)';
+          background = 'rgba(239,68,68,0.45)';
+          border = 'rgba(239,68,68,0.95)';
           boxShadow = '0 0 18px rgba(239,68,68,0.55)';
         } else if (isActive) {
-          background = `${color}40`;
+          background = `${color}A6`;
           border = color;
-          boxShadow = `0 0 20px ${color}90`;
+          boxShadow = `0 0 28px ${color}B3, inset 0 0 22px ${color}59`;
         }
 
         return (
