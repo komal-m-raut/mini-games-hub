@@ -338,7 +338,7 @@ export const GAME_REGISTRY: GameMeta[] = [
     howTo: 'Swipe to slide tiles — equal numbers merge, doubling toward 2048.',
     emoji: '🧩',
     accent: '#FB923C',
-    isAvailable: false,
+    isAvailable: true,
     href: '/games/2048',
   },
   {
