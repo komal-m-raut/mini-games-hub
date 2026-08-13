@@ -29,6 +29,29 @@ const GAME_RULES: Record<string, GameRules> = {
   'memory-path': CHALLENGE_RULES,
   'timing-tap': CHALLENGE_RULES,
   'color-match': CHALLENGE_RULES,
+  // Expansion roster (REDESIGN-PLAN.md) — every game keeps the shared
+  // 3-round × 0–10 challenge shape, so one rules object covers them all.
+  'math-sprint': CHALLENGE_RULES,
+  'tap-frenzy': CHALLENGE_RULES,
+  'grid-flash': CHALLENGE_RULES,
+  'number-recall': CHALLENGE_RULES,
+  'stroop-snap': CHALLENGE_RULES,
+  'block-count': CHALLENGE_RULES,
+  'pair-chase': CHALLENGE_RULES,
+  'echo-steps': CHALLENGE_RULES,
+  'time-sense': CHALLENGE_RULES,
+  'echo-ear': CHALLENGE_RULES,
+  bullseye: CHALLENGE_RULES,
+  'type-storm': CHALLENGE_RULES,
+  'rps-arena': CHALLENGE_RULES,
+  'hand-cricket': CHALLENGE_RULES,
+  'xo-shift': CHALLENGE_RULES,
+  'fading-xo': CHALLENGE_RULES,
+  'shape-echo': CHALLENGE_RULES,
+  'word-quest': CHALLENGE_RULES,
+  '2048': CHALLENGE_RULES,
+  snake: CHALLENGE_RULES,
+  minesweeper: CHALLENGE_RULES,
 };
 
 const BOARD_PATTERN = /^[a-z0-9-]{1,40}$/;

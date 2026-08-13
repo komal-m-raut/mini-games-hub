@@ -34,9 +34,26 @@ export interface ScoreEntry {
   createdAt: string;
 }
 
+/**
+ * Hub grouping for a game. Drives the category sections and filter chips on
+ * the home page, the footer directory, and the `genre` line in per-game
+ * structured data — one value per game, no multi-tagging.
+ */
+export type GameCategory =
+  | 'reflex'
+  | 'speed'
+  | 'memory'
+  | 'puzzle'
+  | 'duel'
+  | 'precision'
+  | 'perception'
+  | 'word'
+  | 'arcade';
+
 export interface GameMeta {
   id: string;
   title: string;
+  category: GameCategory;
   /**
    * Long-form copy for search engines and social cards. Not rendered on the
    * hub — the card shows `tagline` and `howTo` instead, because three lines
