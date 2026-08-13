@@ -142,7 +142,7 @@ export const GAME_REGISTRY: GameMeta[] = [
     howTo: 'A number flashes briefly — type it back from memory as it grows longer each level.',
     emoji: '🔟',
     accent: '#14B8A6',
-    isAvailable: false,
+    isAvailable: true,
     href: '/games/number-recall',
   },
   {
