@@ -260,7 +260,7 @@ export const GAME_REGISTRY: GameMeta[] = [
     howTo: 'Pick rock, paper or scissors each round — outguess a bot that learns your habits.',
     emoji: '✊',
     accent: '#F59E0B',
-    isAvailable: false,
+    isAvailable: true,
     href: '/games/rps-arena',
   },
   {
