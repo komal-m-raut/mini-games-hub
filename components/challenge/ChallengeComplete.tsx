@@ -1,17 +1,20 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Check, Copy, Home, RotateCcw, Send, Share2 } from 'lucide-react';
 import { NeonButton } from '@/components/ui/NeonButton';
 import { ConfettiEffect } from '@/components/ui/ConfettiEffect';
 import { ChallengeLeaderboard } from '@/components/challenge/ChallengeLeaderboard';
+import { RewardToast } from '@/components/meta/RewardToast';
+import { GameResultOutcome, recordGameResult } from '@/lib/recordResult';
 import {
   MAX_CHALLENGE_SCORE,
   buildChallengeShareText,
   challengeLabel,
   challengePath,
+  isDailyCode,
 } from '@/lib/challenge';
 import { MAX_ROUND_SCORE, formatScore, round2 } from '@/utils/scoring';
 import { setPlayerName, usePlayerId, usePlayerName } from '@/lib/player';
@@ -63,6 +66,25 @@ export function ChallengeComplete({ gameId, code, roundScores, onReplay }: Chall
   const [refreshKey, setRefreshKey] = useState(0);
   const [shareState, setShareState] = useState<'idle' | 'shared' | 'error'>('idle');
 
+  // Feeds the meta layer (XP/streak/quests/achievements) exactly once per
+  // completed challenge — see SessionSummary's identical guard for why a ref
+  // is used instead of an empty dependency array.
+  const recordedRef = useRef(false);
+  const [outcome, setOutcome] = useState<GameResultOutcome | null>(null);
+  useEffect(() => {
+    if (recordedRef.current) return;
+    recordedRef.current = true;
+    setOutcome(
+      recordGameResult({
+        gameId,
+        mode: isDailyCode(code) ? 'daily' : 'friend',
+        roundScores,
+        totalScore: total,
+        maxScore: MAX_CHALLENGE_SCORE,
+      })
+    );
+  }, [gameId, code, roundScores, total]);
+
   const submit = async () => {
     if (!name.trim() || submitState === 'sending') return;
     setSubmitState('sending');
@@ -106,6 +128,7 @@ export function ChallengeComplete({ gameId, code, roundScores, onReplay }: Chall
   return (
     <div className="glass-card flex flex-col items-center gap-6 py-10 px-6">
       {total >= 20 && <ConfettiEffect trigger preset="perfect" />}
+      <RewardToast outcome={outcome} />
 
       <motion.div
         className="text-center"

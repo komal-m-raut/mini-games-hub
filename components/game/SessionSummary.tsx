@@ -1,10 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Check, Home, RotateCcw, Share2 } from 'lucide-react';
 import { NeonButton } from '@/components/ui/NeonButton';
 import { ConfettiEffect } from '@/components/ui/ConfettiEffect';
+import { RewardToast } from '@/components/meta/RewardToast';
+import { GameResultOutcome, recordGameResult } from '@/lib/recordResult';
 import { buildSessionShare } from '@/lib/share';
 import { MAX_ROUND_SCORE, formatScore, round2 } from '@/utils/scoring';
 
@@ -44,6 +46,27 @@ export function SessionSummary({
   const max = roundScores.length * MAX_ROUND_SCORE;
   const [copied, setCopied] = useState(false);
 
+  // Feeds the meta layer (XP/streak/quests/achievements) exactly once per
+  // completed session — a ref guard because this effect's own dependencies
+  // (roundScores et al.) can change reference on a re-render without this
+  // component actually remounting for a new session.
+  const recordedRef = useRef(false);
+  const [outcome, setOutcome] = useState<GameResultOutcome | null>(null);
+  useEffect(() => {
+    if (recordedRef.current) return;
+    recordedRef.current = true;
+    setOutcome(
+      recordGameResult({
+        gameId: gamePath.replace('/games/', ''),
+        mode: 'solo',
+        roundScores,
+        totalScore: total,
+        maxScore: max,
+        isNewBest,
+      })
+    );
+  }, [gamePath, roundScores, total, max, isNewBest]);
+
   const share = async () => {
     const text = buildSessionShare({
       emoji,
@@ -69,6 +92,7 @@ export function SessionSummary({
   return (
     <div className="glass-card flex flex-col items-center gap-6 py-10 px-6">
       {(isNewBest || total >= max * 0.7) && <ConfettiEffect trigger preset="perfect" />}
+      <RewardToast outcome={outcome} />
 
       <motion.div
         className="text-center"

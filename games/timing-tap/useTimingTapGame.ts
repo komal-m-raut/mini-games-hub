@@ -11,6 +11,7 @@ import {
 import { MotionValue, useMotionValue } from 'framer-motion';
 import { Difficulty } from '@/types/game';
 import { useSound } from '@/hooks/useSound';
+import { usePlayBeacon } from '@/hooks/usePlayBeacon';
 import { CHALLENGE_ROUND_COUNT } from '@/lib/challenge';
 import {
   NORMAL_ROUND_COUNT,
@@ -58,6 +59,7 @@ export interface UseTimingTapGameOptions {
 }
 
 export function useTimingTapGame({ challengeCode }: UseTimingTapGameOptions = {}) {
+  usePlayBeacon(GAME_ID);
   const isChallenge = Boolean(challengeCode);
   // Deterministic per code, so every player faces the identical sweep
   const challengeRounds = useMemo<TapChallengeRound[] | null>(

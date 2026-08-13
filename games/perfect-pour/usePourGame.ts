@@ -11,6 +11,7 @@ import {
 import { Difficulty } from '@/types/game';
 import { randomInt } from '@/lib/utils';
 import { useSound } from '@/hooks/useSound';
+import { usePlayBeacon } from '@/hooks/usePlayBeacon';
 import { CHALLENGE_ROUND_COUNT } from '@/lib/challenge';
 import {
   NORMAL_ROUND_COUNT,
@@ -62,6 +63,7 @@ export interface UsePourGameOptions {
 }
 
 export function usePourGame({ challengeCode }: UsePourGameOptions = {}) {
+  usePlayBeacon(GAME_ID);
   const isChallenge = Boolean(challengeCode);
   // Deterministic per code, so every player pours to identical targets
   const challengeRounds = useMemo<PourChallengeRound[] | null>(

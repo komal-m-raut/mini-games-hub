@@ -10,6 +10,7 @@ import {
 } from 'react';
 import { Difficulty } from '@/types/game';
 import { useSound } from '@/hooks/useSound';
+import { usePlayBeacon } from '@/hooks/usePlayBeacon';
 import { CHALLENGE_ROUND_COUNT } from '@/lib/challenge';
 import {
   NORMAL_ROUND_COUNT,
@@ -58,6 +59,7 @@ export interface UseMemoryPathGameOptions {
 }
 
 export function useMemoryPathGame({ challengeCode }: UseMemoryPathGameOptions = {}) {
+  usePlayBeacon(GAME_ID);
   const isChallenge = Boolean(challengeCode);
   // Deterministic per code, so every player traces identical paths
   const challengeRounds = useMemo<PathChallengeRound[] | null>(

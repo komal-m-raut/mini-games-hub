@@ -18,7 +18,7 @@ import {
   ChallengeRound,
   getChallengeRounds,
 } from '@/lib/challenge';
-import { getPlayerId } from '@/lib/player';
+import { usePlayBeacon } from '@/hooks/usePlayBeacon';
 import { BalloonGameState } from './types';
 
 const GAME_ID = 'balloon-match';
@@ -57,6 +57,7 @@ export interface UseBalloonGameOptions {
 }
 
 export function useBalloonGame({ challengeCode }: UseBalloonGameOptions = {}) {
+  usePlayBeacon(GAME_ID);
   const isChallenge = Boolean(challengeCode);
   // Deterministic per code, so every player gets identical targets
   const challengeRounds = useMemo<ChallengeRound[] | null>(
@@ -228,17 +229,6 @@ export function useBalloonGame({ challengeCode }: UseBalloonGameOptions = {}) {
       };
     });
   }, []);
-
-  // Each completed round counts as one play in the site stats (fire-and-forget).
-  useEffect(() => {
-    if (state.phase !== 'results') return;
-    fetch('/api/events', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ type: 'play', gameId: GAME_ID, playerId: getPlayerId() }),
-      keepalive: true,
-    }).catch(() => {});
-  }, [state.phase]);
 
   // Inflate countdown — when it hits zero the current size is locked in
   // automatically. Difficulties with inflateSeconds: null (Easy) have no

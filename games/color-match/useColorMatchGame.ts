@@ -10,6 +10,7 @@ import {
 } from 'react';
 import { Difficulty } from '@/types/game';
 import { useSound } from '@/hooks/useSound';
+import { usePlayBeacon } from '@/hooks/usePlayBeacon';
 import { CHALLENGE_ROUND_COUNT } from '@/lib/challenge';
 import {
   NORMAL_ROUND_COUNT,
@@ -23,6 +24,7 @@ import { RGB, rgbHue } from './colorMath';
 import {
   AMAZING_ACCURACY,
   COLOR_DIFFICULTY,
+  GAME_ID,
   START_COLOR,
   bestSessionKey,
   getColorAccuracy,
@@ -60,6 +62,7 @@ export interface UseColorMatchGameOptions {
 }
 
 export function useColorMatchGame({ challengeCode }: UseColorMatchGameOptions = {}) {
+  usePlayBeacon(GAME_ID);
   const isChallenge = Boolean(challengeCode);
   // Deterministic per code, so every player matches identical colours
   const challengeRounds = useMemo<ColorChallengeRound[] | null>(
