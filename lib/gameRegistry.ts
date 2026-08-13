@@ -103,7 +103,7 @@ export const GAME_REGISTRY: GameMeta[] = [
     howTo: 'Solve as many quick sums as you can before the 30-second timer runs out.',
     emoji: '🔢',
     accent: '#84CC16',
-    isAvailable: false,
+    isAvailable: true,
     href: '/games/math-sprint',
   },
   {
