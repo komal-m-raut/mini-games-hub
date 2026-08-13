@@ -3,7 +3,7 @@
 import { useState, useSyncExternalStore } from 'react';
 import { useRouter } from 'next/navigation';
 import { AnimatePresence, motion } from 'framer-motion';
-import { ArrowLeft, Check, ChevronDown, Play, X } from 'lucide-react';
+import { ArrowLeft, Check, ChevronDown, Volume2, X } from 'lucide-react';
 import { DifficultyOption, DifficultySelector } from '@/components/game/DifficultySelector';
 import { ModeSelector } from '@/components/game/ModeSelector';
 import { ScoreCard } from '@/components/game/ScoreCard';
@@ -15,8 +15,9 @@ import { NeonButton } from '@/components/ui/NeonButton';
 import { SoundToggle } from '@/components/ui/SoundToggle';
 import { Difficulty } from '@/types/game';
 import { EchoResultScreen } from './components/EchoResultScreen';
+import { ListenOrb } from './components/ListenOrb';
 import { PitchSlider } from './components/PitchSlider';
-import { ECHO_DIFFICULTY, GAME_ID } from './constants';
+import { ECHO_DIFFICULTY, GAME_ID, TONE_DURATION_MS } from './constants';
 import { useEchoEarGame } from './useEchoEarGame';
 
 const DIFFICULTY_OPTIONS: DifficultyOption[] = (['easy', 'medium', 'hard'] as Difficulty[]).map(
@@ -43,7 +44,8 @@ const readDismissed = () =>
   typeof window !== 'undefined' && localStorage.getItem(TIP_DISMISSED_KEY) === '1';
 
 /** Dismissible "bring headphones" nudge — pitch matching is far easier with
- *  them, but the game works fine on speakers too. */
+ *  them, but the game works fine on speakers too. A quiet single line, not
+ *  a boxy callout: it's a nice-to-know, not a warning. */
 function HeadphonesTip() {
   const storedDismissed = useSyncExternalStore(noopSubscribe, readDismissed, notDismissed);
   const [justDismissed, setJustDismissed] = useState(false);
@@ -51,7 +53,7 @@ function HeadphonesTip() {
   if (storedDismissed || justDismissed) return null;
 
   return (
-    <div className="flex items-center justify-between gap-3 px-4 py-2.5 rounded-xl bg-white/5 border border-white/10 text-sm font-ui text-ink-2">
+    <div className="flex items-center justify-center gap-2 text-xs font-ui text-ink-4">
       <span>🎧 Headphones recommended</span>
       <button
         onClick={() => {
@@ -59,19 +61,22 @@ function HeadphonesTip() {
           setJustDismissed(true);
         }}
         aria-label="Dismiss headphones tip"
-        className="text-ink-3 hover:text-ink-1 transition-colors shrink-0"
+        className="text-ink-4 hover:text-ink-2 transition-colors shrink-0"
       >
-        <X className="w-4 h-4" strokeWidth={2} />
+        <X className="w-3.5 h-3.5" strokeWidth={2} />
       </button>
     </div>
   );
 }
+
+const EASE_STANDARD = [0.2, 0, 0, 1] as const;
 
 /** Shared entrance/exit for every phase card, so they can't drift apart. */
 const card = {
   initial: { opacity: 0, scale: 0.97 },
   animate: { opacity: 1, scale: 1 },
   exit: { opacity: 0, scale: 0.95 },
+  transition: { duration: 0.25, ease: EASE_STANDARD },
 };
 
 interface EchoEarGameProps {
@@ -151,7 +156,7 @@ export function EchoEarGame({ challengeCode }: EchoEarGameProps = {}) {
                 }
               />
             ) : (
-              <div className="flex flex-col gap-5">
+              <div className="flex flex-col gap-6">
                 <HeadphonesTip />
 
                 <details className="glass-card how-to-play">
@@ -193,12 +198,12 @@ export function EchoEarGame({ challengeCode }: EchoEarGameProps = {}) {
         {state.phase === 'listening' && cfg && (
           <motion.div
             key={`listen-${state.round}`}
-            className="glass-card flex flex-col items-center gap-5 py-8"
+            className="glass-card flex flex-col items-center gap-6 py-10 sm:py-12"
             {...card}
           >
-            <div className="flex items-start justify-between w-full">
-              <p className="font-display text-3xl sm:text-4xl lowercase">listen</p>
-              <p className="font-score text-sm text-ink-3">
+            <div className="flex items-center justify-between w-full">
+              <p className="text-ink-4 text-2xs font-ui uppercase tracking-[0.3em]">Listen</p>
+              <p className="font-score text-xs text-ink-4">
                 {state.round} / {state.totalRounds}
               </p>
             </div>
@@ -216,33 +221,21 @@ export function EchoEarGame({ challengeCode }: EchoEarGameProps = {}) {
               </div>
             ) : (
               <>
-                <button
-                  onClick={listenToTarget}
+                <ListenOrb
+                  accent={cfg.color}
                   disabled={state.hasListened && state.replaysLeft <= 0}
-                  className="grid place-items-center w-28 h-28 rounded-full transition-transform active:scale-95 disabled:opacity-40 disabled:active:scale-100"
-                  style={{ background: `${cfg.color}22`, border: `2px solid ${cfg.color}` }}
-                  aria-label="Play the target pitch"
-                >
-                  <Play
-                    className="w-10 h-10 ml-1"
-                    style={{ color: cfg.color }}
-                    strokeWidth={2}
-                    fill={cfg.color}
-                  />
-                </button>
-                <p className="text-ink-3 text-xs font-ui uppercase tracking-widest text-center">
-                  {!state.hasListened
-                    ? 'Tap to hear the target pitch'
-                    : state.replaysLeft > 0
-                      ? `${state.replaysLeft} ${state.replaysLeft === 1 ? 'replay' : 'replays'} left`
-                      : 'No replays left'}
-                </p>
+                  onPlay={listenToTarget}
+                  durationMs={TONE_DURATION_MS}
+                  replaysLeft={state.replaysLeft}
+                  totalReplays={cfg.replays}
+                  hasListened={state.hasListened}
+                />
                 <NeonButton
                   variant="primary"
                   size="lg"
                   onClick={proceedToMatch}
                   disabled={!state.hasListened}
-                  className="w-full max-w-xs"
+                  className="w-full"
                 >
                   I remember it — match it
                 </NeonButton>
@@ -257,20 +250,32 @@ export function EchoEarGame({ challengeCode }: EchoEarGameProps = {}) {
             className="glass-card flex flex-col items-center gap-6 py-8"
             {...card}
           >
-            <div className="flex items-start justify-between w-full">
-              <p className="font-display text-3xl sm:text-4xl lowercase">match</p>
-              <p className="font-score text-sm text-ink-3">
+            <div className="flex items-center justify-between w-full">
+              <p className="text-ink-4 text-2xs font-ui uppercase tracking-[0.3em]">Match</p>
+              <p className="font-score text-xs text-ink-4">
                 {state.round} / {state.totalRounds}
               </p>
             </div>
 
-            <PitchSlider value={state.guess} onChange={setGuess} accent={cfg.color} />
+            <div className="relative flex items-center justify-center w-full">
+              {cfg.replays > 0 && (
+                <button
+                  onClick={() => previewPitch(state.target)}
+                  aria-label="Hear the target pitch again"
+                  className="absolute left-0 sm:left-2 top-1/2 -translate-y-1/2 grid place-items-center w-14 h-14 rounded-full bg-white/5 active:scale-95 transition-transform"
+                  style={{ color: cfg.color }}
+                >
+                  <Volume2 className="w-5 h-5" strokeWidth={2} />
+                </button>
+              )}
+              <PitchSlider value={state.guess} onChange={setGuess} accent={cfg.color} />
+            </div>
 
             <NeonButton
               variant="primary"
               size="lg"
               onClick={submit}
-              className="w-full max-w-xs flex items-center justify-center gap-2"
+              className="w-full flex items-center justify-center gap-2"
             >
               <Check strokeWidth={2.5} />
               Confirm
@@ -278,7 +283,7 @@ export function EchoEarGame({ challengeCode }: EchoEarGameProps = {}) {
           </motion.div>
         )}
 
-        {state.phase === 'results' && state.result && (
+        {state.phase === 'results' && state.result && cfg && (
           <motion.div
             key={`results-${state.round}`}
             className="glass-card py-8"
@@ -286,14 +291,15 @@ export function EchoEarGame({ challengeCode }: EchoEarGameProps = {}) {
             role="status"
             aria-live="polite"
           >
-            <div className="flex items-start justify-between w-full mb-2">
-              <p className="font-display text-3xl sm:text-4xl lowercase">result</p>
-              <p className="font-score text-sm text-ink-3">
+            <div className="flex items-center justify-between w-full mb-2">
+              <p className="text-ink-4 text-2xs font-ui uppercase tracking-[0.3em]">Result</p>
+              <p className="font-score text-xs text-ink-4">
                 {state.round} / {state.totalRounds}
               </p>
             </div>
             <EchoResultScreen
               result={state.result}
+              maxCents={cfg.divisor * 100}
               nextLabel={isFinalRound ? 'Results' : 'Next Pitch'}
               onNext={nextRound}
               onMenu={resetToMenu}
@@ -331,16 +337,14 @@ export function EchoEarGame({ challengeCode }: EchoEarGameProps = {}) {
         )}
       </AnimatePresence>
 
-      <div className="flex justify-center items-center gap-3">
+      <div className="flex justify-center items-center gap-4">
         {cfg && !isMenu && !isEnd && (
-          <span
-            className="px-3 py-1 rounded-full text-xs font-ui border"
-            style={{
-              color: cfg.color,
-              borderColor: `${cfg.color}40`,
-              background: `${cfg.color}10`,
-            }}
-          >
+          <span className="flex items-center gap-1.5 text-xs font-ui text-ink-3">
+            <span
+              className="w-1.5 h-1.5 rounded-full shrink-0"
+              style={{ background: cfg.color }}
+              aria-hidden="true"
+            />
             {cfg.label}
           </span>
         )}
