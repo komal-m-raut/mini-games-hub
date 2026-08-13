@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from 'next';
 import { Analytics } from '@vercel/analytics/next';
 import Script from 'next/script';
-import { Orbitron, Space_Grotesk, JetBrains_Mono } from 'next/font/google';
+import { Space_Grotesk, Inter, JetBrains_Mono } from 'next/font/google';
 import { Navigation } from '@/components/layout/Navigation';
 import { Footer } from '@/components/layout/Footer';
 import { RouteFocusManager } from '@/components/layout/RouteFocusManager';
@@ -11,17 +11,31 @@ import { ServiceWorkerRegister } from '@/components/pwa/ServiceWorkerRegister';
 import { SITE_URL, SITE_NAME, SITE_DESCRIPTION } from '@/lib/constants';
 import './globals.css';
 
-const orbitron = Orbitron({
+/**
+ * Two families, three jobs.
+ *
+ * Display — Space Grotesk. Geometric with enough personality in the a/g/y to
+ * read as arcade rather than corporate, but with open counters and a normal
+ * x-height, so it survives at 14px in a way Fredoka's bubbly forms did not.
+ * Fredoka only really worked as a big heading face; anything small went soft.
+ *
+ * Body — Inter. Designed for UI at small sizes, which is most of this app:
+ * hints, rules, leaderboard rows, captions.
+ *
+ * Both are on the same geometric-humanist axis, so they sit together without
+ * one looking borrowed.
+ */
+const spaceGrotesk = Space_Grotesk({
   subsets: ['latin'],
-  weight: ['400', '600', '700', '800', '900'],
-  variable: '--font-orbitron',
+  weight: ['500', '600', '700'],
+  variable: '--font-space',
   display: 'swap',
 });
 
-const spaceGrotesk = Space_Grotesk({
+const inter = Inter({
   subsets: ['latin'],
-  weight: ['300', '400', '500', '600', '700'],
-  variable: '--font-space',
+  weight: ['400', '500', '600'],
+  variable: '--font-inter',
   display: 'swap',
 });
 
@@ -114,7 +128,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html
       lang="en"
       data-scroll-behavior="smooth"
-      className={`${orbitron.variable} ${spaceGrotesk.variable} ${jetbrainsMono.variable}`}
+      className={`${spaceGrotesk.variable} ${inter.variable} ${jetbrainsMono.variable}`}
     >
       <head>
         {/* Site-wide structured data so search engines understand what

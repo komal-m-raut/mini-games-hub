@@ -93,9 +93,9 @@ export function BalloonGame({ challengeCode }: BalloonGameProps) {
         >
           <button
             onClick={isChallenge ? resetToMenu : backToMenu}
-            className="flex items-center gap-1.5 -ml-3 px-3 py-2.5 min-h-11 text-white/40 hover:text-white/70 transition-colors text-sm font-mono cursor-pointer"
+            className="btn btn-sm btn-ghost -ml-3.5"
           >
-            <ArrowLeft className="w-4 h-4" strokeWidth={1.5} />
+            <ArrowLeft strokeWidth={2} />
             {isChallenge ? 'Restart' : 'Menu'}
           </button>
           <ScoreCard
@@ -133,9 +133,9 @@ export function BalloonGame({ challengeCode }: BalloonGameProps) {
                 <DifficultySelector options={DIFFICULTY_OPTIONS} onSelect={selectDifficulty} />
                 <button
                   onClick={() => setMenuView('mode')}
-                  className="mx-auto flex items-center gap-1.5 px-3 py-2.5 min-h-11 text-white/40 hover:text-white/70 transition-colors text-sm font-mono cursor-pointer"
+                  className="btn btn-sm btn-ghost mx-auto"
                 >
-                  <ArrowLeft className="w-4 h-4" strokeWidth={1.5} />
+                  <ArrowLeft strokeWidth={2} />
                   Back
                 </button>
               </div>
@@ -173,7 +173,7 @@ export function BalloonGame({ challengeCode }: BalloonGameProps) {
               animate={{ opacity: 1, y: 0 }}
               className="text-center"
             >
-              <p className="font-display text-xl font-bold text-white mb-1">Memorize This Balloon</p>
+              <p className="font-display text-xl mb-1">Memorize This Balloon</p>
             </motion.div>
 
             <Balloon
@@ -207,7 +207,7 @@ export function BalloonGame({ challengeCode }: BalloonGameProps) {
               animate={{ opacity: 1, y: 0 }}
               className="text-center"
             >
-              <p className="font-display text-xl font-bold text-white mb-1">
+              <p className="font-display text-xl mb-1">
                 {state.isHolding ? 'Release when ready!' : 'Hold to Inflate'}
               </p>
             </motion.div>
@@ -247,7 +247,7 @@ export function BalloonGame({ challengeCode }: BalloonGameProps) {
 
               {state.currentUnits < 5 && (
                 <motion.p
-                  className="absolute text-white/20 font-mono text-sm pointer-events-none select-none"
+                  className="absolute text-ink-4 font-ui text-sm pointer-events-none select-none"
                   animate={{ opacity: [0.3, 0.8, 0.3] }}
                   transition={{ duration: 1.5, repeat: Infinity }}
                 >
@@ -258,7 +258,7 @@ export function BalloonGame({ challengeCode }: BalloonGameProps) {
 
             {/* Progress bar */}
             <div className="w-full max-w-xs">
-              <div className="flex justify-between text-xs font-mono text-white/30 mb-1">
+              <div className="flex justify-between text-xs font-ui text-ink-4 mb-1">
                 <span>0%</span>
                 <span>Size: {Math.round((currentDiameterPx / maxDiameterPx) * 100)}%</span>
                 <span>Max</span>
@@ -350,7 +350,7 @@ export function BalloonGame({ challengeCode }: BalloonGameProps) {
           transition={{ delay: 0.3 }}
         >
           <span
-            className="px-3 py-1 rounded-full text-xs font-mono border"
+            className="px-3 py-1 rounded-full text-xs font-ui border"
             style={{
               color: cfg.color,
               borderColor: `${cfg.color}40`,

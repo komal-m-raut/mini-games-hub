@@ -20,10 +20,10 @@ export default function Error({
   return (
     <div className="page-container py-12 sm:py-16 flex-1 flex items-center justify-center">
       <GlassCard className="max-w-md w-full text-center py-10">
-        <h1 className="font-display font-bold text-xl sm:text-2xl text-white mb-3">
+        <h1 className="font-display text-xl sm:text-2xl mb-3">
           Something went wrong
         </h1>
-        <p className="text-white/60 mb-8 leading-relaxed">
+        <p className="text-ink-3 mb-8 leading-relaxed">
           An unexpected error interrupted the game. Give it another shot, or head back to the
           hub.
         </p>
@@ -33,7 +33,7 @@ export default function Error({
           </NeonButton>
           <Link
             href="/"
-            className="text-sm text-white/55 hover:text-white/80 transition-colors -my-3 py-3"
+            className="text-sm text-ink-3 hover:text-ink-1 transition-colors -my-3 py-3"
           >
             Back to Games
           </Link>

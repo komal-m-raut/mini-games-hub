@@ -44,7 +44,7 @@ export function DifficultySelector({
         animate={{ opacity: 1, y: 0 }}
         className="text-center"
       >
-        <h2 className="font-display text-3xl sm:text-4xl font-bold text-white mb-2">{title}</h2>
+        <h2 className="font-display text-3xl sm:text-4xl mb-2">{title}</h2>
       </motion.div>
 
       <motion.div
@@ -58,27 +58,24 @@ export function DifficultySelector({
             key={opt.id}
             variants={item}
             onClick={() => onSelect(opt.id)}
-            className="difficulty-card group flex-1"
-            style={{ '--glow': opt.glow } as React.CSSProperties}
-            whileHover={{ scale: 1.04, y: -4 }}
-            whileTap={{ scale: 0.97 }}
+            className="difficulty-card flex-1"
+            style={{ '--accent': opt.color } as React.CSSProperties}
+            whileHover={{ y: -3 }}
+            whileTap={{ scale: 0.98 }}
             transition={{ type: 'spring', stiffness: 300, damping: 20 }}
           >
-            {/* Color accent bar */}
-            <div
-              className="h-1 w-full rounded-t-xl transition-all duration-300 group-hover:h-1.5"
-              style={{ background: `linear-gradient(90deg, ${opt.color}, transparent)` }}
-            />
+            {/* Colour accent bar */}
+            <div className="h-1 w-full" style={{ background: opt.color }} />
 
             <div className="px-5 py-3.5 flex items-center justify-between gap-3 sm:block sm:py-4">
-              <p
-                className="neon-text font-display text-xl sm:text-2xl font-bold"
-                style={{ color: opt.color, '--neon': opt.color } as React.CSSProperties}
-              >
+              {/* No neon-text here: the difficulty name is the label you read
+                  to make a choice, and a glow on it costs legibility for
+                  nothing. Colour alone already carries the easy→hard ramp. */}
+              <p className="font-display text-xl sm:text-2xl" style={{ color: opt.color }}>
                 {opt.label}
               </p>
               {opt.qualifier && (
-                <p className="text-white/45 text-xs font-mono">{opt.qualifier}</p>
+                <p className="text-ink-3 text-sm leading-snug">{opt.qualifier}</p>
               )}
             </div>
           </motion.button>

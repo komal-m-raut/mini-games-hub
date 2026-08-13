@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { BalloonGame } from '@/games/balloon-match/BalloonGame';
 import { AdBanner } from '@/components/ads/AdBanner';
-import { GameBackLink } from '@/components/game/GameBackLink';
+import { GameHeader } from '@/components/game/GameHeader';
 import { HowToPlay } from '@/components/game/HowToPlay';
 import { Leaderboard } from '@/components/leaderboard/Leaderboard';
 import { SITE_URL } from '@/lib/constants';
@@ -68,12 +68,7 @@ export default function BalloonMatchPage() {
 
       {/* Game */}
       <div>
-        <div className="mb-3">
-          <GameBackLink />
-        </div>
-        <h1 className="text-center font-display text-xs sm:text-sm font-bold text-white/55 uppercase tracking-[0.2em] mb-3">
-          🎈 Balloon Match
-        </h1>
+        <GameHeader gameId="balloon-match" />
         <BalloonGame />
       </div>
 

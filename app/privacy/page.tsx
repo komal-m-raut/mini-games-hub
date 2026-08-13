@@ -18,20 +18,20 @@ export default function PrivacyPage() {
       <div className="max-w-2xl mx-auto">
         <Link
           href="/"
-          className="inline-flex items-center gap-1.5 text-sm text-white/55 hover:text-white/80 transition-colors mb-8"
+          className="inline-flex items-center gap-1.5 text-sm text-ink-3 hover:text-ink-1 transition-colors mb-8"
         >
           ← Back to Hub
         </Link>
 
-        <h1 className="font-display font-black text-3xl sm:text-4xl text-white mb-2">
+        <h1 className="font-display text-3xl sm:text-4xl mb-2">
           Privacy Policy
         </h1>
-        <p className="text-white/55 text-sm mb-10">Last updated: August 2026</p>
+        <p className="text-ink-3 text-sm mb-10">Last updated: August 2026</p>
 
-        <div className="space-y-10 text-white/70 leading-relaxed">
+        <div className="space-y-10 text-ink-2 leading-relaxed">
 
           <section>
-            <h2 className="font-display font-bold text-xl text-white mb-3">The short version</h2>
+            <h2 className="font-display text-xl mb-3">The short version</h2>
             <p>
               Tiny Arcadium is free to play — no sign-up, no login, no personal information
               collected. We just want you to have fun.
@@ -39,7 +39,7 @@ export default function PrivacyPage() {
           </section>
 
           <section>
-            <h2 className="font-display font-bold text-xl text-white mb-3">What we store</h2>
+            <h2 className="font-display text-xl mb-3">What we store</h2>
             <p className="mb-3">
               When you submit a score to the leaderboard, we save your chosen name and score.
               That’s it. No email, no password, nothing personal.
@@ -51,7 +51,7 @@ export default function PrivacyPage() {
           </section>
 
           <section>
-            <h2 className="font-display font-bold text-xl text-white mb-3">Cookies &amp; local storage</h2>
+            <h2 className="font-display text-xl mb-3">Cookies &amp; local storage</h2>
             <p className="mb-3">
               Tiny Arcadium itself doesn’t set any cookies. Instead we use your browser’s local
               storage — data that stays on your device — for a few small things: a random ID so
@@ -72,7 +72,7 @@ export default function PrivacyPage() {
           </section>
 
           <section>
-            <h2 className="font-display font-bold text-xl text-white mb-3">Data retention</h2>
+            <h2 className="font-display text-xl mb-3">Data retention</h2>
             <p className="mb-3">
               Leaderboard scores are kept indefinitely so the boards stay meaningful over time —
               we don’t automatically delete or expire entries. If you’d like a score removed,
@@ -88,7 +88,7 @@ export default function PrivacyPage() {
           </section>
 
           <section>
-            <h2 className="font-display font-bold text-xl text-white mb-3">Ads</h2>
+            <h2 className="font-display text-xl mb-3">Ads</h2>
             <p className="mb-3">
               We show ads to keep the site free. Ads are served by Google and may be personalized
               based on your general browsing habits — that’s standard for most free websites you
@@ -113,7 +113,7 @@ export default function PrivacyPage() {
           </section>
 
           <section>
-            <h2 className="font-display font-bold text-xl text-white mb-3">Kids</h2>
+            <h2 className="font-display text-xl mb-3">Kids</h2>
             <p>
               Tiny Arcadium is suitable for general audiences. We don’t knowingly collect any
               information from children. If you have concerns, feel free to reach out.
@@ -121,7 +121,7 @@ export default function PrivacyPage() {
           </section>
 
           <section>
-            <h2 className="font-display font-bold text-xl text-white mb-3">Updates</h2>
+            <h2 className="font-display text-xl mb-3">Updates</h2>
             <p>
               If anything here changes, we’ll update this page. Nothing dramatic — we’ll always
               keep things simple and fair.
@@ -129,7 +129,7 @@ export default function PrivacyPage() {
           </section>
 
           <section id="contact">
-            <h2 className="font-display font-bold text-xl text-white mb-3">Contact</h2>
+            <h2 className="font-display text-xl mb-3">Contact</h2>
             <p>
               Questions? Just email us at{' '}
               <a

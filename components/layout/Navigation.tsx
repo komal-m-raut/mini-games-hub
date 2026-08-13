@@ -21,7 +21,7 @@ export function Navigation() {
               />
               <div className="absolute inset-0 blur-md bg-brand-purple opacity-40 group-hover:opacity-70 transition-opacity" />
             </div>
-            <span className="font-display text-sm sm:text-lg font-bold tracking-wide whitespace-nowrap">
+            <span className="font-display text-sm sm:text-lg tracking-wide whitespace-nowrap">
               <span className="text-brand-purple group-hover:text-brand-cyan transition-colors duration-300">
                 Tiny
               </span>

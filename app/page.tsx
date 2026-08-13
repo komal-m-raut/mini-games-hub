@@ -1,13 +1,18 @@
 'use client';
 
 import Link from 'next/link';
-import { motion } from 'framer-motion';
-import { Zap, Star, Users } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { GAME_REGISTRY } from '@/lib/gameRegistry';
 import { useSiteStats } from '@/hooks/useSiteStats';
 import { GameMeta } from '@/types/game';
 
 // ── Game Card ───────────────────────────────
+/**
+ * One arcade cabinet. Everything a player needs before clicking is on the
+ * face of it: the artwork, the name, how it feels, what you actually do, and
+ * a Play affordance. No tag pills, no status badge, no SEO paragraph — the
+ * long copy lives in `description` for crawlers and on the game page itself.
+ */
 function GameCard({ game }: { game: GameMeta }) {
   const Wrapper = game.isAvailable ? Link : 'div';
 
@@ -15,140 +20,85 @@ function GameCard({ game }: { game: GameMeta }) {
     <Wrapper
       // @ts-expect-error — href is only used when isAvailable is true
       href={game.isAvailable ? game.href : undefined}
-      className={`game-card group ${!game.isAvailable ? 'game-card-unavailable' : ''}`}
+      className={`game-card ${!game.isAvailable ? 'game-card-unavailable' : ''}`}
+      style={{ '--game': game.accent } as React.CSSProperties}
       aria-disabled={!game.isAvailable}
       // Only the Link case needs a label — it's the only case with an
       // otherwise-ambiguous accessible name. The unavailable `div` case has
-      // no implicit link semantics, so it just reads its own content
-      // (title, description, "Coming Soon") without one.
+      // no implicit link semantics, so it just reads its own content.
       aria-label={game.isAvailable ? `Play ${game.title}` : undefined}
     >
-      {/* Gradient banner */}
-      <div
-        className="h-28 flex items-center justify-center relative overflow-hidden"
-        style={{ background: `linear-gradient(135deg, ${game.gradientFrom}22, ${game.gradientTo}44)` }}
-      >
-        {/* Hover glow blob */}
-        <div
-          className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500"
-          style={{ background: `radial-gradient(circle at 50% 50%, ${game.glowColor}, transparent 70%)` }}
-        />
-        <motion.span
-          className="text-5xl relative z-10"
-          whileHover={{ scale: 1.15, rotate: [-3, 3, -3, 0] }}
-          transition={{ duration: 0.4 }}
-        >
+      <div className="game-card__art">
+        <span className="game-card__emoji" aria-hidden="true">
           {game.emoji}
-        </motion.span>
-
-        {game.isAvailable ? (
-          <span className="absolute top-3 right-3 flex items-center gap-1 text-xs font-mono px-2 py-0.5 rounded-full bg-green-500/15 text-green-400 border border-green-500/25">
-            <span className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse inline-block" />
-            Play Now
-          </span>
-        ) : (
-          <span className="absolute top-3 right-3 text-xs font-mono px-2 py-0.5 rounded-full bg-white/5 text-white/55 border border-white/10">
-            Coming Soon
-          </span>
-        )}
+        </span>
       </div>
 
-      {/* Content */}
-      <div className="p-4">
-        <h3
-          className="font-display font-bold text-lg mb-1 transition-all duration-300"
-          style={{
-            backgroundImage: `linear-gradient(90deg, ${game.gradientFrom}, ${game.gradientTo})`,
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: game.isAvailable ? 'transparent' : 'rgba(255,255,255,0.6)',
-          }}
-        >
-          {game.title}
-        </h3>
-        <p className="text-white/55 text-sm leading-relaxed mb-3">{game.description}</p>
-        <div className="flex flex-wrap gap-1.5">
-          {game.tags.map((tag) => (
-            <span
-              key={tag}
-              className="text-xs font-mono px-2 py-0.5 rounded-full bg-white/5 text-white/55 border border-white/[0.08] capitalize"
-            >
-              {tag}
-            </span>
-          ))}
-        </div>
+      <div className="game-card__body">
+        <p className="game-card__kind">{game.tagline}</p>
+        <h3 className="game-card__title">{game.title}</h3>
+        <p className="game-card__how">{game.howTo}</p>
+      </div>
+
+      <div className="game-card__cta">
+        <span>{game.isAvailable ? 'Play' : 'Coming soon'}</span>
+        {game.isAvailable && (
+          <ArrowRight strokeWidth={2.5} aria-hidden="true" />
+        )}
       </div>
     </Wrapper>
   );
 }
 
-// ── Hero Section ────────────────────────────
-function HeroSection() {
-  const stats = useSiteStats();
-  const liveCount = GAME_REGISTRY.filter((g) => g.isAvailable).length;
-
-  return (
-    <div className="text-center py-16 sm:py-24">
-      <div
-        className="fade-up inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-brand-purple/30 bg-brand-purple/10 text-brand-violet text-xs font-mono mb-6"
-        style={{ animationDelay: '0.1s' }}
-      >
-        <Zap className="w-3.5 h-3.5" strokeWidth={1.5} />
-        Instant play · No download · No login required
-      </div>
-
-      <h1
-        className="fade-up font-display font-black text-4xl sm:text-6xl lg:text-7xl text-white leading-tight mb-4"
-        style={{ animationDelay: '0.15s' }}
-      >
-        <span className="neon-text-purple">Tiny</span>{' '}
-        <span className="neon-text-cyan">Arcadium</span>
-      </h1>
-
-      <p
-        className="fade-up text-white/50 text-lg sm:text-xl max-w-xl mx-auto leading-relaxed"
-        style={{ animationDelay: '0.3s' }}
-      >
-        Quick stress-buster games to relax, focus, and compete. New games added regularly.
-      </p>
-
-      <div
-        className="fade-up flex flex-wrap items-center justify-center gap-6 sm:gap-10 mt-8 text-sm"
-        style={{ animationDelay: '0.45s' }}
-      >
-        {[
-          { Icon: Star,  label: `${liveCount} Game${liveCount === 1 ? '' : 's'} Live`, color: '#EAB308' },
-          {
-            Icon: Users,
-            label: `${(stats?.totalPlayers ?? 0).toLocaleString()} Player${stats?.totalPlayers === 1 ? '' : 's'}`,
-            color: '#06B6D4',
-          },
-          { Icon: Zap,   label: 'More Coming Soon',   color: '#A78BFA' },
-        ].map(({ Icon, label, color }) => (
-          <div key={label} className="flex items-center gap-1.5 font-mono" style={{ color }}>
-            <Icon className="w-4 h-4" strokeWidth={1.5} />
-            <span>{label}</span>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 // ── Page ─────────────────────────────────────
 export default function HubPage() {
+  const stats = useSiteStats();
+  const liveCount = GAME_REGISTRY.filter((g) => g.isAvailable).length;
+  const players = stats?.totalPlayers ?? 0;
+
   return (
-    <div className="page-container py-6 sm:py-10 flex flex-col gap-16">
-      <HeroSection />
+    <div className="page-container py-8 sm:py-12 flex flex-col gap-8 sm:gap-10">
+      {/* Hero. Deliberately short: on a games hub the hero is a signpost, not
+          a landing page. The old version spent ~700px on an eyebrow pill, a
+          giant wordmark and a stat row before the first game appeared, which
+          pushed every card below the fold. */}
+      <header className="max-w-3xl">
+        <h1
+          className="fade-up font-display text-5xl sm:text-6xl lg:text-7xl leading-[1.05]"
+          style={{ animationDelay: '0.05s' }}
+        >
+          <span className="neon-text-purple">Tiny</span>{' '}
+          <span className="neon-text-cyan">Arcadium</span>
+        </h1>
+        <p
+          className="fade-up mt-4 text-lg sm:text-xl text-ink-2 leading-relaxed"
+          style={{ animationDelay: '0.12s' }}
+        >
+          {/* No count in the copy: it said "Four small games" and went stale the
+              moment a fifth shipped. The live count is already one line down,
+              next to "Pick a game", where it comes from the registry. */}
+          Small games to unwind with. Pick one and play — no download, no
+          account.
+        </p>
+      </header>
 
-      {/* Games grid */}
-      <section>
-        <h2 className="fade-up font-display font-bold text-2xl text-white mb-6">
-          Choose a Game
-        </h2>
+      {/* Games */}
+      <section className="flex flex-col gap-4">
+        <div className="fade-up flex items-baseline justify-between gap-4 flex-wrap">
+          <h2 className="font-display text-3xl">
+            Pick a game
+          </h2>
+          {/* One quiet line of context, in plain words, instead of a row of
+              icon+mono stat chips that read as a service status bar. */}
+          <p className="text-base text-ink-3">
+            {liveCount} games
+            {players > 0 && <> · {players.toLocaleString()} people have played</>}
+          </p>
+        </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
           {GAME_REGISTRY.map((game, i) => (
-            <div key={game.id} className="fade-up" style={{ animationDelay: `${0.08 * i}s` }}>
+            <div key={game.id} className="fade-up" style={{ animationDelay: `${0.06 * i}s` }}>
               <GameCard game={game} />
             </div>
           ))}

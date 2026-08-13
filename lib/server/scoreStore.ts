@@ -29,10 +29,33 @@ interface ScoreStore {
   ): Promise<ScoreEntry[]>;
 }
 
-// Boards are stored and shipped whole, so cap them at the top N entries.
-// Keeps Redis payloads and API responses bounded no matter how many players
-// submit; anyone knocked off re-enters by beating the cut.
+// Boards are capped at the top N entries. Keeps Redis payloads bounded no
+// matter how many players submit; anyone knocked off re-enters by beating
+// the cut. (The API pages over this, so a response is never the whole 100.)
 const MAX_BOARD_SIZE = 100;
+
+/**
+ * Leaderboards only cover the last seven days. An entry older than this is
+ * dropped on the next read or write of its board, so a score earned eight
+ * days ago is gone whether or not anyone has played since.
+ *
+ * Enforced on read as well as write on purpose: a board nobody has posted to
+ * in a fortnight would otherwise keep serving stale entries forever, because
+ * pruning-on-write alone never runs for it.
+ */
+export const RETENTION_MS = 7 * 24 * 60 * 60 * 1000;
+
+/**
+ * Drop entries that have aged out. Entries whose `createdAt` won't parse are
+ * kept rather than discarded — silently deleting a real score because of a
+ * malformed timestamp is the worse failure of the two.
+ */
+export function pruneExpired(entries: ScoreEntry[], now = Date.now()): ScoreEntry[] {
+  return entries.filter((e) => {
+    const t = Date.parse(e.createdAt);
+    return Number.isFinite(t) ? now - t <= RETENTION_MS : true;
+  });
+}
 
 /**
  * Pure merge: given the current board, fold in `entry` (insert, improve, or
@@ -40,6 +63,11 @@ const MAX_BOARD_SIZE = 100;
  * Shared by every backend so the merge policy lives in exactly one place.
  */
 function mergeEntry(entries: ScoreEntry[], entry: ScoreEntry, maxSize: number): ScoreEntry[] {
+  // Prune before merging, so an aged-out entry can't hold a slot against a
+  // live one when the board is at MAX_BOARD_SIZE — and so a returning player
+  // whose week-old run has expired starts clean rather than having to beat
+  // a score that should no longer exist.
+  entries = pruneExpired(entries);
   const existing = entries.find((e) => e.playerId === entry.playerId);
 
   let next: ScoreEntry[];
@@ -60,7 +88,15 @@ function mergeEntry(entries: ScoreEntry[], entry: ScoreEntry, maxSize: number): 
 
 // ── File store (dev default) ────────────────────────────────────────
 
-const DATA_FILE = path.join(process.cwd(), '.data', 'scores.json');
+/**
+ * Overridable so the test suite can point at a scratch file. Two test files
+ * were each backing up and restoring the real `.data/scores.json` while
+ * running in parallel workers, so they clobbered one another's snapshot and
+ * left residue that failed a later run — and they were writing to the same
+ * file the dev server uses.
+ */
+const DATA_FILE =
+  process.env.SCORES_DATA_FILE ?? path.join(process.cwd(), '.data', 'scores.json');
 
 type FileLayout = Record<string, Record<string, ScoreEntry[]>>;
 
@@ -90,7 +126,7 @@ function serialize<T>(task: () => Promise<T>): Promise<T> {
 const fileStore: ScoreStore = {
   async getBoard(gameId, board) {
     const all = await readFileLayout();
-    return all[gameId]?.[board] ?? [];
+    return pruneExpired(all[gameId]?.[board] ?? []);
   },
   upsertBoard(gameId, board, entry, maxSize) {
     // The whole read -> merge -> write cycle is one critical section, so a
@@ -114,7 +150,7 @@ const redisKey = (gameId: string, board: string) => `mgh:scores:${gameId}:${boar
 const redisStore: ScoreStore = {
   async getBoard(gameId, board) {
     const result = await redisCommand<string | null>(['GET', redisKey(gameId, board)]);
-    return result ? (JSON.parse(result) as ScoreEntry[]) : [];
+    return result ? pruneExpired(JSON.parse(result) as ScoreEntry[]) : [];
   },
   // NOTE (known race, not fixed here): this is GET-then-SET, not atomic.
   // Two concurrent upserts against the same board on two different
@@ -141,6 +177,11 @@ const redisStore: ScoreStore = {
     const current: ScoreEntry[] = result ? JSON.parse(result) : [];
     const next = mergeEntry(current, entry, maxSize);
     await redisCommand(['SET', key, JSON.stringify(next)]);
+    // Belt and braces on top of the per-entry pruning: a board nobody posts
+    // to again would otherwise sit in Redis forever holding entries that can
+    // never be served. One retention window of slack so the key always
+    // outlives the newest entry inside it.
+    await redisCommand(['EXPIRE', key, String(Math.ceil((RETENTION_MS * 2) / 1000))]);
     return next;
   },
 };

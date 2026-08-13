@@ -5,6 +5,13 @@ import { MAX_TARGET_FILL, MIN_TARGET_FILL } from '@/games/perfect-pour/constants
 import { getPathChallengeRounds } from '@/games/memory-path/challenge';
 import { PATH_DIFFICULTY } from '@/games/memory-path/constants';
 import { cellKey, isAdjacent } from '@/games/memory-path/pathGen';
+import { getTapChallengeRounds } from '@/games/timing-tap/challenge';
+import {
+  MAX_START_OFFSET,
+  MIN_START_OFFSET,
+  SPEED_SCALE_COUNT,
+  TAP_DIFFICULTY,
+} from '@/games/timing-tap/constants';
 
 /**
  * Challenge fairness for every game rests on "same code → identical rounds for
@@ -64,5 +71,45 @@ describe('getPathChallengeRounds', () => {
 
   it('differentiates codes', () => {
     expect(getPathChallengeRounds('aaaaaa')).not.toEqual(getPathChallengeRounds('bbbbbb'));
+  });
+});
+
+describe('getTapChallengeRounds', () => {
+  it('is deterministic and case-insensitive for a code', () => {
+    expect(getTapChallengeRounds('abc123')).toEqual(getTapChallengeRounds('abc123'));
+    expect(getTapChallengeRounds('ABC123')).toEqual(getTapChallengeRounds('abc123'));
+  });
+
+  it('follows the easy → medium → hard sequence', () => {
+    expect(getTapChallengeRounds('any-code').map((r) => r.difficulty)).toEqual(
+      CHALLENGE_DIFFICULTIES
+    );
+  });
+
+  it('differentiates codes', () => {
+    expect(getTapChallengeRounds('aaaaaa')).not.toEqual(getTapChallengeRounds('bbbbbb'));
+  });
+
+  it('keeps every start position on the bar and outside that round\'s Perfect Zone, ' +
+    'with the right number of in-range speed scales', () => {
+    for (let i = 0; i < 200; i++) {
+      for (const round of getTapChallengeRounds(`fuzz-${i}`)) {
+        const cfg = TAP_DIFFICULTY[round.difficulty];
+
+        expect(round.startPosition).toBeGreaterThanOrEqual(MIN_START_OFFSET);
+        expect(round.startPosition).toBeLessThanOrEqual(MAX_START_OFFSET);
+        // A round that starts inside the Perfect Zone would hand out a free
+        // 100 the instant the player taps — must never happen.
+        expect(Math.abs(round.startPosition - 50)).toBeGreaterThan(cfg.zoneHalfWidth);
+
+        expect(round.speedScales).toHaveLength(SPEED_SCALE_COUNT);
+        for (const scale of round.speedScales) {
+          expect(scale).toBeGreaterThanOrEqual(1 - cfg.speedJitter);
+          expect(scale).toBeLessThanOrEqual(1 + cfg.speedJitter);
+        }
+
+        expect([1, -1]).toContain(round.direction);
+      }
+    }
   });
 });

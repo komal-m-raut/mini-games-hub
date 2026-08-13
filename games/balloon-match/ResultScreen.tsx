@@ -81,29 +81,29 @@ export function ResultScreen({
       >
         <span className="text-5xl">{meta.emoji}</span>
         <h2
-          className="neon-text font-display text-4xl sm:text-5xl font-bold"
+          className="neon-text font-display text-4xl sm:text-5xl"
           style={{ color: meta.color, '--neon': meta.color } as React.CSSProperties}
         >
           {result.rating}
         </h2>
-        <p className="text-white/50 font-mono text-sm mt-1">{meta.message}</p>
+        <p className="text-ink-3 font-ui text-sm mt-1">{meta.message}</p>
 
         {/* Round score — the one number on this screen (the top bar shows
             the running total separately), promoted under the rating word */}
         <motion.p
-          className="font-score font-bold text-3xl mt-1"
+          className="font-score text-3xl mt-1"
           style={{ color: meta.color }}
           initial={{ opacity: 0, y: 6 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
         >
           {formatScore(result.score)}
-          <span className="text-white/50 text-lg">/{MAX_ROUND_SCORE}</span>
+          <span className="text-ink-3 text-lg">/{MAX_ROUND_SCORE}</span>
         </motion.p>
 
         {showHighScoreBadge && (
           <motion.div
-            className="mt-2 px-3 py-1 rounded-full bg-yellow-500/20 border border-yellow-500/40 text-yellow-400 text-xs font-mono"
+            className="mt-2 px-3 py-1 rounded-full bg-yellow-500/20 border border-yellow-500/40 text-yellow-400 text-xs font-ui"
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.4 }}
@@ -149,7 +149,6 @@ export function ResultScreen({
           size="md"
           onClick={onPlayAgain}
           className="flex-1 min-w-0 flex items-center justify-center gap-2 whitespace-nowrap"
-          glow="rgba(124, 58, 237, 0.5)"
         >
           {nextLabel}
         </NeonButton>

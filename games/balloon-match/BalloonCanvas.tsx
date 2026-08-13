@@ -108,7 +108,7 @@ export function Balloon({
 
           {isTarget && (
             <motion.div
-              className="absolute -top-7 left-1/2 -translate-x-1/2 text-xs font-mono text-white/50 whitespace-nowrap px-2 py-0.5 rounded bg-white/5 border border-white/10"
+              className="absolute -top-7 left-1/2 -translate-x-1/2 text-xs font-ui text-ink-3 whitespace-nowrap px-2 py-0.5 rounded bg-white/5 border border-white/10"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.3 }}
@@ -167,11 +167,11 @@ export function BalloonComparison({
     <div ref={containerRef} className="flex items-end justify-center gap-8 sm:gap-24 py-8">
       <div className="flex flex-col items-center gap-3">
         <Balloon units={targetUnits} color={color} id="cmp-target" visible scale={scale} />
-        <p className="text-xs font-mono text-white/40 uppercase tracking-widest">Target</p>
+        <p className="text-xs font-ui text-ink-3 uppercase tracking-widest">Target</p>
       </div>
       <div className="flex flex-col items-center gap-3">
         <Balloon units={actualUnits} color={color} id="cmp-actual" visible scale={scale} />
-        <p className="text-xs font-mono text-white/40 uppercase tracking-widest">Yours</p>
+        <p className="text-xs font-ui text-ink-3 uppercase tracking-widest">Yours</p>
       </div>
     </div>
   );

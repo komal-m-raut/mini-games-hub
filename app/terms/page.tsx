@@ -18,20 +18,20 @@ export default function TermsPage() {
       <div className="max-w-2xl mx-auto">
         <Link
           href="/"
-          className="inline-flex items-center gap-1.5 text-sm text-white/55 hover:text-white/80 transition-colors mb-8"
+          className="inline-flex items-center gap-1.5 text-sm text-ink-3 hover:text-ink-1 transition-colors mb-8"
         >
           ← Back to Hub
         </Link>
 
-        <h1 className="font-display font-black text-3xl sm:text-4xl text-white mb-2">
+        <h1 className="font-display text-3xl sm:text-4xl mb-2">
           Terms of Service
         </h1>
-        <p className="text-white/55 text-sm mb-10">Last updated: July 2026</p>
+        <p className="text-ink-3 text-sm mb-10">Last updated: July 2026</p>
 
-        <div className="space-y-10 text-white/70 leading-relaxed">
+        <div className="space-y-10 text-ink-2 leading-relaxed">
 
           <section>
-            <h2 className="font-display font-bold text-xl text-white mb-3">The short version</h2>
+            <h2 className="font-display text-xl mb-3">The short version</h2>
             <p>
               By using Tiny Arcadium, you agree to these terms. They’re short and written in
               plain English on purpose — play fair, don’t abuse the site, and have fun.
@@ -39,7 +39,7 @@ export default function TermsPage() {
           </section>
 
           <section>
-            <h2 className="font-display font-bold text-xl text-white mb-3">The service</h2>
+            <h2 className="font-display text-xl mb-3">The service</h2>
             <p>
               Tiny Arcadium is provided free of charge, “as is,” with no guarantees. We do our
               best to keep it fast and available, but we can’t promise it will always be online,
@@ -48,9 +48,9 @@ export default function TermsPage() {
           </section>
 
           <section>
-            <h2 className="font-display font-bold text-xl text-white mb-3">Acceptable use</h2>
+            <h2 className="font-display text-xl mb-3">Acceptable use</h2>
             <p className="mb-3">To keep the leaderboards fair and fun for everyone, please don’t:</p>
-            <ul className="list-disc list-inside space-y-1.5 marker:text-white/30">
+            <ul className="list-disc list-inside space-y-1.5 marker:text-ink-4">
               <li>Cheat, automate, or script your way to a leaderboard score</li>
               <li>Attempt to disrupt, overload, or interfere with the site or its infrastructure</li>
               <li>Use an offensive, abusive, or otherwise inappropriate nickname</li>
@@ -64,7 +64,7 @@ export default function TermsPage() {
           </section>
 
           <section>
-            <h2 className="font-display font-bold text-xl text-white mb-3">Leaderboard entries</h2>
+            <h2 className="font-display text-xl mb-3">Leaderboard entries</h2>
             <p>
               Leaderboard entries are public. We may remove any entry — including a nickname or
               score — at our discretion, for example if it violates these terms or looks like
@@ -73,7 +73,7 @@ export default function TermsPage() {
           </section>
 
           <section>
-            <h2 className="font-display font-bold text-xl text-white mb-3">Ads</h2>
+            <h2 className="font-display text-xl mb-3">Ads</h2>
             <p>
               We show ads to keep the site free to play. See our{' '}
               <Link
@@ -87,7 +87,7 @@ export default function TermsPage() {
           </section>
 
           <section>
-            <h2 className="font-display font-bold text-xl text-white mb-3">Changes to these terms</h2>
+            <h2 className="font-display text-xl mb-3">Changes to these terms</h2>
             <p>
               We may update these terms from time to time. If we do, we’ll update this page.
               Continuing to use Tiny Arcadium after a change means you accept the new terms.
@@ -95,7 +95,7 @@ export default function TermsPage() {
           </section>
 
           <section id="contact">
-            <h2 className="font-display font-bold text-xl text-white mb-3">Contact</h2>
+            <h2 className="font-display text-xl mb-3">Contact</h2>
             <p>
               Questions about these terms? Email us at{' '}
               <a

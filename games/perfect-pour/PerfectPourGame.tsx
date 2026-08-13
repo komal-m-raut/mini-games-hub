@@ -91,9 +91,9 @@ export function PerfectPourGame({ challengeCode }: PerfectPourGameProps = {}) {
         >
           <button
             onClick={isChallenge ? resetToMenu : backToMenu}
-            className="flex items-center gap-1.5 -ml-3 px-3 py-2.5 min-h-11 text-white/40 hover:text-white/70 transition-colors text-sm font-mono cursor-pointer"
+            className="btn btn-sm btn-ghost -ml-3.5"
           >
-            <ArrowLeft className="w-4 h-4" strokeWidth={1.5} />
+            <ArrowLeft strokeWidth={2} />
             {isChallenge ? 'Restart' : 'Menu'}
           </button>
           <ScoreCard
@@ -133,9 +133,9 @@ export function PerfectPourGame({ challengeCode }: PerfectPourGameProps = {}) {
                 <DifficultySelector options={DIFFICULTY_OPTIONS} onSelect={selectDifficulty} />
                 <button
                   onClick={() => setMenuView('mode')}
-                  className="mx-auto flex items-center gap-1.5 px-3 py-2.5 min-h-11 text-white/40 hover:text-white/70 transition-colors text-sm font-mono cursor-pointer"
+                  className="btn btn-sm btn-ghost mx-auto"
                 >
-                  <ArrowLeft className="w-4 h-4" strokeWidth={1.5} />
+                  <ArrowLeft strokeWidth={2} />
                   Back
                 </button>
               </div>
@@ -168,7 +168,7 @@ export function PerfectPourGame({ challengeCode }: PerfectPourGameProps = {}) {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
           >
-            <p className="font-display text-xl font-bold text-white">Memorize This Level</p>
+            <p className="font-display text-xl">Memorize This Level</p>
 
             <Glass
               fill={state.currentFill}
@@ -198,7 +198,7 @@ export function PerfectPourGame({ challengeCode }: PerfectPourGameProps = {}) {
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.9 }}
           >
-            <p className="font-display text-xl font-bold text-white">
+            <p className="font-display text-xl">
               {state.isPouring ? 'Release when ready!' : 'Hold the Tap to Pour'}
             </p>
 
@@ -233,7 +233,7 @@ export function PerfectPourGame({ challengeCode }: PerfectPourGameProps = {}) {
 
             {/* Fill readout */}
             <div className="w-full max-w-xs">
-              <div className="flex justify-between text-xs font-mono text-white/30 mb-1">
+              <div className="flex justify-between text-xs font-ui text-ink-4 mb-1">
                 <span>Empty</span>
                 <span>Fill: {Math.round(state.currentFill)}%</span>
                 <span>Full</span>
@@ -319,7 +319,7 @@ export function PerfectPourGame({ challengeCode }: PerfectPourGameProps = {}) {
       <div className="flex justify-center items-center gap-3">
         {cfg && !isMenu && !isEnd && (
           <motion.span
-            className="px-3 py-1 rounded-full text-xs font-mono border"
+            className="px-3 py-1 rounded-full text-xs font-ui border"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3 }}

@@ -31,8 +31,8 @@ export function ChallengeLauncher({ gameId, onBack }: ChallengeLauncherProps) {
       animate={{ opacity: 1, y: 0 }}
     >
       <div className="text-center">
-        <h2 className="font-display text-2xl sm:text-3xl font-bold text-white mb-1">Multiplayer</h2>
-        <p className="text-white/55 text-sm font-mono">
+        <h2 className="font-display text-2xl sm:text-3xl mb-1">Multiplayer</h2>
+        <p className="text-ink-3 text-sm font-ui">
           Same rounds for everyone · climb the shared board
         </p>
       </div>
@@ -47,8 +47,8 @@ export function ChallengeLauncher({ gameId, onBack }: ChallengeLauncherProps) {
             strokeWidth={1.5}
           />
           <span>
-            <span className="block font-display font-bold text-white">Daily Challenge</span>
-            <span className="block text-white/55 text-sm">Same rounds worldwide today</span>
+            <span className="block font-display">Daily Challenge</span>
+            <span className="block text-ink-3 text-sm">Same rounds worldwide today</span>
           </span>
         </button>
 
@@ -61,8 +61,8 @@ export function ChallengeLauncher({ gameId, onBack }: ChallengeLauncherProps) {
             strokeWidth={1.5}
           />
           <span>
-            <span className="block font-display font-bold text-white">Challenge a Friend</span>
-            <span className="block text-white/55 text-sm">Share a private code, compare scores</span>
+            <span className="block font-display">Challenge a Friend</span>
+            <span className="block text-ink-3 text-sm">Share a private code, compare scores</span>
           </span>
         </button>
       </div>
@@ -70,7 +70,7 @@ export function ChallengeLauncher({ gameId, onBack }: ChallengeLauncherProps) {
       {onBack && (
         <button
           onClick={onBack}
-          className="flex items-center gap-1.5 text-white/55 hover:text-white/80 transition-colors text-sm font-mono cursor-pointer"
+          className="flex items-center gap-1.5 text-ink-3 hover:text-ink-1 transition-colors text-sm font-ui cursor-pointer"
         >
           <ArrowLeft className="w-4 h-4" strokeWidth={1.5} />
           Back

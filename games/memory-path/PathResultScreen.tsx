@@ -87,31 +87,31 @@ export function PathResultScreen({
       >
         <span className="text-5xl">{meta.emoji}</span>
         <h2
-          className="neon-text font-display text-4xl sm:text-5xl font-bold"
+          className="neon-text font-display text-4xl sm:text-5xl"
           style={{ color: meta.color, '--neon': meta.color } as React.CSSProperties}
         >
           {result.rating}
         </h2>
-        <p className="text-white/50 font-mono text-sm mt-1">{meta.message}</p>
+        <p className="text-ink-3 font-ui text-sm mt-1">{meta.message}</p>
 
         {/* Round score — the one number on this screen, promoted under the
             rating word (U7). Accuracy/correct/mistakes are dropped: the grid
             below already shows right/wrong/missed cells more legibly than a
             stat row would. */}
         <motion.p
-          className="font-score font-bold text-3xl mt-1"
+          className="font-score text-3xl mt-1"
           style={{ color: meta.color }}
           initial={{ opacity: 0, y: 6 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2 }}
         >
           {formatScore(result.score)}
-          <span className="text-white/50 text-lg">/{MAX_ROUND_SCORE}</span>
+          <span className="text-ink-3 text-lg">/{MAX_ROUND_SCORE}</span>
         </motion.p>
 
         {/* Everything the grid can't show at a glance, kept as a quiet line
             rather than its own card row. */}
-        <p className="font-score text-xs text-white/40 mt-1">
+        <p className="font-score text-xs text-ink-3 mt-1">
           {result.mistakes === 0 ? 'No mistakes' : `${result.mistakes} mistake${result.mistakes === 1 ? '' : 's'}`}
           {' · '}
           {result.seconds.toFixed(1)}s
@@ -133,7 +133,7 @@ export function PathResultScreen({
           marks={result.marks}
           interactive={false}
         />
-        <div className="flex justify-center gap-4 mt-3 font-mono text-[0.65rem] text-white/40">
+        <div className="flex justify-center gap-4 mt-3 font-ui text-2xs text-ink-3">
           <span className="flex items-center gap-1.5">
             <span className="w-2.5 h-2.5 rounded-sm bg-green-500/60" /> Correct
           </span>
@@ -167,7 +167,6 @@ export function PathResultScreen({
           size="md"
           onClick={onNext}
           className="flex-1 min-w-0 flex items-center justify-center gap-2 whitespace-nowrap"
-          glow="rgba(124, 58, 237, 0.5)"
         >
           {nextLabel}
         </NeonButton>

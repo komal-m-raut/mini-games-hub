@@ -77,18 +77,18 @@ export function SessionSummary({
         transition={{ type: 'spring', stiffness: 200, damping: 16 }}
       >
         <p
-          className="font-mono text-xs uppercase tracking-widest mb-2"
+          className="font-ui text-xs uppercase tracking-widest mb-2"
           style={{ color: accent }}
         >
           Session Complete · {subtitle}
         </p>
-        <p className="font-display text-6xl font-black text-white mb-1">
+        <p className="font-display text-6xl mb-1">
           {formatScore(total)}
-          <span className="text-white/30 text-3xl">/{max}</span>
+          <span className="text-ink-4 text-3xl">/{max}</span>
         </p>
         {isNewBest ? (
           <motion.p
-            className="text-brand-yellow text-sm font-mono"
+            className="text-brand-yellow text-sm font-ui"
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.3 }}
@@ -96,7 +96,7 @@ export function SessionSummary({
             🎉 New personal best!
           </motion.p>
         ) : (
-          <p className="text-white/40 text-sm font-mono">
+          <p className="text-ink-3 text-sm font-ui">
             Best: {formatScore(bestSession)}/{max}
           </p>
         )}
@@ -115,7 +115,7 @@ export function SessionSummary({
             <p className="stat-label">R{i + 1}</p>
             <p className="stat-value text-brand-purple">
               {formatScore(score)}
-              <span className="text-white/30 text-sm">/{MAX_ROUND_SCORE}</span>
+              <span className="text-ink-4 text-sm">/{MAX_ROUND_SCORE}</span>
             </p>
           </motion.div>
         ))}
@@ -123,12 +123,12 @@ export function SessionSummary({
 
       <button
         onClick={share}
-        className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-brand-cyan/30 bg-brand-cyan/10 text-brand-cyan hover:border-brand-cyan/60 transition-all text-xs font-mono cursor-pointer"
+        className="btn btn-sm btn-secondary" style={{ '--btn-accent': '#22D3EE' } as React.CSSProperties}
       >
         {copied ? (
           <Check className="w-3.5 h-3.5 text-green-400" strokeWidth={1.5} />
         ) : (
-          <Share2 className="w-3.5 h-3.5" strokeWidth={1.5} />
+          <Share2 strokeWidth={1.5} />
         )}
         {copied ? 'Copied!' : 'Share result'}
       </button>
@@ -148,7 +148,6 @@ export function SessionSummary({
           size="md"
           onClick={onReplay}
           className="flex-1 min-w-0 flex items-center justify-center gap-2 whitespace-nowrap"
-          glow="rgba(124, 58, 237, 0.5)"
         >
           <RotateCcw className="w-4 h-4 shrink-0 hidden sm:block" strokeWidth={1.5} />
           Play Again

@@ -20,9 +20,13 @@ export type SoundName =
   | 'glow'
   | 'whoosh'
   | 'trace'
-  | 'error';
+  | 'error'
+  | 'tap'
+  | 'slide'
+  | 'confirm'
+  | 'sparkle';
 
-export type LoopName = 'water' | 'ambient';
+export type LoopName = 'water' | 'ambient' | 'sweep';
 
 const MUTE_KEY = 'mgh_muted';
 const MASTER_VOLUME = 0.45;
@@ -35,6 +39,8 @@ interface LoopHandle {
   stop: () => void;
   /** Only implemented by the water loop — see setWaterFill(). */
   setFill?: (percent: number) => void;
+  /** Only implemented by the sweep loop — see setSweepPosition(). */
+  setPosition?: (percent: number) => void;
 }
 
 const loops = new Map<LoopName, LoopHandle>();
@@ -272,6 +278,56 @@ export function playSound(name: SoundName): void {
     case 'error':
       tone(c, { freq: 233, dur: 0.18, gain: 0.14, type: 'triangle' });
       break;
+
+    case 'tap': {
+      // Bright transient for Timing Tap: a fast high-passed noise click (the
+      // "snap") layered with a short descending triangle blip, ~70ms total,
+      // kept in line with the rest of the soft palette rather than arcade-loud.
+      const t0 = c.currentTime;
+      const src = c.createBufferSource();
+      src.buffer = getNoise(c);
+      const hp = c.createBiquadFilter();
+      hp.type = 'highpass';
+      hp.frequency.value = 3000;
+      const clickGain = c.createGain();
+      clickGain.gain.setValueAtTime(0.0001, t0);
+      clickGain.gain.exponentialRampToValueAtTime(0.18, t0 + 0.005);
+      clickGain.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.05);
+      src.connect(hp);
+      hp.connect(clickGain);
+      clickGain.connect(master!);
+      src.start(t0);
+      src.stop(t0 + 0.08);
+
+      tone(c, { freq: 1200, sweepTo: 600, dur: 0.07, gain: 0.14, type: 'triangle' });
+      break;
+    }
+
+    case 'slide':
+      // Grain of a slider moving. Deliberately the quietest sound in the
+      // palette: it fires repeatedly through a drag (throttled by the
+      // caller), so anything louder becomes a rattle rather than texture.
+      tone(c, { freq: 1500, sweepTo: 1150, dur: 0.035, gain: 0.045, type: 'sine' });
+      break;
+
+    case 'confirm':
+      // Two-note rising blip — "locked in", without pre-empting the result
+      // sound that follows a beat later.
+      tone(c, { freq: 587.33, dur: 0.1, gain: 0.13, type: 'triangle' });
+      tone(c, { freq: 880, dur: 0.16, gain: 0.11, type: 'triangle', delay: 0.07 });
+      break;
+
+    case 'sparkle': {
+      // Reserved for a 95%+ match: a bright shimmer that reads as *special*
+      // next to `success` without being as final as `celebrate`. A rising
+      // pentatonic run (so no interval can sound sour) with a bell on top.
+      [783.99, 1046.5, 1318.51, 1567.98].forEach((f, i) =>
+        tone(c, { freq: f, dur: 0.42, gain: 0.13, delay: i * 0.055, type: 'sine' })
+      );
+      tone(c, { freq: 2093, dur: 0.9, gain: 0.06, delay: 0.22, type: 'sine' });
+      tone(c, { freq: 2637.02, dur: 0.7, gain: 0.035, delay: 0.28, type: 'sine' });
+      break;
+    }
   }
 }
 
@@ -304,6 +360,29 @@ export function waterBodyCutoff(fillPercent: number): number {
 export function waterGurgleScale(fillPercent: number): number {
   const fill = clampPercent(fillPercent);
   return 0.7 + 0.6 * (fill / 100);
+}
+
+// ── Sweep curves (Timing Tap) ───────────────────────────────────────
+//
+// Pure maths only — no AudioContext — same rationale as the water curves
+// above: the ear should feel the indicator approach the bar's centre, so
+// both curves are driven off `position` (0–100, centre at 50).
+
+/**
+ * Bandpass centre frequency for the sweep loop. Peaks at the bar's centre
+ * and falls symmetrically toward either edge, so the timbre itself hints
+ * "you're near the middle" independent of the pan cue.
+ */
+export function sweepFilterFreq(position: number): number {
+  const p = clampPercent(position);
+  const centreDistance = Math.abs(p - 50) / 50; // 0 at centre, 1 at an edge
+  return 1400 - (1400 - 350) * centreDistance;
+}
+
+/** Stereo pan for the sweep loop: hard left at 0, hard right at 100. */
+export function sweepPan(position: number): number {
+  const p = clampPercent(position);
+  return (p - 50) / 50;
 }
 
 // ── Loops ───────────────────────────────────────────────────────────
@@ -514,6 +593,65 @@ function startAmbient(c: AudioContext): { stop: () => void } {
   };
 }
 
+/**
+ * Continuous whoosh for Timing Tap's sweep, coupled to indicator position
+ * (via setPosition(), see setSweepPosition()): looped brown noise through a
+ * bandpass whose centre frequency rises toward the bar's centre and falls
+ * toward the edges (sweepFilterFreq), panned left→right with position
+ * (sweepPan). Kept well under the one-shots' gain since this plays for the
+ * whole `running` phase and must not fatigue the ear.
+ */
+function startSweep(c: AudioContext): LoopHandle {
+  const out = c.createGain();
+  out.gain.setValueAtTime(0.0001, c.currentTime);
+  out.gain.exponentialRampToValueAtTime(1, c.currentTime + 0.14);
+  out.connect(master!);
+
+  let percent = 50;
+
+  const noise = c.createBufferSource();
+  noise.buffer = getNoise(c);
+  noise.loop = true;
+  const filter = c.createBiquadFilter();
+  filter.type = 'bandpass';
+  filter.frequency.value = sweepFilterFreq(percent);
+  filter.Q.value = 1.4;
+  const gain = c.createGain();
+  gain.gain.value = 0.055;
+  const panner = c.createStereoPanner();
+  panner.pan.value = sweepPan(percent);
+
+  noise.connect(filter);
+  filter.connect(gain);
+  gain.connect(panner);
+  panner.connect(out);
+  noise.start();
+
+  return {
+    setPosition: (next: number) => {
+      percent = clampPercent(next);
+      const now = c.currentTime;
+      // 30ms smoothing — responsive to the sweep without zipper noise from
+      // stepping the raw AudioParam every animation frame.
+      filter.frequency.setTargetAtTime(sweepFilterFreq(percent), now, 0.03);
+      panner.pan.setTargetAtTime(sweepPan(percent), now, 0.03);
+    },
+    stop: () => {
+      const t = c.currentTime;
+      out.gain.cancelScheduledValues(t);
+      out.gain.setValueAtTime(Math.max(out.gain.value, 0.0001), t);
+      out.gain.exponentialRampToValueAtTime(0.0001, t + 0.16);
+      noise.stop(t + 0.24);
+    },
+  };
+}
+
+function createLoop(name: LoopName, c: AudioContext): LoopHandle {
+  if (name === 'water') return startWater(c);
+  if (name === 'sweep') return startSweep(c);
+  return startAmbient(c);
+}
+
 export function startLoop(name: LoopName): void {
   // Record intent first: even if muted (so playback is skipped below),
   // unmuting later should bring this loop back (H6).
@@ -521,7 +659,7 @@ export function startLoop(name: LoopName): void {
   if (muted || loops.has(name)) return;
   const c = ensureContext();
   if (!c || !master) return;
-  loops.set(name, name === 'water' ? startWater(c) : startAmbient(c));
+  loops.set(name, createLoop(name, c));
 }
 
 export function stopLoop(name: LoopName): void {
@@ -551,7 +689,7 @@ function resumeIntentLoops(): void {
   const c = ensureContext();
   if (!c || !master) return;
   activeLoopIntents.forEach((name) => {
-    if (!loops.has(name)) loops.set(name, name === 'water' ? startWater(c) : startAmbient(c));
+    if (!loops.has(name)) loops.set(name, createLoop(name, c));
   });
 }
 
@@ -561,4 +699,13 @@ function resumeIntentLoops(): void {
  */
 export function setWaterFill(percent: number): void {
   loops.get('water')?.setFill?.(percent);
+}
+
+/**
+ * Couples the sweep loop to Timing Tap's indicator position, 0–100. Call
+ * every animation frame; a no-op if the sweep loop isn't currently running
+ * (e.g. muted).
+ */
+export function setSweepPosition(percent: number): void {
+  loops.get('sweep')?.setPosition?.(percent);
 }

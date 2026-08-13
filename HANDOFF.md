@@ -15,6 +15,8 @@
 - `/games/balloon-match/challenge/[code]` — seeded challenge (shareable link)
 - `/games/perfect-pour` — Perfect Pour game (observe fill level → pour to match)
 - `/games/memory-path` — Memory Path game (watch neon path → trace it back)
+- `/games/timing-tap` — Timing Tap game (stop a sweeping indicator on the Perfect Zone)
+- `/games/timing-tap/challenge/[code]` — seeded challenge (shareable link)
 - `/api/scores/[gameId]/[board]` — GET/POST leaderboard entries, any game
 - `/api/events` (POST play events) · `/api/stats` (GET site totals)
 - `/manifest.webmanifest` — PWA manifest from `app/manifest.ts`
@@ -169,6 +171,49 @@ games/memory-path/
 
 ---
 
+## Game: Timing Tap (`/games/timing-tap`)
+
+**Flow:** Select difficulty → 5-round session (countdown → indicator sweeps and bounces → tap to stop → results) → Session Complete
+
+**Mechanics:**
+- An indicator sweeps a horizontal bar back and forth (0–100% of bar width), bouncing at each
+  end for as long as the player lets it run — after a 3-2-1 countdown (`COUNTDOWN_SECONDS`)
+- Tap/click anywhere on the bar area, or press Space, to stop the indicator instantly wherever
+  it is; position is tracked via a framer-motion `MotionValue` so it updates every frame
+  without re-rendering React
+- Accuracy is measured from the bar's exact centre (`50`) against that difficulty's Perfect
+  Zone half-width `z`: inside the zone it scales 100 (dead centre) down to 90 (zone edge);
+  outside the zone it scales 90 down to 0 at the far bar edge (`getTapAccuracy` in
+  `games/timing-tap/constants.ts`)
+- Round score is the shared `calculateScore(accuracy)` from `utils/scoring.ts`, out of 10, same
+  as every other game
+- Rating is a **5-tier, game-local** scale (Perfect ≥98, Amazing ≥94, Great ≥88, Good ≥75,
+  else Try Again) — distinct from the shared 4-tier `Rating` in `types/game.ts`, which the
+  other games use and which this game does not touch
+- Hard difficulty draws a per-leg speed multiplier from a seeded list at every bounce
+  (`speedScales`, cycled), so the sweep speed drifts pass to pass instead of holding steady
+- Best session stored in localStorage key `mgh_best_session_timing-tap`
+
+**Difficulty config** (`games/timing-tap/constants.ts`, `TAP_DIFFICULTY`):
+- Easy: zone half-width 9, speed 42%/s, no speed jitter, beam `#22D3EE`
+- Medium: zone half-width 5, speed 68%/s, no speed jitter, beam `#A78BFA`
+- Hard: zone half-width 2.6, speed 95%/s, ±28% per-leg speed jitter, beam `#F43F5E`
+
+**Key files:**
+```
+games/timing-tap/
+  TimingTapGame.tsx      # Main game component
+  TimingBar.tsx          # Bar/indicator/zone rendering, ripple + slow-motion hold on tap
+  TapResultScreen.tsx    # Results (accuracy, zone readout, rating, replay/menu)
+  useTimingTapGame.ts    # Game state hook (MotionValue position, stateRef mirror)
+  challenge.ts           # getTapChallengeRounds() — 3 seeded rounds (Easy, Medium, Hard),
+                         # seeded start position/direction/speedScales via makeChallengeRand
+  constants.ts           # TAP_DIFFICULTY, getTapAccuracy(), getTapRating(), COUNTDOWN_SECONDS
+  types.ts               # TapGameState, TapResult, TapPhase, TapRating
+```
+
+---
+
 ## Cross-cutting: decimal scoring, ratings, and keyboard play
 
 - **Decimal scoring (R2)**: every round score carries up to 2 decimal places
@@ -284,6 +329,7 @@ app/
 games/balloon-match/   # See Game: Balloon Match above
 games/perfect-pour/    # See Game: Perfect Pour above
 games/memory-path/     # See Game: Memory Path above
+games/timing-tap/      # See Game: Timing Tap above
 
 components/
   ui/NeonButton.tsx         # 4 variants, 4 sizes
@@ -319,7 +365,7 @@ lib/
   player.ts            # Anonymous localStorage identity
   constants.ts         # Game constants (balloon): DIFFICULTY_CONFIG, RANK_COLORS
                        # (shared gold/silver/bronze — see Pending / Next Session #10)
-  gameRegistry.ts      # 3 games, all live; hub copy still says "More Coming Soon"
+  gameRegistry.ts      # 4 games, all live; hub copy still says "More Coming Soon"
                        # with nothing unavailable to back it (see Pending / Next Session #12)
   utils.ts             # cn(), randomPick(), randomInt(), clamp()
   server/              # redis.ts + scoreStore.ts + statsStore.ts
@@ -363,21 +409,22 @@ All ad infrastructure is built. To go live:
 2. ~~Deploy on Vercel~~ — DONE
 3. ~~Hub leaderboard tabs~~ — DONE
 4. ~~Perfect Pour game~~ — DONE
-5. ~~Memory Path game~~ — DONE (3 games live)
-6. **Ads** — still placeholder IDs (see Ad Setup above)
-7. **Custom domain** — user is picking one; wire it up in Vercel when shared
-8. **Game 4** — Color Match or Rhythm Tap are next candidates in `gameRegistry.ts`
-9. **Challenge mode for Perfect Pour / Memory Path** — infrastructure exists (`/api/scores/[gameId]/[board]`), just needs `ChallengeLauncher` + `ChallengeScreens` wired per game
-10. **`RANK_COLORS` duplication** — `lib/constants.ts` now exports a shared `RANK_COLORS`,
+5. ~~Memory Path game~~ — DONE
+6. ~~Timing Tap game~~ — DONE (4 games live)
+7. **Ads** — still placeholder IDs (see Ad Setup above)
+8. **Custom domain** — user is picking one; wire it up in Vercel when shared
+9. **Game 5** — next candidate for `gameRegistry.ts`, not yet chosen
+10. **Challenge mode for Perfect Pour / Memory Path** — infrastructure exists (`/api/scores/[gameId]/[board]`), just needs `ChallengeLauncher` + `ChallengeScreens` wired per game
+11. **`RANK_COLORS` duplication** — `lib/constants.ts` now exports a shared `RANK_COLORS`,
     but `components/leaderboard/Leaderboard.tsx` and
     `components/challenge/ChallengeLeaderboard.tsx` still each declare their own copy
     verbatim; swap both to import the shared one.
-11. **Redundant adjacent headings** — every game page renders its own
+12. **Redundant adjacent headings** — every game page renders its own
     `<h2>{Game} — Leaderboard</h2>` directly above `Leaderboard`'s internal
     `<h3>Leaderboard</h3>`. Fix is either drop the page-level `<h2>` (Leaderboard's own
     heading already says enough) or have `Leaderboard` accept a `title` prop and drop its
     hardcoded `<h3>` — page files weren't touched this branch, so this is still open.
-12. **"More Coming Soon" is currently untrue** — `gameRegistry.ts` lists exactly 3 games,
+13. **"More Coming Soon" is currently untrue** — `gameRegistry.ts` lists exactly 4 games,
     all `isAvailable: true`. The hub's "More Coming Soon" stat tile and copy imply
     unavailable/greyed-out cards that don't exist right now (there's no
     `isAvailable: false` entry to render one). Either add upcoming-game placeholder
