@@ -57,15 +57,18 @@ export function ChallengeIntro({ gameId, code, difficulties, onStart }: Challeng
         </h2>
       </motion.div>
 
-      {/* Round preview: difficulty sequence only, targets stay secret */}
+      {/* Round preview: difficulty sequence only, targets stay secret. Flat
+          tint, no border — these already sit inside the outer .glass-card,
+          and a bordered chip inside a bordered card is the boxes-in-boxes
+          look the redesign drops in favour of a soft surface tint. */}
       <div className="flex gap-3">
         {difficulties.map((difficulty, i) => {
           const color = DIFFICULTY_ACCENT[difficulty];
           return (
             <div
               key={i}
-              className="px-4 py-2 rounded-xl border text-xs font-ui"
-              style={{ color, borderColor: `${color}40`, background: `${color}10` }}
+              className="px-4 py-2 rounded-xl text-xs font-ui"
+              style={{ color, background: `${color}16` }}
             >
               <span className="block text-ink-3 text-xs uppercase tracking-wider mb-0.5">
                 Round {i + 1}
@@ -76,13 +79,13 @@ export function ChallengeIntro({ gameId, code, difficulties, onStart }: Challeng
         })}
       </div>
 
-      <div className="flex flex-col sm:flex-row items-center gap-3">
-        <NeonButton variant="primary" size="lg" onClick={onStart}>
+      <div className="flex flex-col sm:flex-row items-center gap-3 w-full max-w-sm sm:max-w-none">
+        <NeonButton variant="primary" size="lg" onClick={onStart} className="w-full sm:w-auto">
           Start Challenge
         </NeonButton>
         <button
           onClick={copyInvite}
-          className="btn btn-sm btn-secondary" style={{ '--btn-accent': '#22D3EE' } as React.CSSProperties}
+          className="btn btn-sm btn-secondary w-full sm:w-auto" style={{ '--btn-accent': '#22D3EE' } as React.CSSProperties}
         >
           {copied ? (
             <Check className="w-3.5 h-3.5 text-green-400" strokeWidth={1.5} />

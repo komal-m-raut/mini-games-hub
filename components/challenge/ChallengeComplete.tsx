@@ -139,9 +139,9 @@ export function ChallengeComplete({ gameId, code, roundScores, onReplay }: Chall
         <p className="font-ui text-xs text-brand-cyan uppercase tracking-widest mb-2">
           Challenge Complete
         </p>
-        <p className="font-display text-6xl mb-1">
+        <p className="font-score score-hero mb-1">
           {formatScore(total)}
-          <span className="text-ink-3 text-3xl">/{MAX_CHALLENGE_SCORE}</span>
+          <span className="text-ink-3 text-2xl sm:text-3xl">/{MAX_CHALLENGE_SCORE}</span>
         </p>
         <p className="text-ink-3 text-sm font-ui">{challengeLabel(code)}</p>
       </motion.div>
@@ -217,8 +217,9 @@ export function ChallengeComplete({ gameId, code, roundScores, onReplay }: Chall
         <ChallengeLeaderboard gameId={gameId} code={code} playerId={playerId} refreshKey={refreshKey} />
       </div>
 
-      {/* Actions */}
-      <div className="flex gap-3 w-full max-w-sm">
+      {/* Actions — Retry leads full-width in the thumb zone on mobile, Free
+          Play underneath; side by side again once there's room at `sm`. */}
+      <div className="flex flex-col-reverse sm:flex-row gap-3 w-full max-w-sm">
         <Link href={`/games/${gameId}`} className="flex-1 min-w-0">
           <NeonButton
             variant="ghost"
@@ -233,7 +234,7 @@ export function ChallengeComplete({ gameId, code, roundScores, onReplay }: Chall
           variant="secondary"
           size="md"
           onClick={onReplay}
-          className="flex-1 min-w-0 flex items-center justify-center gap-2 whitespace-nowrap"
+          className="flex-1 min-w-0 w-full flex items-center justify-center gap-2 whitespace-nowrap"
         >
           <RotateCcw className="w-4 h-4 shrink-0 hidden sm:block" strokeWidth={1.5} />
           Retry

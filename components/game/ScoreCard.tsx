@@ -18,9 +18,9 @@ export function ScoreCard({ score, round, totalRounds, totalScore }: ScoreCardPr
   const maxTotal = (totalRounds ?? 0) * MAX_ROUND_SCORE;
 
   return (
-    <div className="flex items-center gap-2.5">
+    <div className="flex items-center gap-3">
       {/* Latest round score — the one prominent number in this row */}
-      <Zap className="w-4 h-4 text-brand-yellow shrink-0" strokeWidth={1.5} />
+      <Zap className="w-5 h-5 text-brand-yellow shrink-0" strokeWidth={1.5} />
       <div>
         <p className="text-2xs text-ink-3 font-ui uppercase tracking-wide leading-none mb-0.5">
           Score

@@ -93,7 +93,7 @@ export function DailyClient() {
   return (
     <div className="page-container py-8 sm:py-12 flex flex-col gap-10">
       <div>
-        <h1 className="font-display text-3xl sm:text-4xl mb-2">Daily Quests &amp; Challenges</h1>
+        <h1 className="font-display text-4xl sm:text-5xl mb-2">Daily Quests &amp; Challenges</h1>
         <p className="text-ink-3 text-sm max-w-2xl">
           Three fresh quests every day, a streak that rewards showing up, and a seeded Daily
           Gauntlet — the same rounds for every player, in every game, until the day resets.

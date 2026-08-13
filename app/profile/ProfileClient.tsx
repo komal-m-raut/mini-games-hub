@@ -112,7 +112,7 @@ export function ProfileClient() {
   return (
     <div className="page-container py-8 sm:py-12 flex flex-col gap-10">
       <div>
-        <h1 className="font-display text-3xl sm:text-4xl mb-2">Your Player Profile</h1>
+        <h1 className="font-display text-4xl sm:text-5xl mb-2">Your Player Profile</h1>
         <p className="text-ink-3 text-sm max-w-2xl">
           Everything here lives on this device only — no account, no sign-in. Pick a nickname
           and an avatar, track your level and streak, and unlock badges as you play.

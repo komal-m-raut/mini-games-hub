@@ -58,7 +58,9 @@ export function ModeSelector({
     <div className="flex flex-col gap-3.5">
       <h2 className="font-display text-2xl text-center">Ready to play?</h2>
 
-      <div className="flex flex-wrap justify-center gap-2">
+      {/* Full-width and stacked in the thumb zone below `sm`; the same
+          compact pill row once there's room to fit all three side by side. */}
+      <div className="flex flex-col sm:flex-row sm:flex-wrap sm:justify-center gap-2.5 sm:gap-2 w-full sm:max-w-none max-w-sm mx-auto">
         {modes.map(({ icon, label, hint, primary, tone, onClick }) => (
           <NeonButton
             key={label}
@@ -68,6 +70,7 @@ export function ModeSelector({
             variant={primary ? 'primary' : 'secondary'}
             accent={tone}
             pill
+            className="w-full sm:w-auto justify-center"
           >
             {icon}
             <span>{label}</span>

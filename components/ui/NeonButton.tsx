@@ -68,8 +68,11 @@ export function NeonButton({
       style={accent ? ({ '--btn-accent': accent, ...style } as React.CSSProperties) : style}
       // Press feedback is the CSS `:active` translate on `.btn`, not a
       // Framer scale — one definition covers every button in the app,
-      // including the ones that aren't this component.
-      whileTap={disabled ? undefined : { scale: 0.985 }}
+      // including the ones that aren't this component. The scale here is a
+      // deliberately light *additional* squash on top of that, tuned to
+      // 0.97 to match the app-wide press feel without fighting the
+      // translate.
+      whileTap={disabled ? undefined : { scale: 0.97 }}
       transition={{ type: 'spring', stiffness: 500, damping: 30 }}
       disabled={disabled}
       {...props}

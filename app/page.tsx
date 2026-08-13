@@ -96,7 +96,7 @@ function GameCard({ game, index = 0 }: { game: GameMeta; index?: number }) {
   const Wrapper = game.isAvailable ? Link : 'div';
 
   return (
-    <div className="fade-up" style={{ animationDelay: `${Math.min(index, 12) * 0.05}s` }}>
+    <div className="fade-up" style={{ animationDelay: `${Math.min(index, 12) * 0.035}s` }}>
       <Wrapper
         // @ts-expect-error — href is only used when isAvailable is true
         href={game.isAvailable ? game.href : undefined}

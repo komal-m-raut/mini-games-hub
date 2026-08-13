@@ -106,9 +106,9 @@ export function SessionSummary({
         >
           Session Complete · {subtitle}
         </p>
-        <p className="font-display text-6xl mb-1">
+        <p className="font-score score-hero mb-1">
           {formatScore(total)}
-          <span className="text-ink-4 text-3xl">/{max}</span>
+          <span className="text-ink-4 text-2xl sm:text-3xl">/{max}</span>
         </p>
         {isNewBest ? (
           <motion.p
@@ -157,12 +157,15 @@ export function SessionSummary({
         {copied ? 'Copied!' : 'Share result'}
       </button>
 
-      <div className="flex gap-3 w-full max-w-sm">
+      {/* Play Again leads and goes full-width in the thumb zone on mobile;
+          Menu stays reachable underneath rather than splitting the same row
+          in half. Side by side again once there's room at `sm`. */}
+      <div className="flex flex-col-reverse sm:flex-row gap-3 w-full max-w-sm">
         <NeonButton
           variant="ghost"
           size="md"
           onClick={onMenu}
-          className="flex-1 min-w-0 flex items-center justify-center gap-2 whitespace-nowrap"
+          className="flex-1 min-w-0 w-full flex items-center justify-center gap-2 whitespace-nowrap"
         >
           <Home className="w-4 h-4 shrink-0" strokeWidth={1.5} />
           Menu
@@ -171,7 +174,7 @@ export function SessionSummary({
           variant="primary"
           size="md"
           onClick={onReplay}
-          className="flex-1 min-w-0 flex items-center justify-center gap-2 whitespace-nowrap"
+          className="flex-1 min-w-0 w-full flex items-center justify-center gap-2 whitespace-nowrap"
         >
           <RotateCcw className="w-4 h-4 shrink-0 hidden sm:block" strokeWidth={1.5} />
           Play Again

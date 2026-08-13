@@ -167,9 +167,13 @@ body {
   background: rgba(124, 58, 237, 0.7);
 }
 
-/* Focus ring */
+/* Focus ring — a soft accent ring rather than a hard-edged one, so it reads
+   as a glow that belongs to the dark-arcade identity instead of a bare
+   system outline. Still opaque enough to clear WCAG's non-text contrast
+   requirement at 2px. Modern browsers already round the outline to match
+   the focused element's own border-radius, so nothing forces one here. */
 *:focus-visible {
-  outline: 2px solid var(--color-brand-purple);
+  outline: 2px solid color-mix(in srgb, var(--color-brand-violet) 85%, transparent);
   outline-offset: 3px;
 }
 
@@ -216,11 +220,15 @@ body {
     background: var(--color-surface-1);
     backdrop-filter: blur(16px);
     -webkit-backdrop-filter: blur(16px);
-    border: 1px solid var(--color-line-1);
+    /* Alpha dropped from the line-1 token (0.08) to keep the edge a
+       suggestion rather than a drawn box — depth now reads mostly through
+       the layered shadow below instead of a hard border. */
+    border: 1px solid color-mix(in srgb, var(--color-line-1) 55%, transparent);
     border-radius: var(--radius-xl);
     padding: 1.5rem;
     position: relative;
     overflow: hidden;
+    box-shadow: 0 24px 48px -32px rgba(0, 0, 0, 0.7);
   }
 
   .glass-card::before {
@@ -241,14 +249,22 @@ body {
    Navigation Glass
 ───────────────────────────────────────────── */
 /* Single source of truth for the fixed nav's real on-screen height:
-   the inner row is a fixed 4rem (`h-16` in Navigation.tsx) plus, in
-   installed standalone PWA mode on a notched iPhone, whatever inset the
-   status bar/notch eats via `padding-top` below (L15). Anything that
-   needs to sit clear of the nav — the content offset, scroll anchors —
-   must read this variable instead of a hardcoded px value, or the two
-   will drift apart again the next time either side changes. */
+   the inner row is 3.5rem below the `sm` breakpoint and 4rem at/above it
+   (`h-14 sm:h-16` in Navigation.tsx — a bottom tab bar already carries the
+   same destinations on phones, so the top bar can afford to be a little
+   tighter there), plus, in installed standalone PWA mode on a notched
+   iPhone, whatever inset the status bar/notch eats via `padding-top` below
+   (L15). Anything that needs to sit clear of the nav — the content offset,
+   scroll anchors — must read this variable instead of a hardcoded px value,
+   or the two will drift apart again the next time either side changes. */
 :root {
-  --nav-height: calc(4rem + env(safe-area-inset-top, 0px));
+  --nav-height: calc(3.5rem + env(safe-area-inset-top, 0px));
+}
+
+@media (min-width: 640px) {
+  :root {
+    --nav-height: calc(4rem + env(safe-area-inset-top, 0px));
+  }
 }
 
 .glass-nav {
@@ -285,13 +301,13 @@ body {
   border-radius: var(--radius-sm);
   font-size: 0.875rem;
   font-family: var(--font-body);
-  color: rgba(255, 255, 255, 0.5);
+  color: var(--color-ink-3);
   text-decoration: none;
   transition: color var(--dur-normal), background var(--dur-normal);
 }
 
 .nav-link:hover {
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--color-ink-1);
   background: var(--color-surface-2);
 }
 
@@ -467,13 +483,17 @@ body {
 ───────────────────────────────────────────── */
 .difficulty-card {
   background: var(--color-surface-1);
-  border: 1px solid var(--color-line-1);
+  border: 1px solid color-mix(in srgb, var(--color-line-1) 70%, transparent);
   border-radius: var(--radius-lg);
   text-align: left;
   cursor: pointer;
   transition: border-color var(--dur-normal), box-shadow var(--dur-normal), background var(--dur-normal);
   overflow: hidden;
   padding: 0;
+  /* Full-width and stacked on mobile already comes from the flex-col
+     container; this guarantees the ≥56px touch-target floor regardless of
+     how short the label + qualifier text happens to be. */
+  min-height: 3.5rem;
 }
 
 /* Tint and lift on hover instead of a 40px coloured halo. The halo made
@@ -512,11 +532,19 @@ body {
 }
 
 .game-card:hover {
-  transform: translateY(-3px);
   border-color: color-mix(in srgb, var(--game) 45%, transparent);
   box-shadow:
     0 16px 34px -16px rgba(0, 0, 0, 0.95),
     0 0 0 1px color-mix(in srgb, var(--game) 20%, transparent);
+}
+
+/* The lift itself is desktop-only: on a touch device :hover fires (and
+   sticks) on tap, so a card that has just been tapped away from would stay
+   floated above its neighbours until something else is tapped. */
+@media (hover: hover) and (pointer: fine) {
+  .game-card:hover {
+    transform: translateY(-3px);
+  }
 }
 
 .game-card:active {
@@ -593,7 +621,7 @@ body {
   margin-top: 0.35rem;
   font-size: 0.9375rem;
   line-height: 1.5;
-  color: rgba(255, 255, 255, 0.68);
+  color: var(--color-ink-2);
 }
 
 /* A control, not a table footer. The old version was a full-bleed strip
@@ -1056,13 +1084,64 @@ body {
   background: rgba(255, 255, 255, 0.16);
 }
 
+/* The mixing screen's live preview: the dominant element on the card, so a
+   one-step slider nudge is unmistakable. The dashed ring is a continuity
+   echo of where the target panel sat during "memorise" — tinted by the
+   *difficulty* colour (`--ghost`), never the target's own hue, so it can't
+   leak the answer. */
+.color-preview-frame {
+  position: relative;
+  border-radius: var(--radius-xl);
+  padding: 10px;
+}
+
+.color-preview-frame::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  border: 2px dashed color-mix(in srgb, var(--ghost, var(--color-line-2)) 55%, transparent);
+  opacity: 0.6;
+  animation: color-ghost-pulse 3.2s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes color-ghost-pulse {
+  0%, 100% { opacity: 0.35; }
+  50% { opacity: 0.7; }
+}
+
+.color-preview {
+  position: relative;
+  display: grid;
+  place-items: end center;
+  padding-bottom: 0.85rem;
+  width: 100%;
+  height: 12rem;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-line-2);
+  /* No transition here: the fill must track the pointer 1:1, every tick. */
+}
+
+@media (min-width: 640px) {
+  .color-preview { height: 15rem; }
+}
+
+.color-preview__hex {
+  font-size: 0.9375rem;
+  letter-spacing: 0.08em;
+  padding: 0.3rem 0.75rem;
+  border-radius: var(--radius-pill);
+  background: rgba(255, 255, 255, 0.16);
+}
+
 /* `appearance: none` means the thumb must be re-specified per engine: WebKit
    and Gecko expose different pseudo-elements and share no selector, so
    grouping these rules would make both engines drop them. */
 .color-slider {
   -webkit-appearance: none;
   appearance: none;
-  height: 1.5rem;               /* 24px hit area around a 10px track */
+  height: 2.5rem;               /* 40px hit area around a 16px track */
   background: transparent;
   cursor: pointer;
   touch-action: pan-y;          /* vertical scrolling still works over it */
@@ -1070,14 +1149,14 @@ body {
 }
 
 .color-slider::-webkit-slider-runnable-track {
-  height: 10px;
+  height: 16px;
   border-radius: var(--radius-pill);
   background: var(--track);
   border: 1px solid var(--color-line-1);
 }
 
 .color-slider::-moz-range-track {
-  height: 10px;
+  height: 16px;
   border-radius: var(--radius-pill);
   background: var(--track);
   border: 1px solid var(--color-line-1);
@@ -1086,30 +1165,76 @@ body {
 .color-slider::-webkit-slider-thumb {
   -webkit-appearance: none;
   appearance: none;
-  width: 20px;
-  height: 20px;
-  margin-top: -6px;             /* centres the thumb on the 10px track */
+  box-sizing: border-box;
+  width: 30px;
+  height: 30px;
+  margin-top: -8px;             /* centres the 30px thumb on the 16px track */
   border-radius: var(--radius-pill);
   background: var(--thumb);
-  border: 2px solid var(--color-ink-1);
+  border: 3px solid var(--color-ink-1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
 }
 
 .color-slider::-moz-range-thumb {
-  width: 20px;
-  height: 20px;
+  box-sizing: border-box;
+  width: 30px;
+  height: 30px;
   border-radius: var(--radius-pill);
   background: var(--thumb);
-  border: 2px solid var(--color-ink-1);
+  border: 3px solid var(--color-ink-1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
 }
 
 /* The thumb carries the focus ring, so suppress the outline that would
-   otherwise box the whole 24px strip. */
+   otherwise box the whole 40px strip. */
 .color-slider:focus-visible { outline: none; }
 .color-slider:focus-visible::-webkit-slider-thumb {
   box-shadow: 0 0 0 3px var(--color-brand-purple);
 }
 .color-slider:focus-visible::-moz-range-thumb {
   box-shadow: 0 0 0 3px var(--color-brand-purple);
+}
+
+/* Result screen's "how close was I" reveal: target and mix as two halves of
+   one swatch meeting at a seam, rather than two separate cards. */
+.color-compare {
+  position: relative;
+  display: flex;
+  width: 100%;
+  height: 9rem;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-line-2);
+  overflow: hidden;
+}
+
+.color-compare__half {
+  flex: 1 1 0%;
+  min-width: 0;
+  display: flex;
+  align-items: flex-end;
+  padding: 0.75rem;
+}
+
+.color-compare__seam {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 2px;
+  transform: translateX(-1px);
+  background: rgba(255, 255, 255, 0.5);
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+  z-index: 1;
+}
+
+.color-compare__tag {
+  font-size: 0.75rem;
+  letter-spacing: 0.04em;
+  padding: 0.2rem 0.6rem;
+  border-radius: var(--radius-pill);
+  background: rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
 }
 
 /* Round progress: one segment per round, tinted by that round's rating. */
@@ -1384,9 +1509,13 @@ body {
 /* ─────────────────────────────────────────────
    Result Stats
 ───────────────────────────────────────────── */
+/* No border: these sit inside .glass-card results panels (SessionSummary,
+   ChallengeComplete) as well as bare page grids (ProfileClient), and a
+   bordered tile inside a bordered card is exactly the boxes-in-boxes look
+   the redesign is dropping. A slightly stronger surface tint plus a hairline
+   inner highlight carries the "tile" read instead. */
 .stat-card {
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid var(--color-line-1);
+  background: var(--color-surface-2);
   border-radius: var(--radius-md);
   padding: 12px;
   text-align: center;
@@ -1397,6 +1526,7 @@ body {
      of line with single-line neighbours in the same row (M27). */
   justify-content: flex-start;
   min-height: 72px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.05);
 }
 
 .stat-label {
@@ -1404,15 +1534,21 @@ body {
   font-size: 0.75rem;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  color: rgba(255, 255, 255, 0.55);
+  color: var(--color-ink-3);
   margin-bottom: 6px;
   white-space: nowrap;
 }
 
+/* Every .stat-value in the app holds a number (a round score, a play count,
+   a badge tally) — numeric readout, so it earns the same face and tabular
+   digits as .font-score. Colour is deliberately left unset: callers layer a
+   Tailwind text-* utility on top (e.g. text-brand-purple for a round score),
+   and this rule lives outside @layer so it must not out-rank that choice. */
 .stat-value {
-  font-family: var(--font-display);
-  font-size: 1rem;
-  font-weight: 700;
+  font-family: var(--font-numeric);
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  letter-spacing: -0.01em;
   line-height: 1.25;
   word-break: break-word;
 }
@@ -1624,6 +1760,16 @@ body {
   color: var(--color-ink-1);
 }
 
+/* Result-screen hero number (SessionSummary / ChallengeComplete total).
+   Fluid rather than a Tailwind step: the score is the one thing on that
+   screen that should read as unmistakably the headline, at any viewport, so
+   it scales continuously with the vw instead of jumping between two fixed
+   sizes. Pair with .font-score, which supplies the face/weight/colour. */
+.score-hero {
+  font-size: clamp(3rem, 12vw, 4.5rem);
+  line-height: 1;
+}
+
 /* ─────────────────────────────────────────────
    Safe-area insets (L15)
    The footer sits at the very bottom of the document; in installed
@@ -1729,6 +1875,9 @@ body {
 .tabbar-icon-wrap {
   position: relative;
   display: inline-flex;
+  border-radius: var(--radius-pill);
+  padding: 4px 14px;
+  transition: background var(--dur-normal) ease;
 }
 
 .tabbar-link svg {
@@ -1738,6 +1887,13 @@ body {
 
 .tabbar-link[aria-current='page'] {
   color: var(--color-brand-cyan);
+}
+
+/* Active pill: a soft tint behind the icon only, not the whole column — the
+   column itself stays a full-width tap target, so the pill reads as a
+   selection indicator rather than a second, competing button shape. */
+.tabbar-link[aria-current='page'] .tabbar-icon-wrap {
+  background: color-mix(in srgb, var(--color-brand-cyan) 16%, transparent);
 }
 
 .tabbar-link:active {
@@ -1885,14 +2041,17 @@ body {
   gap: 0.5rem;
 }
 
+/* Sits inside the hub's .hub-daily-strip, itself a .glass-card — a lower
+   border alpha than the line-1 token default keeps the chip from reading as
+   a second box nested in the first. */
 .quest-chip {
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
   padding: 0.4rem 0.75rem;
   border-radius: var(--radius-pill);
-  background: var(--color-surface-1);
-  border: 1px solid var(--color-line-1);
+  background: var(--color-surface-2);
+  border: 1px solid color-mix(in srgb, var(--color-line-1) 60%, transparent);
   font-family: var(--font-body);
   font-size: 0.8125rem;
   color: var(--color-ink-2);
@@ -1927,6 +2086,28 @@ body {
      composite instead of reflowing the chip row. */
   transform-origin: left center;
   transition: transform var(--dur-slow) ease;
+}
+
+/* ── Quest row (DailyClient's full quest list) ─────────────────────── */
+/* A quiet row, not a card — QuestList renders inside the /daily page's own
+   .glass-card panel, and giving every row its own border/blur nested a card
+   inside a card. This keeps the same label/progress content at a calm, even
+   row height instead. */
+.quest-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.7rem 0.25rem;
+  border-radius: var(--radius-sm);
+  transition: background var(--dur-fast) ease;
+}
+
+.quest-row:hover {
+  background: var(--color-surface-1);
+}
+
+.quest-row + .quest-row {
+  border-top: 1px solid var(--color-line-1);
 }
 
 /* ── Search + category filter chips ────────────────────────────────── */
