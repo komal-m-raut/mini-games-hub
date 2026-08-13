@@ -181,7 +181,7 @@ export const GAME_REGISTRY: GameMeta[] = [
     howTo: 'Flip cards to find matching pairs — clear the board fast in as few flips as you can.',
     emoji: '🃏',
     accent: '#F472B6',
-    isAvailable: false,
+    isAvailable: true,
     href: '/games/pair-chase',
   },
   {
