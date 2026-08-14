@@ -3,11 +3,11 @@ import Link from 'next/link';
 
 export const metadata: Metadata = {
   title: 'Privacy Policy',
-  description: 'Privacy Policy for Mettle — how we handle data, ads, and tracking.',
+  description: 'Privacy Policy for Tiny Arcadium — how we handle data, ads, and tracking.',
   alternates: { canonical: '/privacy' },
   openGraph: {
     title: 'Privacy Policy',
-    description: 'Privacy Policy for Mettle — how we handle data, ads, and tracking.',
+    description: 'Privacy Policy for Tiny Arcadium — how we handle data, ads, and tracking.',
     url: '/privacy',
   },
 };
@@ -33,7 +33,7 @@ export default function PrivacyPage() {
           <section>
             <h2 className="font-display text-xl mb-3">The short version</h2>
             <p>
-              Mettle is free to play — no sign-up, no login, no personal information
+              Tiny Arcadium is free to play — no sign-up, no login, no personal information
               collected. We just want you to have fun.
             </p>
           </section>
@@ -53,7 +53,7 @@ export default function PrivacyPage() {
           <section>
             <h2 className="font-display text-xl mb-3">Cookies &amp; local storage</h2>
             <p className="mb-3">
-              Mettle itself doesn’t set any cookies. Instead we use your browser’s local
+              Tiny Arcadium itself doesn’t set any cookies. Instead we use your browser’s local
               storage — data that stays on your device — for a few small things: a random ID so
               we can recognize you across visits without a login, the nickname you choose for the
               leaderboard, and your sound on/off preference. If you’ve set a local high score in a
@@ -115,7 +115,7 @@ export default function PrivacyPage() {
           <section>
             <h2 className="font-display text-xl mb-3">Kids</h2>
             <p>
-              Mettle is suitable for general audiences. We don’t knowingly collect any
+              Tiny Arcadium is suitable for general audiences. We don’t knowingly collect any
               information from children. If you have concerns, feel free to reach out.
             </p>
           </section>

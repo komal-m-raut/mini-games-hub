@@ -1,8 +1,8 @@
-// Mettle service worker — offline-first shell caching.
+// Tiny Arcadium service worker — offline-first shell caching.
 // CACHE_VERSION MUST be bumped on every deploy that changes any cached
 // asset (pages, styles, scripts) — otherwise clients keep serving stale
 // content indefinitely, since nothing else invalidates the cache.
-const CACHE_VERSION = 'ta-v3';
+const CACHE_VERSION = 'ta-v4';
 const CORE_ASSETS = [
   '/',
   '/games/balloon-match',
@@ -40,6 +40,19 @@ self.addEventListener('fetch', (event) => {
   if (request.method !== 'GET' || url.origin !== self.location.origin) return;
   if (url.pathname.startsWith('/api/')) return;
 
+  // Next's App Router payloads are coupled to the exact deployment that
+  // generated them. Serving a cached RSC/prefetch response after a release
+  // can combine an old component tree with new client chunks and trigger the
+  // route error boundary. Let the browser and Next handle all framework and
+  // router traffic directly; hashed assets already ship with immutable HTTP
+  // caching headers.
+  const isRouterPayload =
+    url.searchParams.has('_rsc') ||
+    request.headers.get('RSC') === '1' ||
+    request.headers.has('Next-Router-Prefetch') ||
+    request.headers.has('Next-Router-State-Tree');
+  if (url.pathname.startsWith('/_next/') || isRouterPayload) return;
+
   // Pages: network-first so content stays fresh, cache fallback when offline.
   if (request.mode === 'navigate') {
     event.respondWith(
@@ -58,9 +71,8 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Hashed build assets, icons, fonts: cache-first (immutable by URL).
+  // App-owned icons and fonts: cache-first.
   const isImmutable =
-    url.pathname.startsWith('/_next/static/') ||
     url.pathname.startsWith('/icons/') ||
     request.destination === 'font';
 

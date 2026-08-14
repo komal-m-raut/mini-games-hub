@@ -38,7 +38,7 @@ export const CONTENT: GameContent = {
     },
     {
       q: 'Can I play Math Sprint offline?',
-      a: "Math Sprint is cached by Mettle's installable PWA, so it stays playable offline once you've opened it before — you'll need a connection again to submit a Challenge score to the leaderboard.",
+      a: "Math Sprint is cached by Tiny Arcadium's installable PWA, so it stays playable offline once you've opened it before — you'll need a connection again to submit a Challenge score to the leaderboard.",
     },
     {
       q: 'Is Math Sprint free, and do I need an account?',

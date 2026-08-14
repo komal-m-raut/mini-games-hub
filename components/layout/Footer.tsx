@@ -15,15 +15,15 @@ export function Footer() {
       <div className="page-container club-footer__inner">
         <div>
           <Link href="/" className="club-wordmark club-wordmark--footer">
-            <span aria-hidden="true">M</span>
-            <strong>Mettle</strong>
+            <span aria-hidden="true">T</span>
+            <strong>Tiny Arcadium</strong>
           </Link>
           <p>Small games. Real bragging rights.</p>
         </div>
         <nav aria-label="Footer">
           {LINKS.map((link) => <Link key={link.href} href={link.href}>{link.label}</Link>)}
         </nav>
-        <p className="club-footer__legal">© {new Date().getFullYear()} Mettle. Play fair.</p>
+        <p className="club-footer__legal">© {new Date().getFullYear()} Tiny Arcadium. Play fair.</p>
       </div>
     </footer>
   );

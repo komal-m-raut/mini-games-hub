@@ -5,12 +5,12 @@ import { AVAILABLE_GAMES, CATEGORY_META, CATEGORY_ORDER } from '@/lib/gameRegist
 export const metadata: Metadata = {
   title: 'About',
   description:
-    'About Mettle — a free, local-first browser mini-game hub with daily challenges, quests and guides. No downloads, no signups, no accounts.',
+    'About Tiny Arcadium — a free, local-first browser mini-game hub with daily challenges, quests and guides. No downloads, no signups, no accounts.',
   alternates: { canonical: '/about' },
   openGraph: {
     title: 'About',
     description:
-      'About Mettle — a free, local-first browser mini-game hub with daily challenges, quests and guides. No downloads, no signups, no accounts.',
+      'About Tiny Arcadium — a free, local-first browser mini-game hub with daily challenges, quests and guides. No downloads, no signups, no accounts.',
     url: '/about',
   },
 };
@@ -42,7 +42,7 @@ export default function AboutPage() {
         </Link>
 
         <h1 className="font-display text-3xl sm:text-4xl mb-2">
-          About Mettle
+          About Tiny Arcadium
         </h1>
         <p className="text-ink-3 text-sm mb-10">A free, local-first browser mini-game hub</p>
 
@@ -51,7 +51,7 @@ export default function AboutPage() {
           <section>
             <h2 className="font-display text-xl mb-3">What this is</h2>
             <p>
-              Mettle is a small, growing arcade of free browser games. Everything runs
+              Tiny Arcadium is a small, growing arcade of free browser games. Everything runs
               instantly in your browser tab — no download, no signup, no account. Just open a
               game and play.
             </p>
@@ -132,7 +132,7 @@ export default function AboutPage() {
           <section>
             <h2 className="font-display text-xl mb-3">Free, supported by ads</h2>
             <p>
-              Mettle is free to play. We keep it that way by showing ads around the games
+              Tiny Arcadium is free to play. We keep it that way by showing ads around the games
               — never during active play.
             </p>
           </section>

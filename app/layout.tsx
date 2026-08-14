@@ -49,8 +49,8 @@ const jetbrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: 'Mettle — Small Games. Real Bragging Rights.',
-    template: '%s · Mettle',
+    default: 'Tiny Arcadium — Small Games. Real Bragging Rights.',
+    template: '%s · Tiny Arcadium',
   },
   description:
     'Play original browser skill games, take on the daily run, and challenge friends through private shareable leaderboards. No account or download.',
@@ -73,17 +73,17 @@ export const metadata: Metadata = {
   ],
   alternates: { canonical: '/' },
   openGraph: {
-    siteName: 'Mettle',
-    title: 'Mettle — Small Games. Real Bragging Rights.',
+    siteName: 'Tiny Arcadium',
+    title: 'Tiny Arcadium — Small Games. Real Bragging Rights.',
     description:
       'Original quick skill games, daily runs, and private friend leaderboards. Play instantly with no account or download.',
     type: 'website',
     url: '/',
-    images: [{ url: '/og.png', width: 1200, height: 630, alt: 'Mettle games club' }],
+    images: [{ url: '/og.png', width: 1200, height: 630, alt: 'Tiny Arcadium games club' }],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Mettle — Small Games. Real Bragging Rights.',
+    title: 'Tiny Arcadium — Small Games. Real Bragging Rights.',
     description:
       'Original quick skill games, daily runs, and private friend leaderboards. Play instantly.',
     images: ['/og.png'],
@@ -91,7 +91,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
-    title: 'Mettle',
+    title: 'Tiny Arcadium',
   },
   icons: {
     icon: [
@@ -135,7 +135,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     >
       <head>
         {/* Site-wide structured data so search engines understand what
-            Mettle is beyond the page copy. */}
+            Tiny Arcadium is beyond the page copy. */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }}

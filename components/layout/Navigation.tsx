@@ -12,9 +12,9 @@ export function Navigation() {
   return (
     <nav className="club-nav" aria-label="Primary">
       <div className="page-container club-nav__inner">
-        <Link href="/" className="club-wordmark" aria-label="Mettle home">
-          <span aria-hidden="true">M</span>
-          <strong>Mettle</strong>
+        <Link href="/" className="club-wordmark" aria-label="Tiny Arcadium home">
+          <span aria-hidden="true">T</span>
+          <strong>Tiny Arcadium</strong>
         </Link>
 
         <div className="club-nav__links">

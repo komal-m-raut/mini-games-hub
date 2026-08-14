@@ -37,7 +37,7 @@ filter that `lib/moderation.ts` actually implements.
 section of real prose, plus longer per-game descriptions. These pages were
 previously almost pure canvas with no indexable text.
 
-**4. Branding** — rebranded "Mini Games Hub" → **Mettle** across nav,
+**4. Branding** — refreshed **Tiny Arcadium** across nav,
 hero, footer, manifest, service-worker cache key and all metadata, so brand
 matches the domain.
 

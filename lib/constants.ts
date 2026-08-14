@@ -1,6 +1,6 @@
 import { Difficulty } from '@/types/game';
 
-export const SITE_NAME = 'Mettle';
+export const SITE_NAME = 'Tiny Arcadium';
 export const SITE_DESCRIPTION =
   'A curated club of original browser skill games, daily runs, and private friend leaderboards. No download or signup.';
 

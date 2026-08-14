@@ -3,11 +3,11 @@ import Link from 'next/link';
 
 export const metadata: Metadata = {
   title: 'Terms of Service',
-  description: 'Terms of Service for Mettle — the plain-English rules for using the site.',
+  description: 'Terms of Service for Tiny Arcadium — the plain-English rules for using the site.',
   alternates: { canonical: '/terms' },
   openGraph: {
     title: 'Terms of Service',
-    description: 'Terms of Service for Mettle — the plain-English rules for using the site.',
+    description: 'Terms of Service for Tiny Arcadium — the plain-English rules for using the site.',
     url: '/terms',
   },
 };
@@ -33,7 +33,7 @@ export default function TermsPage() {
           <section>
             <h2 className="font-display text-xl mb-3">The short version</h2>
             <p>
-              By using Mettle, you agree to these terms. They’re short and written in
+              By using Tiny Arcadium, you agree to these terms. They’re short and written in
               plain English on purpose — play fair, don’t abuse the site, and have fun.
             </p>
           </section>
@@ -41,7 +41,7 @@ export default function TermsPage() {
           <section>
             <h2 className="font-display text-xl mb-3">The service</h2>
             <p>
-              Mettle is provided free of charge, “as is,” with no guarantees. We do our
+              Tiny Arcadium is provided free of charge, “as is,” with no guarantees. We do our
               best to keep it fast and available, but we can’t promise it will always be online,
               bug-free, or work perfectly on every device.
             </p>
@@ -90,7 +90,7 @@ export default function TermsPage() {
             <h2 className="font-display text-xl mb-3">Changes to these terms</h2>
             <p>
               We may update these terms from time to time. If we do, we’ll update this page.
-              Continuing to use Mettle after a change means you accept the new terms.
+              Continuing to use Tiny Arcadium after a change means you accept the new terms.
             </p>
           </section>
 

@@ -18,7 +18,9 @@ export function ServiceWorkerRegister() {
       });
       if ('caches' in window) {
         caches.keys().then((keys) => {
-          keys.filter((k) => k.startsWith('mgh-')).forEach((k) => caches.delete(k));
+          keys
+            .filter((k) => k.startsWith('mgh-') || k.startsWith('ta-'))
+            .forEach((k) => caches.delete(k));
         });
       }
       return;

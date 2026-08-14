@@ -188,7 +188,7 @@ export function FadingXoGame({ challengeCode }: FadingXoGameProps = {}) {
             <div className="ghost-game-players" aria-label="Players">
               <span className={isPlayerTurn ? 'is-active' : undefined}><strong>X</strong> You</span>
               <em>vs</em>
-              <span className={!isPlayerTurn ? 'is-active' : undefined}>Mettle <strong>O</strong></span>
+              <span className={!isPlayerTurn ? 'is-active' : undefined}>Arcadium <strong>O</strong></span>
             </div>
 
             <FadingXoBoard engine={engine} interactive={interactive} onCellTap={playerMove} markColor={MARK_COLOR} />

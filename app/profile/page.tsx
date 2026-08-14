@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import { ProfileClient } from './ProfileClient';
 
 const description =
-  'Your Mettle profile — nickname, avatar, level and XP, play streak, unlocked badges, and your best score in every game. Stored on this device only.';
+  'Your Tiny Arcadium profile — nickname, avatar, level and XP, play streak, unlocked badges, and your best score in every game. Stored on this device only.';
 
 export const metadata: Metadata = {
   title: 'Your Player Profile',

@@ -35,7 +35,7 @@ export const CONTENT: GameContent = {
     },
     {
       q: 'Can I play Balloon Match offline?',
-      a: "Yes — Mettle is an installable Progressive Web App, and Balloon Match is one of the games cached for offline play. Once you've loaded it once, it keeps working without a connection; leaderboard submissions just need you back online.",
+      a: "Yes — Tiny Arcadium is an installable Progressive Web App, and Balloon Match is one of the games cached for offline play. Once you've loaded it once, it keeps working without a connection; leaderboard submissions just need you back online.",
     },
     {
       q: 'What are the controls?',

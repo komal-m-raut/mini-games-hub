@@ -87,7 +87,7 @@ export function ProfileClient() {
 
   const shareProfile = async () => {
     const text = [
-      `${avatar} ${name || 'My'} Mettle profile`,
+      `${avatar} ${name || 'My'} Tiny Arcadium profile`,
       `Level ${progress.level} · ${progress.totalPlays} plays · ${streak.current}-day streak (best ${streak.best}) · ${unlocked.size}/${defs.length} badges`,
       `Play free at ${window.location.origin}`,
     ].join('\n');

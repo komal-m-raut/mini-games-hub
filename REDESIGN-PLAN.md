@@ -1,4 +1,4 @@
-# Mettle — Gamified Expansion Plan
+# Tiny Arcadium — Gamified Expansion Plan
 
 Goal: grow from 5 games to 26, add a progression layer (XP, streaks, daily quests,
 achievements), redesign the hub into a playful arcade, and add enough genuine,

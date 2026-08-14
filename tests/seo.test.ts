@@ -106,8 +106,8 @@ describe('buildArticleJsonLd', () => {
     expect(article.url).toBe(`${SITE_URL}/guides/reaction-time`);
   });
 
-  it('author and publisher are both the Mettle organization', () => {
-    const org = { '@type': 'Organization', name: 'Mettle', url: SITE_URL };
+  it('author and publisher are both the Tiny Arcadium organization', () => {
+    const org = { '@type': 'Organization', name: 'Tiny Arcadium', url: SITE_URL };
     expect(article.author).toEqual(org);
     expect(article.publisher).toEqual(org);
   });
