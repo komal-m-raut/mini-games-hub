@@ -6,7 +6,7 @@ export interface FadingXoChallengeRound {
 }
 
 /**
- * A Fading XO challenge is always the same easy → medium → hard bot ladder —
+ * A Ghost Grid challenge is always the same easy → medium → hard bot ladder —
  * there's no per-round content to draw (unlike, say, math questions), so
  * this doesn't even need the challenge code. What the code seeds instead is
  * the bot's actual play: `makeChallengeRand(code, GAME_ID)` (from

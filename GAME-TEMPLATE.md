@@ -1,4 +1,4 @@
-# Adding a game to Tiny Arcadium — the canonical checklist
+# Adding a game to Mettle — the canonical checklist
 
 Every game is a self-contained vertical slice. `<slug>` = kebab id from
 `lib/gameRegistry.ts`, `<Name>` = PascalCase. Use `timing-tap` as the living

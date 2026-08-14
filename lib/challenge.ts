@@ -1,6 +1,6 @@
 import { Difficulty } from '@/types/game';
 import { BALLOON_COLORS, DIFFICULTY_CONFIG } from '@/lib/constants';
-import { GAME_REGISTRY } from '@/lib/gameRegistry';
+import { getGameMeta } from '@/lib/gameRegistry';
 import { MAX_ROUND_SCORE, formatScore, round2 } from '@/utils/scoring';
 import { scoreEmoji } from '@/lib/share';
 
@@ -136,7 +136,7 @@ export function challengeLabel(code: string): string {
 
 /** Emoji + display name for a game, for share text headers. */
 function gameHeader(gameId: string): string {
-  const meta = GAME_REGISTRY.find((g) => g.id === gameId);
+  const meta = getGameMeta(gameId);
   return meta ? `${meta.emoji} ${meta.title}` : gameId;
 }
 

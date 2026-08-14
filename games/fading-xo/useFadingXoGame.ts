@@ -102,6 +102,7 @@ export function useFadingXoGame({ challengeCode }: UseFadingXoGameOptions = {}) 
 
   const botTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const transitioningRef = useRef(false);
+  const playerActionLockRef = useRef(false);
 
   const clearBotTimeout = useCallback(() => {
     if (botTimeoutRef.current) {
@@ -150,6 +151,7 @@ export function useFadingXoGame({ challengeCode }: UseFadingXoGameOptions = {}) 
 
         const move = botMove(engineState, difficulty, randFn);
         const next = applyMove(engineState, move);
+        playerActionLockRef.current = false;
         play(move.type === 'place' ? 'tap' : 'whoosh');
         setState((prev) =>
           prev.phase !== 'playing' ? prev : { ...prev, engine: next, isBotThinking: false }
@@ -165,6 +167,7 @@ export function useFadingXoGame({ challengeCode }: UseFadingXoGameOptions = {}) 
   const startGame = useCallback(
     (starter: Player, gameIndex: number, difficulty: Difficulty) => {
       clearBotTimeout();
+      playerActionLockRef.current = false;
       const engine = createInitialState(starter);
       setState((prev) => ({
         ...prev,
@@ -229,9 +232,11 @@ export function useFadingXoGame({ challengeCode }: UseFadingXoGameOptions = {}) 
   const playerMove = useCallback(
     (cell: number) => {
       const { phase, engine, isBotThinking, difficulty } = stateRef.current;
+      if (playerActionLockRef.current) return;
       if (phase !== 'playing' || isBotThinking || !difficulty) return;
       if (engine.turn !== PLAYER_MARK || engine.winner) return;
       if (engine.board[cell] !== null) return;
+      playerActionLockRef.current = true;
 
       const move: FadingXoMove = isMovementPhase(engine, PLAYER_MARK)
         ? { type: 'move', from: engine.queues[PLAYER_MARK][0], to: cell }
@@ -242,6 +247,7 @@ export function useFadingXoGame({ challengeCode }: UseFadingXoGameOptions = {}) 
       setState((prev) => (prev.phase !== 'playing' ? prev : { ...prev, engine: next }));
 
       if (next.winner) {
+        playerActionLockRef.current = false;
         finishGame(next);
       } else if (next.turn === BOT_MARK) {
         scheduleBotMove(next, difficulty);

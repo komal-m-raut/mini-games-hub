@@ -17,7 +17,7 @@ interface HowToPlayProps {
  */
 export function HowToPlay({ title, steps }: HowToPlayProps) {
   return (
-    <details className="glass-card how-to-play">
+    <details className="game-rules glass-card how-to-play">
       <summary className="how-to-play-summary font-display text-base sm:text-lg">
         <span>{title}</span>
         <ChevronDown className="how-to-play-chevron w-5 h-5 shrink-0" strokeWidth={1.5} />

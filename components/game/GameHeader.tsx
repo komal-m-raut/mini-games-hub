@@ -1,4 +1,4 @@
-import { GAME_REGISTRY } from '@/lib/gameRegistry';
+import { getGameMeta } from '@/lib/gameRegistry';
 import { GameBackLink } from './GameBackLink';
 
 interface GameHeaderProps {
@@ -17,18 +17,18 @@ interface GameHeaderProps {
  * game differently.
  */
 export function GameHeader({ gameId }: GameHeaderProps) {
-  const game = GAME_REGISTRY.find((g) => g.id === gameId);
+  const game = getGameMeta(gameId);
   if (!game) return null;
 
   return (
-    <header className="mb-6">
+    <header className="game-page-header mb-8 pb-6">
       <div className="mb-4">
         <GameBackLink />
       </div>
 
-      <div className="flex items-center gap-3.5">
+      <div className="flex items-center gap-4">
         <span
-          className="grid place-items-center w-14 h-14 shrink-0 rounded-2xl text-3xl"
+          className="grid place-items-center w-16 h-16 shrink-0 rounded-2xl text-3xl"
           style={{
             background: `color-mix(in srgb, ${game.accent} 18%, rgba(255,255,255,0.03))`,
             border: `1px solid color-mix(in srgb, ${game.accent} 30%, transparent)`,
@@ -38,6 +38,9 @@ export function GameHeader({ gameId }: GameHeaderProps) {
           {game.emoji}
         </span>
         <div className="min-w-0">
+          <p className="font-ui text-2xs uppercase tracking-[0.14em] mb-1" style={{ color: game.accent }}>
+            {game.tagline} · Skill trial
+          </p>
           <h1 className="font-display text-3xl sm:text-4xl leading-tight">
             {game.title}
           </h1>

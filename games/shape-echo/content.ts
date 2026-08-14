@@ -46,7 +46,7 @@ export const CONTENT: GameContent = {
     },
     {
       q: 'Can I play Shape Echo offline, and is it free?',
-      a: "Free to play, no download or signup. It's cached by Tiny Arcadium's installable PWA, so it stays playable offline once you've opened it — leaderboard submissions just need you back online. Personal bests are stored on your device, and an anonymous ID keeps your scores yours across visits.",
+      a: "Free to play, no download or signup. It's cached by Mettle's installable PWA, so it stays playable offline once you've opened it — leaderboard submissions just need you back online. Personal bests are stored on your device, and an anonymous ID keeps your scores yours across visits.",
     },
   ],
   related: ['balloon-match', 'color-match', 'grid-flash', 'block-count'],

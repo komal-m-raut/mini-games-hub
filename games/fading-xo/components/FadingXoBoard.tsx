@@ -11,6 +11,8 @@ interface FadingXoBoardProps {
   interactive: boolean;
   onCellTap: (cell: number) => void;
   markColor: Record<Player, string>;
+  /** Accessible owner labels. Live rooms replace the solo You/Bot copy. */
+  markLabel?: Record<Player, string>;
 }
 
 /**
@@ -21,7 +23,13 @@ interface FadingXoBoardProps {
  * and drops all entrance animation, so a "move" reads as an instant snap
  * rather than a travel.
  */
-export function FadingXoBoard({ engine, interactive, onCellTap, markColor }: FadingXoBoardProps) {
+export function FadingXoBoard({
+  engine,
+  interactive,
+  onCellTap,
+  markColor,
+  markLabel = { X: 'Your', O: "Bot's" },
+}: FadingXoBoardProps) {
   const reducedMotion = useReducedMotion();
   const playerOldest = getOldest(engine, 'X');
   const botOldest = getOldest(engine, 'O');
@@ -32,10 +40,9 @@ export function FadingXoBoard({ engine, interactive, onCellTap, markColor }: Fad
 
   return (
     <div
-      className="grid w-full mx-auto"
-      style={{ gridTemplateColumns: 'repeat(3, 1fr)', gap: 8, maxWidth: 340, aspectRatio: '1 / 1' }}
+      className="ghost-game-board"
       role="group"
-      aria-label="Fading XO board"
+      aria-label="Ghost Grid board"
     >
       {engine.board.map((mark, i) => {
         const isEmpty = mark === null;
@@ -51,23 +58,17 @@ export function FadingXoBoard({ engine, interactive, onCellTap, markColor }: Fad
             disabled={!isDestination}
             aria-label={
               mark
-                ? `${mark === 'X' ? 'Your' : "Bot's"} mark${isGhost ? ', fading — must move next' : ''}`
+                ? `${markLabel[mark]} mark${isGhost ? ', fading — must move next' : ''}`
                 : isDestination
                   ? 'Empty cell, tap to play here'
                   : 'Empty cell'
             }
-            className="relative flex items-center justify-center rounded-2xl select-none disabled:cursor-default"
-            style={{
-              background: isWin ? 'rgba(34,197,94,0.16)' : 'rgba(255,255,255,0.035)',
-              border: isWin ? '1px solid rgba(34,197,94,0.55)' : '1px solid rgba(255,255,255,0.08)',
-              cursor: isDestination ? 'pointer' : 'default',
-            }}
+            className={`ghost-game-cell${isWin ? ' is-win' : ''}${isDestination ? ' is-open' : ''}`}
           >
             {isDestination && movementForPlayer && (
               <span
                 aria-hidden="true"
-                className="absolute w-2.5 h-2.5 rounded-full"
-                style={{ background: markColor.X, opacity: 0.5 }}
+                className="ghost-game-cell__hint"
               />
             )}
 
@@ -81,7 +82,7 @@ export function FadingXoBoard({ engine, interactive, onCellTap, markColor }: Fad
                   isGhost && !reducedMotion ? `font-display ${styles.ghost}` : 'font-display'
                 }
                 style={{
-                  fontSize: 'clamp(2rem, 9vw, 3.25rem)',
+                  fontSize: 'clamp(2.4rem, 10vw, 4rem)',
                   color: markColor[mark],
                   outline: isGhost && reducedMotion ? `2px dashed ${markColor[mark]}` : undefined,
                   outlineOffset: isGhost && reducedMotion ? 3 : undefined,

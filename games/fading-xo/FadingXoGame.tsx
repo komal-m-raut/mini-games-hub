@@ -10,7 +10,8 @@ import { ScoreCard } from '@/components/game/ScoreCard';
 import { SessionSummary } from '@/components/game/SessionSummary';
 import { ChallengeComplete } from '@/components/challenge/ChallengeComplete';
 import { ChallengeIntro } from '@/components/challenge/ChallengeIntro';
-import { challengePath, generateChallengeCode, getDailyChallengeCode } from '@/lib/challenge';
+import { challengePath, getDailyChallengeCode } from '@/lib/challenge';
+import { getPlayerId, getPlayerName } from '@/lib/player';
 import { SoundToggle } from '@/components/ui/SoundToggle';
 import { Difficulty } from '@/types/game';
 import { FadingXoBoard } from './components/FadingXoBoard';
@@ -58,6 +59,29 @@ export function FadingXoGame({ challengeCode }: FadingXoGameProps = {}) {
 
   const router = useRouter();
   const [menuView, setMenuView] = useState<'mode' | 'solo'>('mode');
+  const [isCreatingLive, setIsCreatingLive] = useState(false);
+  const [liveError, setLiveError] = useState('');
+
+  const createLiveRoom = async () => {
+    if (isCreatingLive) return;
+    setIsCreatingLive(true);
+    setLiveError('');
+    const playerId = getPlayerId();
+    const name = getPlayerName() || `Player ${playerId.slice(0, 4).toUpperCase()}`;
+    try {
+      const response = await fetch('/api/duels', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ playerId, name }),
+      });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Could not create a room.');
+      router.push(`/games/fading-xo/live/${data.room.code}`);
+    } catch (reason) {
+      setLiveError(reason instanceof Error ? reason.message : 'Could not create a room.');
+      setIsCreatingLive(false);
+    }
+  };
 
   const backToMenu = () => {
     setMenuView('mode');
@@ -112,13 +136,19 @@ export function FadingXoGame({ challengeCode }: FadingXoGameProps = {}) {
         {state.phase === 'selecting-difficulty' && (
           <motion.div key={`menu-${menuView}`} exit={{ opacity: 0, y: -20 }} className="flex flex-col gap-6 fade-up">
             {menuView === 'mode' ? (
-              <ModeSelector
-                soloHint="Three best-of-three duels"
-                accent="#64748B"
-                onSolo={() => setMenuView('solo')}
-                onDailyChallenge={() => router.push(challengePath(GAME_ID, getDailyChallengeCode()))}
-                onFriendChallenge={() => router.push(challengePath(GAME_ID, generateChallengeCode()))}
-              />
+              <>
+                <ModeSelector
+                  soloHint="One best-of-three duel"
+                  accent="#D7FF64"
+                  onSolo={() => setMenuView('solo')}
+                  onDailyChallenge={() => router.push(challengePath(GAME_ID, getDailyChallengeCode()))}
+                  onFriendChallenge={createLiveRoom}
+                  friendLabel="Live friend room"
+                  friendHint="Play head-to-head on two devices"
+                  friendBusy={isCreatingLive}
+                />
+                {liveError ? <p className="text-sm text-center text-red-400" role="alert">{liveError}</p> : null}
+              </>
             ) : (
               <div className="flex flex-col gap-5">
                 <DifficultySelector options={DIFFICULTY_OPTIONS} onSelect={selectDifficulty} />
@@ -145,14 +175,20 @@ export function FadingXoGame({ challengeCode }: FadingXoGameProps = {}) {
         {state.phase === 'playing' && cfg && (
           <motion.div
             key={`playing-${state.round}-${state.gameIndex}`}
-            className="glass-card flex flex-col items-center gap-5 py-8"
+            className="ghost-game-shell glass-card flex flex-col items-center gap-5 py-8"
             {...card}
           >
-            <div className="flex items-center justify-between w-full px-2">
+            <div className="ghost-game-shell__hud">
               <p className="font-ui text-xs uppercase tracking-widest text-ink-3">
                 Game {state.gameIndex} / {GAMES_PER_ROUND} · {cfg.label}
               </p>
               <MatchPips outcomes={state.outcomes} totalGames={GAMES_PER_ROUND} accent={cfg.color} />
+            </div>
+
+            <div className="ghost-game-players" aria-label="Players">
+              <span className={isPlayerTurn ? 'is-active' : undefined}><strong>X</strong> You</span>
+              <em>vs</em>
+              <span className={!isPlayerTurn ? 'is-active' : undefined}>Mettle <strong>O</strong></span>
             </div>
 
             <FadingXoBoard engine={engine} interactive={interactive} onCellTap={playerMove} markColor={MARK_COLOR} />
@@ -200,7 +236,7 @@ export function FadingXoGame({ challengeCode }: FadingXoGameProps = {}) {
           <motion.div key="session-complete" {...card}>
             <SessionSummary
               emoji="👻"
-              gameName="Fading XO"
+              gameName="Ghost Grid"
               gamePath="/games/fading-xo"
               subtitle={cfg.label}
               accent={cfg.color}

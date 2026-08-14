@@ -35,7 +35,7 @@ export const CONTENT: GameContent = {
     },
     {
       q: 'Can I play Color Match offline?',
-      a: "Color Match is cached by Tiny Arcadium's installable PWA, so it stays playable offline once you've opened it — leaderboard submissions just need you back online.",
+      a: "Color Match is cached by Mettle's installable PWA, so it stays playable offline once you've opened it — leaderboard submissions just need you back online.",
     },
     {
       q: 'What are the controls?',

@@ -18,7 +18,29 @@ export const CATEGORY_META: Record<GameCategory, { label: string; blurb: string 
 
 export const CATEGORY_ORDER = Object.keys(CATEGORY_META) as GameCategory[];
 
-export const GAME_REGISTRY: GameMeta[] = [
+/**
+ * Games retired from the public club. Their routes stay in place for old
+ * shared links, but they no longer appear in discovery, daily rotation,
+ * sitemaps, or related-game lists. This keeps the live roster focused on
+ * mechanics that feel specific to this product instead of commodity clones.
+ */
+const RETIRED_GAME_IDS = new Set([
+  'math-sprint',
+  'tap-frenzy',
+  'grid-flash',
+  'number-recall',
+  'pair-chase',
+  'echo-steps',
+  'bullseye',
+  'type-storm',
+  'rps-arena',
+  'word-quest',
+  '2048',
+  'snake',
+  'minesweeper',
+]);
+
+const ALL_GAMES: GameMeta[] = [
   {
     id: 'balloon-match',
     title: 'Balloon Match',
@@ -291,11 +313,11 @@ export const GAME_REGISTRY: GameMeta[] = [
   },
   {
     id: 'fading-xo',
-    title: 'Fading XO',
+    title: 'Ghost Grid',
     category: 'duel',
     description:
       'A free twist on tic-tac-toe where nothing stays put: your oldest mark fades away and must be moved, so every turn rewrites the board.',
-    tagline: 'Nothing stays',
+    tagline: 'Nothing stays put',
     howTo: 'Play XO where your oldest mark fades each turn — move it and keep three in sight.',
     emoji: '👻',
     accent: '#64748B',
@@ -369,8 +391,14 @@ export const GAME_REGISTRY: GameMeta[] = [
   },
 ];
 
+export const GAME_REGISTRY: GameMeta[] = ALL_GAMES.filter(
+  (game) => !RETIRED_GAME_IDS.has(game.id)
+);
+
 /** Convenience views used by the hub, footer directory, sitemap and quests. */
 export const AVAILABLE_GAMES = () => GAME_REGISTRY.filter((g) => g.isAvailable);
 export const gamesByCategory = (category: GameCategory) =>
   GAME_REGISTRY.filter((g) => g.category === category);
-export const getGameMeta = (id: string) => GAME_REGISTRY.find((g) => g.id === id);
+/** Includes retired titles so an old bookmark can still render a complete
+ * game page while the discovery surfaces stay curated. */
+export const getGameMeta = (id: string) => ALL_GAMES.find((g) => g.id === id);

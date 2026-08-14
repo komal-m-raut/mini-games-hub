@@ -1,5 +1,5 @@
 /**
- * Fading XO — pure bot. A function of (state, difficulty, rand) only, so
+ * Ghost Grid — pure bot. A function of (state, difficulty, rand) only, so
  * every difficulty is deterministic under a seeded `rand` (used for
  * Challenge mode) and reproducible in tests.
  */

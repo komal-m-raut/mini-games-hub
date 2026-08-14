@@ -1,16 +1,16 @@
 import { GameContent } from '@/types/content';
 
 /**
- * Real content for the Fading XO game page — written against
+ * Real content for the Ghost Grid game page — written against
  * `games/fading-xo/engine.ts` (the FIFO queues, the forced-oldest movement
  * rule, the 60-action draw cap) and `games/fading-xo/constants.ts`
  * (`score10`), so every claim below is true of the actual game.
  */
 export const CONTENT: GameContent = {
   intro: [
-    "Fading XO takes ordinary tic-tac-toe and removes the one thing that makes it a solved game: permanence. You and the bot alternate placing three marks each exactly like the classic game — three in a row during this opening phase wins outright, same as always. But once both sides have placed all three, the board stops holding still. From then on, every turn you don't win with, you're forced to pick up your oldest mark and teleport it to any empty cell, where it becomes your newest. Your opponent does the same with theirs. The board never fills up and never gets stale — it just keeps recycling, three marks a side, forever, until someone lines up three in a row or the game hits its action cap.",
+    "Ghost Grid takes ordinary tic-tac-toe and removes the one thing that makes it a solved game: permanence. You and the bot alternate placing three marks each exactly like the classic game — three in a row during this opening phase wins outright, same as always. But once both sides have placed all three, the board stops holding still. From then on, every turn you don't win with, you're forced to pick up your oldest mark and teleport it to any empty cell, where it becomes your newest. Your opponent does the same with theirs. The board never fills up and never gets stale — it just keeps recycling, three marks a side, forever, until someone lines up three in a row or the game hits its action cap.",
     "That single rule — oldest mark moves, no exceptions, no choosing which piece to sacrifice — is what gives the game its whole character. Every line you build is temporary: the moment you complete two in a row, the clock is already running on how long you get to keep it, because eventually that piece becomes the one you're forced to move away. Both players' current oldest mark renders faded on the board with a soft shimmer, so you always know — for both sides — exactly which piece is about to fade next. There's no hidden information here, just a puzzle of timing.",
-    'Play is best-of-three against a bot: three quick games at one difficulty make up a round, and your round score out of 10 comes from that record — a win is worth 10 points, a draw 5, a loss 0, averaged over the three games. Solo mode runs three rounds at a difficulty you pick; Daily and Friend Challenges run one round each against an easy, a medium and a hard bot in turn, with every player facing bots that make the identical sequence of moves on a given code.',
+    'Play is best-of-three against a bot: three quick games at one difficulty make up a round, and your round score out of 10 comes from that record — a win is worth 10 points, a draw 5, a loss 0, averaged over the three games. A solo warm-up is one round at the difficulty you pick. Daily and Friend Challenges add an easy, medium and hard round into one shared 30-point ladder, with every player facing the same seeded bot decisions.',
   ],
   tips: [
     "Count both ghost clocks, not just yours. The bot's oldest mark fades on your screen exactly like yours does — track which of its pieces is about to be forced to move, because that tells you which of its lines is about to lose a piece for free.",
@@ -35,7 +35,7 @@ export const CONTENT: GameContent = {
     },
     {
       q: 'How is my round score calculated?',
-      a: 'Each round is a best-of-three match against one bot difficulty: a win scores 10, a draw scores 5, a loss scores 0, averaged over all three games and rounded to 2 decimal places. Solo runs three rounds at your chosen difficulty for up to 30 points; Daily and Friend Challenges run one round each against an easy, medium and hard bot for the same 30-point maximum.',
+      a: 'Each round is a best-of-three match against one bot difficulty: a win scores 10, a draw scores 5, a loss scores 0, averaged over all three games and rounded to 2 decimal places. A solo warm-up is one round for up to 10 points. Daily and Friend Challenges run an easy, medium and hard round for a 30-point maximum.',
     },
     {
       q: "What happens if neither side ever completes a line?",
@@ -46,7 +46,7 @@ export const CONTENT: GameContent = {
       a: "The Daily Challenge is three rounds — one against an easy bot, one medium, one hard — generated from a code that changes at midnight UTC and shared by every player, so everyone's bots make the exact same sequence of moves until the next day's code takes over.",
     },
     {
-      q: 'Is Fading XO free, and do I need an account?',
+      q: 'Is Ghost Grid free, and do I need an account?',
       a: 'Completely free, with no download or signup. An anonymous ID stored on your device keeps your scores and leaderboard entries yours across visits without collecting anything personal.',
     },
   ],

@@ -34,7 +34,7 @@ export const CONTENT: GameContent = {
     },
     {
       q: 'Can I play Perfect Pour offline?',
-      a: "Perfect Pour is cached by Tiny Arcadium's installable PWA, so once you've loaded it once you can keep playing solo rounds offline; you'll need a connection again to submit a leaderboard score.",
+      a: "Perfect Pour is cached by Mettle's installable PWA, so once you've loaded it once you can keep playing solo rounds offline; you'll need a connection again to submit a leaderboard score.",
     },
     {
       q: 'What are the controls?',

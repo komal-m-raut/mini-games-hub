@@ -440,12 +440,9 @@ describe('getSnakeChallengeRounds', () => {
 });
 
 describe('GAME_ID and registry', () => {
-  it('matches a real, green-accented arcade entry in the game registry', () => {
+  it('keeps the legacy engine addressable without publishing the clone', () => {
     expect(GAME_ID).toBe('snake');
     const entry = GAME_REGISTRY.find((g) => g.id === GAME_ID);
-    expect(entry).toBeDefined();
-    expect(entry?.accent).toBe('#4ADE80');
-    expect(entry?.category).toBe('arcade');
-    expect(entry?.emoji).toBe('🐍');
+    expect(entry).toBeUndefined();
   });
 });

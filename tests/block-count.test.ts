@@ -84,17 +84,22 @@ describe('makeSweep', () => {
         const cfg = BLOCK_DIFFICULTY[difficulty];
         const sweep = makeSweep(difficulty, rand);
         const redBlocks = sweep.blocks.filter((b) => b.isTarget);
+        const decoyBlocks = sweep.blocks.filter((b) => !b.isTarget);
 
-        expect(redBlocks.length).toBe(sweep.actualCount);
-        expect(sweep.actualCount).toBeGreaterThanOrEqual(cfg.minRed);
-        expect(sweep.actualCount).toBeLessThanOrEqual(cfg.maxRed);
-
-        // Every target is drawn in the target red; every decoy is drawn
-        // from that difficulty's decoy palette, never the target red.
-        for (const block of redBlocks) expect(block.color).toBe(TARGET_COLOR);
-        for (const block of sweep.blocks.filter((b) => !b.isTarget)) {
-          expect(cfg.decoyColors).toContain(block.color);
-        }
+        // Aggregate this stress assertion so the test validates all generated
+        // blocks without paying the matcher cost once per block.
+        expect({
+          redCountMatches: redBlocks.length === sweep.actualCount,
+          redCountInRange:
+            sweep.actualCount >= cfg.minRed && sweep.actualCount <= cfg.maxRed,
+          targetColorsValid: redBlocks.every((block) => block.color === TARGET_COLOR),
+          decoyColorsValid: decoyBlocks.every((block) => cfg.decoyColors.includes(block.color)),
+        }).toEqual({
+          redCountMatches: true,
+          redCountInRange: true,
+          targetColorsValid: true,
+          decoyColorsValid: true,
+        });
       }
     }
   });

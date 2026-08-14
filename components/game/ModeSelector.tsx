@@ -1,82 +1,63 @@
 'use client';
 
-import { CalendarDays, Play, Swords } from 'lucide-react';
-import { NeonButton } from '@/components/ui/NeonButton';
+import { ArrowRight, CalendarDays, Play, Swords } from 'lucide-react';
 
 interface ModeSelectorProps {
   accent?: string;
-  /**
-   * Tooltip/aria hint on the solo button. The default matches the classic
-   * 5-round session; games with a different solo format (30-second sprints,
-   * ladder rounds, endless runs) pass their own so the hint never lies.
-   */
   soloHint?: string;
   onSolo: () => void;
   onDailyChallenge: () => void;
   onFriendChallenge: () => void;
+  friendLabel?: string;
+  friendHint?: string;
+  friendBusy?: boolean;
 }
 
 export function ModeSelector({
-  accent = '#06B6D4',
+  accent = '#D7FF64',
   soloHint = 'Five rounds at your own pace',
   onSolo,
   onDailyChallenge,
   onFriendChallenge,
+  friendLabel = 'Friend room',
+  friendHint = 'One link, one private board',
+  friendBusy = false,
 }: ModeSelectorProps) {
-  // All three sit on one compact row. Solo still carries the accent fill, so
-  // there's an obvious way in without it taking a full-width block of its
-  // own — the descriptions moved out because at this size they wrapped to
-  // three lines each and were the reason the row needed so much height.
-  const modes = [
-    {
-      icon: <Play strokeWidth={2.5} fill="currentColor" />,
-      label: 'Play solo',
-      hint: soloHint,
-      primary: true,
-      tone: '#8B5CF6',
-      onClick: onSolo,
-    },
-    {
-      icon: <CalendarDays strokeWidth={2} />,
-      label: "Today's Challenge",
-      hint: 'The same rounds for everyone today',
-      primary: false,
-      tone: '#06B6D4',
-      onClick: onDailyChallenge,
-    },
-    {
-      icon: <Swords strokeWidth={2} />,
-      label: 'Challenge a friend',
-      hint: 'Share a link and compare scores',
-      primary: false,
-      tone: accent,
-      onClick: onFriendChallenge,
-    },
-  ];
-
   return (
-    <div className="flex flex-col gap-3.5">
-      <h2 className="font-display text-2xl text-center">Ready to play?</h2>
+    <section className="mode-dock" style={{ '--mode-accent': accent } as React.CSSProperties}>
+      <header>
+        <p>Choose a way to play</p>
+        <h2>Ready when you are.</h2>
+      </header>
 
-      {/* Full-width and stacked in the thumb zone below `sm`; the same
-          compact pill row once there's room to fit all three side by side. */}
-      <div className="flex flex-col sm:flex-row sm:flex-wrap sm:justify-center gap-2.5 sm:gap-2 w-full sm:max-w-none max-w-sm mx-auto">
-        {modes.map(({ icon, label, hint, primary, tone, onClick }) => (
-          <NeonButton
-            key={label}
-            onClick={onClick}
-            title={hint}
-            aria-label={`${label} — ${hint}`}
-            variant={primary ? 'primary' : 'secondary'}
-            accent={tone}
-            pill
-            className="w-full sm:w-auto justify-center"
-          >
-            {icon}
-            <span>{label}</span>
-          </NeonButton>
-        ))}
+      <div className="mode-dock__grid">
+        <button type="button" onClick={onSolo} className="mode-card mode-card--primary">
+          <span className="mode-card__icon"><Play fill="currentColor" aria-hidden="true" /></span>
+          <span className="mode-card__copy">
+            <strong>Warm-up run</strong>
+            <small>{soloHint}</small>
+          </span>
+          <ArrowRight className="mode-card__arrow" aria-hidden="true" />
+        </button>
+
+        <button type="button" onClick={onDailyChallenge} className="mode-card">
+          <span className="mode-card__icon"><CalendarDays aria-hidden="true" /></span>
+          <span className="mode-card__copy">
+            <strong>Today&apos;s run</strong>
+            <small>One shared board worldwide</small>
+          </span>
+          <ArrowRight className="mode-card__arrow" aria-hidden="true" />
+        </button>
+
+        <button type="button" onClick={onFriendChallenge} className="mode-card" disabled={friendBusy}>
+          <span className="mode-card__icon"><Swords aria-hidden="true" /></span>
+          <span className="mode-card__copy">
+            <strong>{friendBusy ? 'Opening room…' : friendLabel}</strong>
+            <small>{friendHint}</small>
+          </span>
+          <ArrowRight className="mode-card__arrow" aria-hidden="true" />
+        </button>
       </div>
-    </div>
+    </section>
   );
 }

@@ -44,7 +44,8 @@ export function SessionSummary({
 }: SessionSummaryProps) {
   const total = round2(roundScores.reduce((a, b) => a + b, 0));
   const max = roundScores.length * MAX_ROUND_SCORE;
-  const [copied, setCopied] = useState(false);
+  const [shareState, setShareState] = useState<'idle' | 'copied' | 'error'>('idle');
+  const shareResetRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Feeds the meta layer (XP/streak/quests/achievements) exactly once per
   // completed session — a ref guard because this effect's own dependencies
@@ -67,6 +68,10 @@ export function SessionSummary({
     );
   }, [gamePath, roundScores, total, max, isNewBest]);
 
+  useEffect(() => () => {
+    if (shareResetRef.current) clearTimeout(shareResetRef.current);
+  }, []);
+
   const share = async () => {
     const text = buildSessionShare({
       emoji,
@@ -79,18 +84,25 @@ export function SessionSummary({
     if (navigator.share) {
       try {
         await navigator.share({ text });
+        setShareState('copied');
+        shareResetRef.current = setTimeout(() => setShareState('idle'), 2000);
         return;
       } catch {
         // Sheet dismissed — fall through to clipboard
       }
     }
-    await navigator.clipboard.writeText(text);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    try {
+      await navigator.clipboard.writeText(text);
+      setShareState('copied');
+    } catch {
+      setShareState('error');
+    }
+    if (shareResetRef.current) clearTimeout(shareResetRef.current);
+    shareResetRef.current = setTimeout(() => setShareState('idle'), 2000);
   };
 
   return (
-    <div className="glass-card flex flex-col items-center gap-6 py-10 px-6">
+    <div className="session-finish glass-card flex flex-col items-center gap-6 py-10 px-6">
       {(isNewBest || total >= max * 0.7) && <ConfettiEffect trigger preset="perfect" />}
       <RewardToast outcome={outcome} />
 
@@ -149,12 +161,12 @@ export function SessionSummary({
         onClick={share}
         className="btn btn-sm btn-secondary" style={{ '--btn-accent': '#22D3EE' } as React.CSSProperties}
       >
-        {copied ? (
+        {shareState === 'copied' ? (
           <Check className="w-3.5 h-3.5 text-green-400" strokeWidth={1.5} />
         ) : (
           <Share2 strokeWidth={1.5} />
         )}
-        {copied ? 'Copied!' : 'Share result'}
+        {shareState === 'copied' ? 'Copied!' : shareState === 'error' ? 'Copy failed' : 'Share result'}
       </button>
 
       {/* Play Again leads and goes full-width in the thumb zone on mobile;

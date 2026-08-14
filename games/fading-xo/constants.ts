@@ -10,9 +10,9 @@ export const GAME_ID = 'fading-xo';
 export const PLAYER_MARK: Player = 'X';
 export const BOT_MARK: Player = 'O';
 
-/** Solo mode plays 3 rounds, each a best-of-3 match against the chosen bot
- *  difficulty (mirrors Challenge mode's 3 seeded rounds). */
-export const TOTAL_ROUNDS = 3;
+/** Solo is one complete best-of-three duel. Friend and Daily Challenges keep
+ *  the shared three-round ladder, but a warm-up should never feel padded. */
+export const TOTAL_ROUNDS = 1;
 
 /** Every round is a fixed best-of-3 — all 3 games are always played out
  *  (never stopped early at 2 wins), since the round score is an average
@@ -23,8 +23,8 @@ export const GAMES_PER_ROUND = 3;
  *  doesn't move instantly. Driven by the same `rand` passed to `botMove` —
  *  seeded in Challenge mode, `Math.random` in solo — so Challenge think
  *  times replay identically for everyone on a given code. */
-export const BOT_THINK_MIN_MS = 500;
-export const BOT_THINK_MAX_MS = 900;
+export const BOT_THINK_MIN_MS = 280;
+export const BOT_THINK_MAX_MS = 520;
 
 export interface FadingXoDifficultyConfig {
   label: string;

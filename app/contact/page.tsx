@@ -4,12 +4,12 @@ import Link from 'next/link';
 export const metadata: Metadata = {
   title: 'Contact',
   description:
-    'Contact Tiny Arcadium — bug reports, feedback, and business enquiries. One email address, a real person reads it.',
+    'Contact Mettle — bug reports, feedback, and business enquiries. One email address, a real person reads it.',
   alternates: { canonical: '/contact' },
   openGraph: {
     title: 'Contact',
     description:
-      'Contact Tiny Arcadium — bug reports, feedback, and business enquiries. One email address, a real person reads it.',
+      'Contact Mettle — bug reports, feedback, and business enquiries. One email address, a real person reads it.',
     url: '/contact',
   },
 };
@@ -70,7 +70,7 @@ export default function ContactPage() {
           <section>
             <h2 className="font-display text-xl mb-3">Response time</h2>
             <p>
-              Tiny Arcadium is a small, independently-run site, so replies aren&rsquo;t instant —
+              Mettle is a small, independently-run site, so replies aren&rsquo;t instant —
               expect a few days, longer around a busy release. Every message does get read.
             </p>
           </section>

@@ -1,8 +1,8 @@
 import { Difficulty } from '@/types/game';
 
-export const SITE_NAME = 'Tiny Arcadium';
+export const SITE_NAME = 'Mettle';
 export const SITE_DESCRIPTION =
-  'Free browser games — memory, precision, and reflex challenges you can play instantly. No download, no signup.';
+  'A curated club of original browser skill games, daily runs, and private friend leaderboards. No download or signup.';
 
 // Canonical origin for SEO (sitemap, canonical URLs, OG). Set
 // NEXT_PUBLIC_SITE_URL to the real domain in production; falls back to the

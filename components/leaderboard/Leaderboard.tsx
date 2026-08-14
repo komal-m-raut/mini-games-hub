@@ -106,7 +106,7 @@ export function Leaderboard({ gameId, title = 'Leaderboard' }: LeaderboardProps)
   }, [hasMore, loadMore, entries?.length]);
 
   return (
-    <section id="leaderboard" className="glass-card p-0 overflow-hidden">
+    <section id="leaderboard" className="club-leaderboard glass-card p-0 overflow-hidden">
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 px-4 sm:px-5 pt-4 pb-3">
         <div className="flex items-center gap-2 min-w-0">

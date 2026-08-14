@@ -1,4 +1,4 @@
-// Tiny Arcadium service worker — offline-first shell caching.
+// Mettle service worker — offline-first shell caching.
 // CACHE_VERSION MUST be bumped on every deploy that changes any cached
 // asset (pages, styles, scripts) — otherwise clients keep serving stale
 // content indefinitely, since nothing else invalidates the cache.

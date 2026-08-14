@@ -1,5 +1,5 @@
 /**
- * Fading XO's one bit of bespoke CSS: the shimmer on whichever mark is
+ * Ghost Grid's one bit of bespoke CSS: the shimmer on whichever mark is
  * about to be forced to move. Everything else in the game reaches for
  * Tailwind utilities / inline styles, matching the rest of the app — this
  * lives in its own module (rather than `app/globals.css`, which games never

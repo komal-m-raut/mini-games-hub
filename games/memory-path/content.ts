@@ -35,7 +35,7 @@ export const CONTENT: GameContent = {
     },
     {
       q: 'Can I play Memory Path offline?',
-      a: "Memory Path is one of the games cached by Tiny Arcadium's installable PWA, so it keeps working offline once you've loaded it — you'll just need a connection again to post a score to the leaderboard.",
+      a: "Memory Path is one of the games cached by Mettle's installable PWA, so it keeps working offline once you've loaded it — you'll just need a connection again to post a score to the leaderboard.",
     },
     {
       q: 'What are the controls?',

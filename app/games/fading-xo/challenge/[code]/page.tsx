@@ -11,12 +11,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const description =
     "You've been challenged! Face the same easy, medium and hard bots as your friends and climb the shared leaderboard.";
   return {
-    title: `${challengeLabel(code)} · Fading XO`,
+    title: `${challengeLabel(code)} · Ghost Grid`,
     description,
     // Unbounded unique URLs — keep out of search indexes, but OG stays
     // so shared invite links unfurl nicely in chats.
     robots: { index: false, follow: false },
-    openGraph: { title: `${challengeLabel(code)} · Fading XO`, description },
+    openGraph: { title: `${challengeLabel(code)} · Ghost Grid`, description },
   };
 }
 

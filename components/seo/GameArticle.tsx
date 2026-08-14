@@ -1,67 +1,73 @@
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, Compass, Lightbulb } from 'lucide-react';
 import { getGameMeta } from '@/lib/gameRegistry';
 import { GameContent } from '@/types/content';
 import { RelatedGames } from './RelatedGames';
 
 interface GameArticleProps {
-  /** Registry id, e.g. "timing-tap". */
   gameId: string;
-  /**
-   * The game's own content module (games/<id>/content.ts), passed by the
-   * page rather than looked up from a central map here — every game page
-   * already imports its CONTENT for buildGameJsonLd, and a shared registry
-   * in this file would be the one merge point 21 parallel game builds
-   * would all have to edit.
-   */
   content: GameContent;
 }
 
 /**
- * The SEO/content article every game page renders between How to Play and
- * the Leaderboard: About / Tips / FAQ / More games like this. A server
- * component — none of this needs interactivity beyond the native
- * `<details>` the FAQ already gets for free.
+ * Long-form strategy stays server-rendered and indexable, but it no longer
+ * pushes the leaderboard several screens below the game. Players can open
+ * one calm field guide when they want depth; everyone else keeps moving.
  */
 export function GameArticle({ gameId, content }: GameArticleProps) {
   const meta = getGameMeta(gameId);
   if (!meta) return null;
 
   return (
-    <div className="flex flex-col gap-6">
-      <section className="glass-card">
-        <h2 className="font-display text-xl mb-3">About {meta.title}</h2>
-        <div className="space-y-3 text-ink-2 leading-relaxed">
-          {content.intro.map((paragraph, i) => (
-            <p key={i}>{paragraph}</p>
-          ))}
+    <section className="game-field-guide">
+      <div className="game-field-guide__head">
+        <div>
+          <p>Field guide</p>
+          <h2>Master {meta.title}</h2>
         </div>
-      </section>
+        <span>{content.tips.length} strategy notes · {content.faq.length} answers</span>
+      </div>
 
-      <section className="glass-card">
-        <h2 className="font-display text-xl mb-3">Tips to score higher</h2>
-        <ul className="list-disc list-inside space-y-2 marker:text-ink-4 text-ink-2 leading-relaxed">
-          {content.tips.map((tip, i) => (
-            <li key={i}>{tip}</li>
-          ))}
-        </ul>
-      </section>
+      <details className="game-field-guide__details">
+        <summary>
+          <span><Compass aria-hidden="true" /> Open strategy guide</span>
+          <ChevronDown aria-hidden="true" />
+        </summary>
 
-      <section className="flex flex-col gap-3">
-        <h2 className="font-display text-xl">FAQ</h2>
-        {content.faq.map((entry, i) => (
-          <details key={i} className="glass-card how-to-play">
-            <summary className="how-to-play-summary font-display text-base">
-              <span>{entry.q}</span>
-              <ChevronDown className="how-to-play-chevron w-5 h-5 shrink-0" strokeWidth={1.5} />
-            </summary>
-            <p className="mt-4 pt-4 border-t border-white/[0.07] text-ink-2 leading-relaxed">
-              {entry.a}
-            </p>
-          </details>
-        ))}
-      </section>
+        <div className="game-field-guide__body">
+          <article>
+            <h3>How it works</h3>
+            <div>
+              {content.intro.map((paragraph, index) => <p key={index}>{paragraph}</p>)}
+            </div>
+          </article>
+
+          <article>
+            <h3><Lightbulb aria-hidden="true" /> Play smarter</h3>
+            <ol>
+              {content.tips.map((tip, index) => (
+                <li key={index}><span>{String(index + 1).padStart(2, '0')}</span>{tip}</li>
+              ))}
+            </ol>
+          </article>
+
+          <article>
+            <h3>Common questions</h3>
+            <div className="game-field-guide__faq">
+              {content.faq.map((entry, index) => (
+                <details key={index}>
+                  <summary>
+                    <span>{entry.q}</span>
+                    <ChevronDown aria-hidden="true" />
+                  </summary>
+                  <p>{entry.a}</p>
+                </details>
+              ))}
+            </div>
+          </article>
+        </div>
+      </details>
 
       <RelatedGames ids={content.related} />
-    </div>
+    </section>
   );
 }

@@ -1,4 +1,4 @@
-# Tiny Arcadium — design system
+# Mettle — design system
 
 Every token lives in the `@theme` block at the top of `app/globals.css`.
 That file is the source of truth; this page explains which token to reach for.

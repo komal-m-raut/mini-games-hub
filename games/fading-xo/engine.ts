@@ -1,5 +1,5 @@
 /**
- * Fading XO — pure game engine. No React, no timers, no randomness: every
+ * Ghost Grid — pure game engine. No React, no timers, no randomness: every
  * function here is a deterministic function of its inputs, so the whole
  * ruleset is unit-testable in plain Node and reusable by both the bot
  * (games/fading-xo/bot.ts) and the UI hook.
@@ -64,7 +64,7 @@ export function opponentOf(player: Player): Player {
 }
 
 /** Fresh 9-cell empty board and empty queues. `starter` decides who acts
- *  first (Fading XO alternates who opens each best-of-3 game). */
+ *  first (Ghost Grid alternates who opens each best-of-3 game). */
 export function createInitialState(starter: Player = 'X'): FadingXoState {
   return {
     board: new Array(9).fill(null),

@@ -140,12 +140,14 @@ describe('getFrenzyChallengeRounds', () => {
         const { x: marginX, y: marginY } = safeFractionMargins(
           TAP_FRENZY_DIFFICULTY[round.difficulty].radius
         );
-        for (const spawn of round.positions) {
-          expect(spawn.x).toBeGreaterThanOrEqual(marginX);
-          expect(spawn.x).toBeLessThanOrEqual(1 - marginX);
-          expect(spawn.y).toBeGreaterThanOrEqual(marginY);
-          expect(spawn.y).toBeLessThanOrEqual(1 - marginY);
-        }
+        const invalid = round.positions.find(
+          (spawn) =>
+            spawn.x < marginX ||
+            spawn.x > 1 - marginX ||
+            spawn.y < marginY ||
+            spawn.y > 1 - marginY
+        );
+        expect(invalid).toBeUndefined();
       }
     }
   });

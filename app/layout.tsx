@@ -1,12 +1,11 @@
 import type { Metadata, Viewport } from 'next';
 import { Analytics } from '@vercel/analytics/next';
 import Script from 'next/script';
-import { Space_Grotesk, Inter, JetBrains_Mono } from 'next/font/google';
+import { Bricolage_Grotesque, DM_Sans, JetBrains_Mono } from 'next/font/google';
 import { Navigation } from '@/components/layout/Navigation';
 import { BottomTabBar } from '@/components/layout/BottomTabBar';
 import { Footer } from '@/components/layout/Footer';
 import { RouteFocusManager } from '@/components/layout/RouteFocusManager';
-import { ParticleBackground } from '@/components/ui/ParticleBackground';
 import { MotionProvider } from '@/components/ui/MotionProvider';
 import { ServiceWorkerRegister } from '@/components/pwa/ServiceWorkerRegister';
 import { SITE_URL, SITE_NAME, SITE_DESCRIPTION } from '@/lib/constants';
@@ -26,17 +25,17 @@ import './globals.css';
  * Both are on the same geometric-humanist axis, so they sit together without
  * one looking borrowed.
  */
-const spaceGrotesk = Space_Grotesk({
+const displayFont = Bricolage_Grotesque({
   subsets: ['latin'],
-  weight: ['500', '600', '700'],
-  variable: '--font-space',
+  weight: ['500', '600', '700', '800'],
+  variable: '--font-display-face',
   display: 'swap',
 });
 
-const inter = Inter({
+const bodyFont = DM_Sans({
   subsets: ['latin'],
-  weight: ['400', '500', '600'],
-  variable: '--font-inter',
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-body-face',
   display: 'swap',
 });
 
@@ -50,11 +49,11 @@ const jetbrainsMono = JetBrains_Mono({
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: 'Tiny Arcadium — Free Mini Games You Can Play Instantly',
-    template: '%s · Tiny Arcadium',
+    default: 'Mettle — Small Games. Real Bragging Rights.',
+    template: '%s · Mettle',
   },
   description:
-    'Play free browser games instantly — no download, no signup. Tiny Arcadium is a growing arcade of quick memory, precision, reflex, puzzle and word games, with daily quests and streaks to keep you sharp.',
+    'Play original browser skill games, take on the daily run, and challenge friends through private shareable leaderboards. No account or download.',
   keywords: [
     'free online games',
     'browser games no download',
@@ -74,25 +73,25 @@ export const metadata: Metadata = {
   ],
   alternates: { canonical: '/' },
   openGraph: {
-    siteName: 'Tiny Arcadium',
-    title: 'Tiny Arcadium — Free Mini Games You Can Play Instantly',
+    siteName: 'Mettle',
+    title: 'Mettle — Small Games. Real Bragging Rights.',
     description:
-      'A growing arcade of free browser games — memory, precision, reflex, puzzle and word challenges you can play instantly. No download, no signup.',
+      'Original quick skill games, daily runs, and private friend leaderboards. Play instantly with no account or download.',
     type: 'website',
     url: '/',
-    images: [{ url: '/og.png', width: 1200, height: 630, alt: 'Tiny Arcadium' }],
+    images: [{ url: '/og.png', width: 1200, height: 630, alt: 'Mettle games club' }],
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Tiny Arcadium — Free Mini Games You Can Play Instantly',
+    title: 'Mettle — Small Games. Real Bragging Rights.',
     description:
-      'A growing arcade of free browser games — memory, precision, reflex, puzzle and word challenges you can play instantly. No download, no signup.',
+      'Original quick skill games, daily runs, and private friend leaderboards. Play instantly.',
     images: ['/og.png'],
   },
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
-    title: 'Tiny Arcadium',
+    title: 'Mettle',
   },
   icons: {
     icon: [
@@ -106,7 +105,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
-  themeColor: '#0F0F23',
+  themeColor: '#111815',
   // Lets the page paint under the notch/status bar/home indicator in
   // installed standalone PWA mode (paired with `appleWebApp.statusBarStyle:
   // 'black-translucent'` above); content clears those areas via the
@@ -132,11 +131,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html
       lang="en"
       data-scroll-behavior="smooth"
-      className={`${spaceGrotesk.variable} ${inter.variable} ${jetbrainsMono.variable}`}
+      className={`${displayFont.variable} ${bodyFont.variable} ${jetbrainsMono.variable}`}
     >
       <head>
         {/* Site-wide structured data so search engines understand what
-            Tiny Arcadium is beyond the page copy. */}
+            Mettle is beyond the page copy. */}
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, '\\u003c') }}
@@ -150,7 +149,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           />
         )}
       </head>
-      <body className="scanlines">
+      <body>
         <a
           href="#main-content"
           className="sr-only focus:not-sr-only focus:fixed focus:top-3 focus:left-3 focus:z-[100] focus:rounded-lg focus:bg-brand-purple focus:px-4 focus:py-2 focus:text-white focus:outline-none focus-visible:outline-2 focus-visible:outline-white"
@@ -160,7 +159,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <MotionProvider>
           <ServiceWorkerRegister />
           <RouteFocusManager />
-          <ParticleBackground count={18} />
           <Navigation />
           <BottomTabBar />
           <main

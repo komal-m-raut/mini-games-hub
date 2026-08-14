@@ -35,7 +35,7 @@ export const CONTENT: GameContent = {
     },
     {
       q: 'Can I play Timing Tap offline?',
-      a: "Timing Tap is cached by Tiny Arcadium's installable PWA, so it keeps working offline once you've loaded it before — you'll need a connection again to submit a leaderboard score.",
+      a: "Timing Tap is cached by Mettle's installable PWA, so it keeps working offline once you've loaded it before — you'll need a connection again to submit a leaderboard score.",
     },
     {
       q: 'What are the controls?',
